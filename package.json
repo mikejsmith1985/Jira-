@@ -1,0 +1,32 @@
+{
+  "name": "jira-plus",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A minimally invasive layer over Jira where every number shows its work",
+  "license": "MIT",
+  "workspaces": [
+    "packages/core",
+    "packages/server",
+    "packages/client"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "npm run dev --workspace @jira-plus/server",
+    "build": "npm run build --workspace @jira-plus/core && npm run build --workspace @jira-plus/client",
+    "test": "vitest run --project core --project client",
+    "test:contract": "vitest run --project server",
+    "test:watch": "vitest",
+    "lint": "eslint .",
+    "typecheck": "tsc --build packages/core packages/client"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/node": "^22.10.0",
+    "eslint": "^9.17.0",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.0",
+    "vitest": "^3.2.0"
+  }
+}

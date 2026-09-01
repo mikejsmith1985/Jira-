@@ -1,0 +1,19 @@
+{
+  "name": "@jira-plus/server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Express host that injects the Jira credential server-side so the browser never holds it",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "compression": "^1.7.5",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "supertest": "^7.0.0"
+  }
+}
