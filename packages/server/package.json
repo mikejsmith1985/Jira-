@@ -7,13 +7,16 @@
   "scripts": {
     "dev": "node server.js",
     "start": "node server.js",
-    "test": "vitest run"
+    "test": "vitest run",
+    "pretest": "npm run build --workspace @jira-plus/core"
   },
   "dependencies": {
     "compression": "^1.7.5",
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "@jira-plus/core": "*"
   },
   "devDependencies": {
     "supertest": "^7.0.0"
-  }
+  },
+  "type": "module"
 }

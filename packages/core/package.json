@@ -4,13 +4,20 @@
   "private": true,
   "description": "Every rule in Jira+, compiled once for both the browser and Node so no rule is ever ported twice",
   "type": "module",
-  "main": "./src/index.ts",
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.js",
   "exports": {
-    ".": "./src/index.ts",
-    "./*": "./src/*.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc --build",
+    "clean": "tsc --build --clean",
     "test": "vitest run"
   }
 }

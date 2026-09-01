@@ -48,13 +48,13 @@ Three npm workspaces per plan.md: `packages/core` (rules, runs in browser **and*
 
 ### The server, lifted and stripped
 
-- [ ] T009 Port the credential-injecting proxy from NodeToolbox `src/routes/proxy.js` into `packages/server/routes/jiraProxy.js`, keeping only the Jira branch and deleting the ServiceNow and GitHub branches
-- [ ] T010 [P] Port `src/config/loader.js` into `packages/server/config/loader.js`, reduced to Jira base URL, personal access token and `sslVerify`, stored under the user profile directory
-- [ ] T011 [P] Port `src/utils/httpClient.js` into `packages/server/utils/httpClient.js`, retaining corporate TLS-inspection tolerance
-- [ ] T012 [P] Port `src/services/jiraWriteJournal.js` into `packages/server/services/writeJournal.js`, append-only and capped, with request bodies excluded
-- [ ] T013 Create `packages/server/server.js` mounting the proxy, serving the built client, and exposing `GET /api/health`
-- [ ] T014 [P] Write failing test `packages/server/test/proxy.test.js` asserting the token is injected server-side and never appears in any response body
-- [ ] T014A Write failing test `packages/server/test/journalCoverage.test.js` asserting every mutating request reaching Jira is recorded — enumerate the proxy's write verbs and assert a journal entry for each, so SC-010's "no unlogged writes" is proved rather than assumed
+- [X] T009 Port the credential-injecting proxy from NodeToolbox `src/routes/proxy.js` into `packages/server/routes/jiraProxy.js`, keeping only the Jira branch and deleting the ServiceNow and GitHub branches
+- [X] T010 [P] Port `src/config/loader.js` into `packages/server/config/loader.js`, reduced to Jira base URL, personal access token and `sslVerify`, stored under the user profile directory
+- [X] T011 [P] Port `src/utils/httpClient.js` into `packages/server/utils/httpClient.js`, retaining corporate TLS-inspection tolerance
+- [X] T012 [P] Port `src/services/jiraWriteJournal.js` into `packages/server/services/writeJournal.js`, append-only and capped, with request bodies excluded
+- [X] T013 Create `packages/server/server.js` mounting the proxy, serving the built client, and exposing `GET /api/health`
+- [X] T014 [P] Write failing test `packages/server/test/proxy.test.js` asserting the token is injected server-side and never appears in any response body
+- [X] T014A Write failing test `packages/server/test/journalCoverage.test.js` asserting every mutating request reaching Jira is recorded — enumerate the proxy's write verbs and assert a journal entry for each, so SC-010's "no unlogged writes" is proved rather than assumed
 - [ ] T014B [P] Create the fixture recording script `packages/server/test/fixtures/record.js`, committed and re-runnable, stamping each capture with its date and source instance per Article V
 
 ### Core model
@@ -68,23 +68,23 @@ Three npm workspaces per plan.md: `packages/core` (rules, runs in browser **and*
 
 - [X] T019 Write failing test `packages/core/test/measure.test.ts` covering all six constructor invariants from contracts/measurement-and-checks.md §1, especially that an empty population returns `not-applicable` and never `measured`
 - [X] T020 Implement `Measure`, `EvaluabilityBlocker`, `MeasureProvenance` and the `measure()` constructor in `packages/core/src/measure/measure.ts`, with no publicly constructible variant and no `count` field
-- [ ] T021 [P] Write failing test `packages/core/test/measureInvariants.test.ts` asserting `flaggedKeys ⊆ eligibleKeys ⊆ issueSet.byKey` across generated fixtures
+- [X] T021 [P] Write failing test `packages/core/test/measureInvariants.test.ts` asserting `flaggedKeys ⊆ eligibleKeys ⊆ issueSet.byKey` across generated fixtures
 
 ### The Jira adapter and the capability probe
 
-- [ ] T022 [P] Define the `JiraAdapter` interface and `CapabilityProbe` type in `packages/core/src/jira/jiraAdapter.ts` per contracts/retrieval.md §1
-- [ ] T023 Write failing test `packages/core/test/dataCenterAdapter.test.ts` asserting `Bearer` authorisation, that `expand` always includes `names`, and that omitting `fields` is rejected
-- [ ] T024 Implement `packages/core/src/jira/dataCenterAdapter.ts` against `/rest/api/2` with offset pagination per research.md R2
-- [ ] T025 Implement `probeCapabilities` in `packages/core/src/jira/probeCapabilities.ts`, reporting Jira version, whether search returns changelog, the observed page-size cap, and field-catalogue readability
-- [ ] T026 Create `packages/core/src/jira/cloudAdapter.ts` as a declared stub that throws, so the Cloud seam exists as a file rather than a future refactor
+- [X] T022 [P] Define the `JiraAdapter` interface and `CapabilityProbe` type in `packages/core/src/jira/jiraAdapter.ts` per contracts/retrieval.md §1
+- [X] T023 Write failing test `packages/core/test/dataCenterAdapter.test.ts` asserting `Bearer` authorisation, that `expand` always includes `names`, and that omitting `fields` is rejected
+- [X] T024 Implement `packages/core/src/jira/dataCenterAdapter.ts` against `/rest/api/2` with offset pagination per research.md R2
+- [X] T025 Implement `probeCapabilities` in `packages/core/src/jira/probeCapabilities.ts`, reporting Jira version, whether search returns changelog, the observed page-size cap, and field-catalogue readability
+- [X] T026 Create `packages/core/src/jira/cloudAdapter.ts` as a declared stub that throws, so the Cloud seam exists as a file rather than a future refactor
 
 ### Workspace configuration and fingerprint
 
-- [ ] T027 [P] Write failing test `packages/core/test/fingerprint.test.ts` asserting `updatedAtIso` and `updatedBy` do not affect the fingerprint, and that identical significant content yields an identical value
-- [ ] T028 [P] Implement `WorkspaceConfiguration` and `computeFingerprint` in `packages/core/src/workspace/workspaceConfig.ts` per data-model.md §8
-- [ ] T029 Implement `GET/PUT /api/workspace` in `packages/server/routes/workspace.js`, persisting one JSON document outside the browser
-- [ ] T030 [P] Write failing test `packages/server/test/workspace.test.js` asserting a `PUT` returns the recomputed fingerprint
-- [ ] T030A Implement schema-version handling in `packages/core/src/workspace/workspaceConfig.ts` so a stored configuration older than the application's own version is reported as needing review and is never reinterpreted silently under the newer rules
+- [X] T027 [P] Write failing test `packages/core/test/fingerprint.test.ts` asserting `updatedAtIso` and `updatedBy` do not affect the fingerprint, and that identical significant content yields an identical value
+- [X] T028 [P] Implement `WorkspaceConfiguration` and `computeFingerprint` in `packages/core/src/workspace/workspaceConfig.ts` per data-model.md §8
+- [X] T029 Implement `GET/PUT /api/workspace` in `packages/server/routes/workspace.js`, persisting one JSON document outside the browser
+- [X] T030 [P] Write failing test `packages/server/test/workspace.test.js` asserting a `PUT` returns the recomputed fingerprint
+- [X] T030A Implement schema-version handling in `packages/core/src/workspace/workspaceConfig.ts` so a stored configuration older than the application's own version is reported as needing review and is never reinterpreted silently under the newer rules
 
 ### Client shell
 
@@ -93,7 +93,7 @@ Three npm workspaces per plan.md: `packages/core` (rules, runs in browser **and*
 - [ ] T033 Implement `packages/client/src/components/ProvenanceBanner.tsx` rendering a `RetrievalRecord` — the receipt strip that appears on every surface
 - [ ] T034 Write failing test `packages/client/test/measurementTile.test.tsx` asserting the component rejects a bare number and renders three visually distinct states
 - [ ] T035 Implement `packages/client/src/components/MeasurementTile.tsx` and `WhyThisNumber.tsx`, accepting `Measure` and nothing else
-- [ ] T035A Define the retrieval ceiling, page size and transfer budget as named, configurable constants in `packages/core/src/workspace/defaults.ts` — placed here, before the modules that consume them, and never as literals per Article IV
+- [X] T035A Define the retrieval ceiling, page size and transfer budget as named, configurable constants in `packages/core/src/workspace/defaults.ts` — placed here, before the modules that consume them, and never as literals per Article IV
 
 **Checkpoint**: The engine's guarantees hold in isolation. A number cannot be constructed without its
 population, and cannot be rendered without its provenance.
