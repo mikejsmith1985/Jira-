@@ -101,7 +101,98 @@ function createWorkspaceRouter() {
     res.json({ configuration, fingerprint: computeFingerprint(configuration) });
   });
 
+  // Export hands over the whole document, so an import can reproduce the
+  // exporter's fingerprint exactly.
+  router.get('/api/workspace/export', (req, res) => {
+    const stored = readStoredWorkspace() ?? buildDefaultWorkspaceConfiguration();
+    res.setHeader('content-disposition', 'attachment; filename="jira-plus-workspace.json"');
+    res.json(stored);
+  });
+
+  /**
+   * Import REPLACES the configuration wholly. It never merges.
+   *
+   * A merge would produce a configuration matching neither party's, carrying a
+   * third fingerprint — which would make the mechanism worse than useless,
+   * because it would manufacture the disagreement it exists to reveal.
+   *
+   * The differences are returned first and applied only on confirmation, so
+   * nobody replaces a configuration without seeing what changes.
+   */
+  router.post('/api/workspace/import', (req, res) => {
+    const incoming = req.body?.configuration ?? req.body;
+    const review = reviewStoredWorkspace(incoming);
+
+    if (review.status !== 'current') {
+      res.status(400).json({ review });
+      return;
+    }
+
+    const current = readStoredWorkspace() ?? buildDefaultWorkspaceConfiguration();
+    const incomingFingerprint = computeFingerprint(review.configuration);
+    const currentFingerprint = computeFingerprint(current);
+
+    if (req.body?.isConfirmed !== true) {
+      res.json({
+        requiresConfirmation: true,
+        currentFingerprint,
+        incomingFingerprint,
+        willChange: incomingFingerprint !== currentFingerprint,
+        differences: describeDifferences(current, review.configuration),
+      });
+      return;
+    }
+
+    const configuration = {
+      ...review.configuration,
+      updatedAtIso: new Date().toISOString(),
+      updatedBy: os.userInfo().username,
+    };
+    writeWorkspace(configuration);
+
+    res.json({ configuration, fingerprint: computeFingerprint(configuration) });
+  });
+
   return router;
 }
 
-export { WORKSPACE_FILE_PATH, createWorkspaceRouter, readStoredWorkspace };
+/**
+ * Names what an import would change, so a replacement is never a surprise.
+ *
+ * The two entries about charts and durations exist because those changes move
+ * every figure on screen at once, which is worth saying out loud rather than
+ * leaving somebody to notice afterwards.
+ */
+function describeDifferences(current, incoming) {
+  const differences = [];
+
+  for (const [conceptId, entry] of Object.entries(incoming.fieldMap)) {
+    const currentEntry = current.fieldMap[conceptId];
+    if (JSON.stringify(currentEntry) !== JSON.stringify(entry)) {
+      differences.push(`${conceptId}: ${currentEntry?.state ?? 'missing'} becomes ${entry.state}`);
+    }
+  }
+
+  if (JSON.stringify(current.enabledCheckIds) !== JSON.stringify(incoming.enabledCheckIds)) {
+    differences.push(
+      `enabled checks: ${current.enabledCheckIds.join(', ')} becomes ${incoming.enabledCheckIds.join(', ')}`,
+    );
+  }
+
+  if (JSON.stringify(current.completionLenses) !== JSON.stringify(incoming.completionLenses)) {
+    differences.push('the definitions of finished change, so every chart will move');
+  }
+
+  if (JSON.stringify(current.workingCalendar) !== JSON.stringify(incoming.workingCalendar)) {
+    differences.push('the working calendar changes, so every duration will move');
+  }
+
+  return differences;
+}
+
+export {
+  WORKSPACE_FILE_PATH,
+  createWorkspaceRouter,
+  describeDifferences,
+  readStoredWorkspace,
+};

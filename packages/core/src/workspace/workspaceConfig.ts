@@ -25,6 +25,23 @@ export const CURRENT_WORKSPACE_SCHEMA_VERSION = 1;
 /** How many characters of the digest identify a configuration. */
 const FINGERPRINT_LENGTH = 8;
 
+/**
+ * Constants for the digest below.
+ *
+ * These are the standard FNV-1a offset and prime, plus one mixing constant from
+ * MurmurHash3's finaliser. The algorithm is chosen for having no dependencies
+ * and a good spread over small inputs; it is emphatically NOT cryptographic, and
+ * nothing secret is ever hashed. This identifies a configuration, it does not
+ * protect one.
+ */
+const DIGEST_OFFSET_BASIS = 0x811c9dc5;
+const DIGEST_PRIME = 0x01000193;
+const DIGEST_MIXING_CONSTANT = 0x85ebca6b;
+
+/** Hexadecimal, and the width one 32-bit half occupies in it. */
+const HEXADECIMAL_RADIX = 16;
+const HEX_DIGITS_PER_HALF = 8;
+
 /** How a concept was matched to a Jira field, shown so the choice is auditable. */
 export type FieldMatchMethod = "explicit" | "exact-name";
 
@@ -87,8 +104,12 @@ export interface WorkspaceConfiguration {
   readonly updatedBy: string;
 }
 
-/** Weekend days for the default calendar: Saturday and Sunday. */
-const DEFAULT_WEEKEND_DAYS: readonly number[] = [0, 6];
+/** Day numbers, as JavaScript reports them. */
+const SUNDAY = 0;
+const SATURDAY = 6;
+
+/** Weekend days for the default calendar. */
+const DEFAULT_WEEKEND_DAYS: readonly number[] = [SUNDAY, SATURDAY];
 
 /** The three checks this feature ships, all enabled until somebody turns one off. */
 const DEFAULT_ENABLED_CHECK_IDS: readonly string[] = [
@@ -152,17 +173,21 @@ function stringifyStably(value: unknown): string {
 
 /** A small, dependency-free digest. Identity, not security — no secret is hashed. */
 function digest(text: string): string {
-  let hashHigh = 0x811c9dc5;
-  let hashLow = 0x01000193;
+  // Two independent 32-bit accumulators, so short configurations that differ in
+  // one character still produce visibly different fingerprints.
+  let hashHigh = DIGEST_OFFSET_BASIS;
+  let hashLow = DIGEST_PRIME;
+
   for (let i = 0; i < text.length; i += 1) {
-    const code = text.charCodeAt(i);
-    hashHigh = Math.imul(hashHigh ^ code, 0x01000193) >>> 0;
-    hashLow = Math.imul(hashLow + code, 0x85ebca6b) >>> 0;
+    const characterCode = text.charCodeAt(i);
+    hashHigh = Math.imul(hashHigh ^ characterCode, DIGEST_PRIME) >>> 0;
+    hashLow = Math.imul(hashLow + characterCode, DIGEST_MIXING_CONSTANT) >>> 0;
   }
-  return (hashHigh.toString(16).padStart(8, "0") + hashLow.toString(16).padStart(8, "0")).slice(
-    0,
-    FINGERPRINT_LENGTH,
-  );
+
+  const highHalf = hashHigh.toString(HEXADECIMAL_RADIX).padStart(HEX_DIGITS_PER_HALF, "0");
+  const lowHalf = hashLow.toString(HEXADECIMAL_RADIX).padStart(HEX_DIGITS_PER_HALF, "0");
+
+  return `${highHalf}${lowHalf}`.slice(0, FINGERPRINT_LENGTH);
 }
 
 /**

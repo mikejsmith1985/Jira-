@@ -96,7 +96,6 @@ export type {
   PackFieldSpec,
   PackItemSchema,
   PromptPack,
-  Proposal,
   ValidatedFieldValue,
   ValidatedItem,
 } from "./packs/promptPack.js";
@@ -197,7 +196,7 @@ export type {
   ChangeBlocker,
   ChangeSet,
   PlannedChange,
-  Proposal as ChangeProposal,
+  Proposal,
   WriteRoute,
 } from "./apply/buildChangeSet.js";
 export { buildChangeSet, canApplyChangeSet } from "./apply/buildChangeSet.js";
@@ -212,3 +211,6 @@ export {
   findDeterministicFix,
   findFixForCheck,
 } from "./apply/fixes/deterministicFixes.js";
+
+export { DELIVERY_NARRATIVE_PACK } from "./packs/definitions/deliveryNarrative.js";
+export { FIX_ACCEPTANCE_CRITERIA_PACK } from "./packs/definitions/fixAcceptanceCriteria.js";

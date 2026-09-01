@@ -9,6 +9,10 @@
 // "return exactly this shape" section of the prompt, and the validator that
 // reads the reply. They cannot disagree, because there is only one of them.
 
+// A proposal is declared once, beside the change set it becomes. Two
+// declarations of the same idea is the duplication this codebase refuses
+// everywhere else, and there is no reason for packs to be the exception.
+import type { Proposal } from "../apply/buildChangeSet.js";
 import type { ConceptId } from "../fields/conceptId.js";
 import type { DetailedIssue } from "../model/detailedIssue.js";
 import type { IssueSet } from "../model/issueSet.js";
@@ -34,15 +38,6 @@ export type ValidatedFieldValue = string | number | boolean | readonly string[] 
 export interface ValidatedItem {
   readonly issueKey: string;
   readonly values: Readonly<Record<string, ValidatedFieldValue>>;
-}
-
-/** A suggested change to one field of one issue. Always requires acceptance. */
-export interface Proposal {
-  readonly issueKey: string;
-  readonly fieldName: string;
-  readonly proposedValue: ValidatedFieldValue;
-  /** Shown to the user and never written to Jira. */
-  readonly rationale?: string;
 }
 
 /** What a pack can see while deciding what to send and what to propose. */

@@ -15,7 +15,6 @@ import { useEffect, useMemo, useState } from "react";
 
 import {
   buildChangeSet,
-  buildJiraSearchUrl,
   createDataCenterAdapter,
   findFixForCheck,
   runApplyPlan,
@@ -32,6 +31,8 @@ import type {
 } from "@jira-plus/core";
 
 import { ChangeDiffTable } from "../components/ChangeDiffTable.js";
+import { HygieneFixPanel } from "../components/HygieneFixPanel.js";
+import { IssueDrillThrough } from "../components/IssueDrillThrough.js";
 import { MeasurementTile } from "../components/MeasurementTile.js";
 import { ProvenanceBanner } from "../components/ProvenanceBanner.js";
 import { WhyThisNumber } from "../components/WhyThisNumber.js";
@@ -225,49 +226,12 @@ export function HygieneView({
             ))}
           </div>
 
-          {results.some((result) => findFixForCheck(result) !== undefined) ? (
-            <section className="fixes">
-              <h3 className="chart__title">Fix without writing a prompt</h3>
-              <p className="chart__note">
-                These need no assistant. They produce the same reviewable diff, because
-                &ldquo;it was obvious&rdquo; is how a batch of unwanted writes gets made.
-              </p>
-
-              <div className="console__actions">
-                <input
-                  className="console__jql mono"
-                  value={fixVersionName}
-                  placeholder="Which fix version? e.g. 2026.09"
-                  aria-label="Fix version to set"
-                  onChange={(event) => setFixVersionName(event.target.value)}
-                />
-              </div>
-
-              <div className="evidence__actions">
-                {results
-                  .filter((result) => findFixForCheck(result) !== undefined)
-                  .filter((result) => result.measure.state === "measured")
-                  .map((result) => {
-                    const fix = findFixForCheck(result);
-                    const flaggedCount =
-                      result.measure.state === "measured" ? result.measure.flaggedKeys.length : 0;
-                    if (fix === undefined || flaggedCount === 0) return null;
-                    return (
-                      <button
-                        key={fix.fixId}
-                        type="button"
-                        className="button"
-                        disabled={fixVersionName.trim().length === 0}
-                        onClick={() => prepareFix(result)}
-                        title={fix.describe(flaggedCount)}
-                      >
-                        {fix.title} on {flaggedCount} issue{flaggedCount === 1 ? "" : "s"}
-                      </button>
-                    );
-                  })}
-              </div>
-            </section>
-          ) : null}
+          <HygieneFixPanel
+            results={results}
+            fixVersionName={fixVersionName}
+            onFixVersionNameChange={setFixVersionName}
+            onPrepareFix={prepareFix}
+          />
 
           {changeSet === null ? null : (
             <ChangeDiffTable
@@ -282,47 +246,13 @@ export function HygieneView({
           )}
 
           {drillThrough === null ? null : (
-            <section className="drill">
-              <div className="drill__head">
-                <h3 className="chart__title">{drillThrough.title}</h3>
-                <button type="button" className="tile__population" onClick={() => setDrillThrough(null)}>
-                  Close
-                </button>
-              </div>
-
-              <p className="chart__note tabular">
-                {drillThrough.issueKeys.length} issue
-                {drillThrough.issueKeys.length === 1 ? "" : "s"} — this list IS the number above,
-                so they cannot disagree.
-              </p>
-
-              {drillThrough.jql === null || jiraBaseUrl.length === 0 ? null : (
-                <p>
-                  <a
-                    className="drill__link"
-                    href={buildJiraSearchUrl(jiraBaseUrl, drillThrough.jql)}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Open these in Jira ↗
-                  </a>
-                </p>
-              )}
-
-              <ul className="drill__keys">
-                {drillThrough.issueKeys.map((issueKey) => (
-                  <li key={issueKey} className="mono">
-                    {jiraBaseUrl.length === 0 ? (
-                      issueKey
-                    ) : (
-                      <a href={`${jiraBaseUrl}/browse/${issueKey}`} target="_blank" rel="noreferrer">
-                        {issueKey}
-                      </a>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </section>
+            <IssueDrillThrough
+              title={drillThrough.title}
+              issueKeys={drillThrough.issueKeys}
+              jql={drillThrough.jql}
+              jiraBaseUrl={jiraBaseUrl}
+              onClose={() => setDrillThrough(null)}
+            />
           )}
         </>
       )}

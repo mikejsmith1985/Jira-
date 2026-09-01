@@ -22,11 +22,11 @@ import {
   computeThroughput,
   describeLens,
   findLensContradictions,
-  renderDeliveryEvidenceMarkdown,
   resolveLens,
 } from "@jira-plus/core";
 import type { CompletionLensId, WorkspaceConfiguration } from "@jira-plus/core";
 
+import { DeliveryEvidencePanel } from "../components/DeliveryEvidencePanel.js";
 import { MeasurementTile } from "../components/MeasurementTile.js";
 import { ProvenanceBanner } from "../components/ProvenanceBanner.js";
 import { ThroughputChart } from "../components/charts/ThroughputChart.js";
@@ -43,15 +43,6 @@ const LENS_OPTIONS: readonly { readonly lensId: CompletionLensId; readonly label
   { lensId: "released-to-prod", label: "Released to prod" },
 ];
 
-/** Copies text, tolerating a browser that refuses clipboard access. */
-async function copyToClipboard(text: string): Promise<void> {
-  try {
-    await navigator.clipboard.writeText(text);
-  } catch {
-    // The text is on screen and selectable, so there is nothing to recover.
-  }
-}
-
 /** What the flow surface needs. */
 export interface FlowViewProps {
   readonly issueSetState: IssueSetState;
@@ -61,7 +52,6 @@ export interface FlowViewProps {
 /** The flow surface. */
 export function FlowView({ issueSetState, configuration }: FlowViewProps): JSX.Element {
   const [activeLensId, setActiveLensId] = useState<CompletionLensId>("delivered-to-int");
-  const [isEvidenceOpen, setIsEvidenceOpen] = useState(false);
   const { issueSet, lastJql, run } = issueSetState;
 
   const hasHistory = issueSet !== null && issueSet.record.changelogCoverage !== "none";
@@ -240,47 +230,7 @@ export function FlowView({ issueSetState, configuration }: FlowViewProps): JSX.E
                 </>
               )}
 
-              {evidence === null ? null : (
-                <section className="evidence">
-                  <div className="receipt">
-                    <span className="receipt__lead tabular">
-                      {evidence.completedCount} items · median{" "}
-                      {evidence.medianCycleTimeDays.toFixed(1)}d · 85th{" "}
-                      {evidence.eightyFifthPercentileDays.toFixed(1)}d
-                    </span>
-                    <button
-                      type="button"
-                      className="receipt__copy"
-                      onClick={() => void copyToClipboard(evidence.verifyingJql)}
-                    >
-                      How do I check this?
-                    </button>
-                  </div>
-
-                  <div className="evidence__actions">
-                    <button
-                      type="button"
-                      className="button"
-                      onClick={() => void copyToClipboard(renderDeliveryEvidenceMarkdown(evidence))}
-                    >
-                      Copy delivery evidence
-                    </button>
-                    <button
-                      type="button"
-                      className="button"
-                      onClick={() => setIsEvidenceOpen((wasOpen) => !wasOpen)}
-                    >
-                      {isEvidenceOpen ? "Hide" : "Show"} the document
-                    </button>
-                  </div>
-
-                  {isEvidenceOpen ? (
-                    <pre className="evidence__document mono">
-                      {renderDeliveryEvidenceMarkdown(evidence)}
-                    </pre>
-                  ) : null}
-                </section>
-              )}
+              {evidence === null ? null : <DeliveryEvidencePanel evidence={evidence} />}
             </>
           )}
         </>

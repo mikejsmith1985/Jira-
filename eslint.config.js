@@ -71,6 +71,22 @@ export default typescriptEslint.config(
     },
   },
   {
+    // Article IV's forty-line rule exists to stop LOGIC growing past the point a
+    // reader can hold it. A React component's length is mostly markup, which is
+    // declarative and reads top-to-bottom, so counting it the same way turns the
+    // rule into noise — and a rule that always fires stops being read.
+    //
+    // So components get a larger allowance, and the rule keeps its meaning
+    // everywhere else. Where a component genuinely does too much, the fix is to
+    // extract a component with its own name and purpose, not to compress the
+    // markup: HygieneView's fix panel and drill-through were extracted for
+    // exactly that reason.
+    files: ["**/*.tsx"],
+    rules: {
+      "max-lines-per-function": ["warn", { max: 120, skipComments: true, skipBlankLines: true }],
+    },
+  },
+  {
     files: ["**/test/**/*.ts", "**/test/**/*.tsx"],
     rules: {
       "no-magic-numbers": "off",

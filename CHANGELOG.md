@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Jira+ works.** Paste a JQL query and every matching issue is retrieved once, with its full
+  change history, and frozen. Every other surface is a lens over that one snapshot: the flow
+  charts, the quality checks, the prompts pasted into Copilot. No lens goes back and asks Jira a
+  second question, which is the single restriction that makes the predecessor&#39;s defining defect
+  unreachable &mdash; a query naming a field that does not exist cannot quietly become a green
+  score, because there is no second query left to go wrong.
+  Five surfaces: a **query console** that hands back the exact query it ran; **flow measures**
+  under two definitions of finished, each emitting the Jira query that reproduces it; **hygiene
+  checks** reading N of M that say so when they cannot run; a **change log** of everything the tool
+  ever wrote; and a **setup screen** that confirms which Jira field is which by showing a real
+  value from an issue the user names.
+  239 tests. One credential: a Jira personal access token.
 - **Specification for feature 001, the Issue Set engine and trust architecture.** Jira+ layers over
   Jira with API access only &mdash; no AI keys, no browser extension, no Jira plugin, no project
   admin rights. One query produces one frozen, provenance-stamped set of issues, and every result in

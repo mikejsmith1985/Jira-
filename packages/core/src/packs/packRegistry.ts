@@ -8,10 +8,16 @@
 // filtered out of every result.
 
 import { ASK_ANYTHING_PACK } from "./definitions/askAnything.js";
+import { DELIVERY_NARRATIVE_PACK } from "./definitions/deliveryNarrative.js";
+import { FIX_ACCEPTANCE_CRITERIA_PACK } from "./definitions/fixAcceptanceCriteria.js";
 import type { PromptPack } from "./promptPack.js";
 
 /** Every pack this build ships. */
-export const ALL_PROMPT_PACKS: readonly PromptPack[] = [ASK_ANYTHING_PACK];
+export const ALL_PROMPT_PACKS: readonly PromptPack[] = [
+  ASK_ANYTHING_PACK,
+  FIX_ACCEPTANCE_CRITERIA_PACK,
+  DELIVERY_NARRATIVE_PACK,
+];
 
 /** Finds a pack by its identifier, or undefined when nothing declares it. */
 export function findPromptPack(packId: string): PromptPack | undefined {

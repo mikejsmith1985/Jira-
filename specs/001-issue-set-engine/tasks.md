@@ -55,7 +55,7 @@ Three npm workspaces per plan.md: `packages/core` (rules, runs in browser **and*
 - [X] T013 Create `packages/server/server.js` mounting the proxy, serving the built client, and exposing `GET /api/health`
 - [X] T014 [P] Write failing test `packages/server/test/proxy.test.js` asserting the token is injected server-side and never appears in any response body
 - [X] T014A Write failing test `packages/server/test/journalCoverage.test.js` asserting every mutating request reaching Jira is recorded — enumerate the proxy's write verbs and assert a journal entry for each, so SC-010's "no unlogged writes" is proved rather than assumed
-- [ ] T014B [P] Create the fixture recording script `packages/server/test/fixtures/record.js`, committed and re-runnable, stamping each capture with its date and source instance per Article V
+- [X] T014B [P] Create the fixture recording script `packages/server/test/fixtures/record.js`, committed and re-runnable, stamping each capture with its date and source instance per Article V
 
 ### Core model
 
@@ -172,7 +172,7 @@ weekly completion count is reproducible by running the stated query in Jira.
 - [X] T066 [US2] Implement `allocateHolderCredit` in `packages/core/src/flow/attribution.ts` with the sums-to-one runtime assertion in development builds
 - [X] T067 [P] [US2] Implement `throughput.ts` in `packages/core/src/flow/`, counting distinct issues per ISO week with a rolling mean and a work-mix split
 - [X] T068 [P] [US2] Implement `cycleTime.ts` in `packages/core/src/flow/` with 50th, 85th and 95th percentiles
-- [ ] T069 [P] [US2] Implement `cumulativeFlow.ts` in `packages/core/src/flow/`, reconstructing daily status occupancy
+- [X] T069 [P] [US2] Implement `cumulativeFlow.ts` in `packages/core/src/flow/`, reconstructing daily status occupancy
 - [X] T070 [P] [US2] Implement `agingWip.ts` in `packages/core/src/flow/`, plotting unfinished work against the percentile bands
 - [X] T071 [P] [US2] Implement `flowEfficiency.ts` in `packages/core/src/flow/`, active over active-plus-waiting
 
@@ -202,7 +202,7 @@ data in it, and watch the fingerprint appear in the header and on an export.
 
 - [X] T078 [P] [US3] Write failing test `packages/core/test/resolveFieldMap.test.ts` asserting exact-name matching only, that a match is proposed and never committed, and that catalogue failure yields `unresolved` rather than defaults
 - [X] T079 [P] [US3] Write failing test `packages/core/test/fieldMapStates.test.ts` asserting `absent` and `unmapped` produce different measure states
-- [ ] T080 [P] [US3] Write failing test `packages/core/test/workspaceImport.test.ts` asserting import replaces wholly and reproduces the exporter's fingerprint exactly
+- [X] T080 [P] [US3] Write failing test `packages/core/test/workspaceImport.test.ts` asserting import replaces wholly and reproduces the exporter's fingerprint exactly
 
 ### Implementation
 
@@ -213,7 +213,7 @@ data in it, and watch the fingerprint appear in the header and on an export.
 - [X] T085 [US3] Implement `packages/client/src/views/Setup/SetupView.tsx` — the connectivity step, the probe result, and the mapping confirmation
 - [X] T086 [US3] Implement `packages/client/src/views/Setup/FieldMappingConfirm.tsx` showing id, Jira's own name, type and the sample value for every candidate
 - [X] T087 [US3] Implement `packages/client/src/components/FingerprintBadge.tsx` in the application header
-- [ ] T088 [US3] Implement export and import in `packages/server/routes/workspace.js`, with a diff and confirmation before replacement
+- [X] T088 [US3] Implement export and import in `packages/server/routes/workspace.js`, with a diff and confirmation before replacement
 - [X] T089 [US3] Mark results whose fingerprint no longer matches current configuration as stale in `packages/client/src/state/useWorkspace.ts`
 
 **Checkpoint**: Quickstart scenarios 4 and 7 pass. Two installations sharing a configuration file
@@ -273,10 +273,10 @@ confirm all three appear in the log.
 - [X] T109 [US5] Port `resolveFieldWriteRoute` from NodeToolbox `client/src/components/IssueFieldEditors/editableFieldWrite.ts` into `packages/core/src/jira/write/resolveFieldWriteRoute.ts`
 - [X] T110 [US5] Implement `runApplyPlan` in `packages/core/src/apply/runApplyPlan.ts` with independent per-item outcomes and no rollback
 - [X] T111 [US5] Implement `packages/client/src/components/ChangeDiffTable.tsx` rendering was-to-will-be with per-row checkboxes
-- [ ] T112 [P] [US5] Define the `fix-acceptance-criteria` pack in `packages/core/src/packs/definitions/fixAcceptanceCriteria.ts`
-- [ ] T113 [P] [US5] Define the `fix-thin-description` pack in `packages/core/src/packs/definitions/fixThinDescription.ts`
+- [X] T112 [P] [US5] Define the `fix-acceptance-criteria` pack in `packages/core/src/packs/definitions/fixAcceptanceCriteria.ts`
+- [X] T113 [P] [US5] Define the `fix-thin-description` pack in `packages/core/src/packs/definitions/fixThinDescription.ts`
 - [X] T114 [P] [US5] Implement the deterministic `set-missing-fix-version` fix in `packages/core/src/apply/fixes/setMissingFixVersion.ts`
-- [ ] T115 [P] [US5] Implement the deterministic `align-out-of-sync-dates` fix in `packages/core/src/apply/fixes/alignOutOfSyncDates.ts`
+- [~] T115 [P] [US5] **Deliberately not built.** This fix serves a dates check, and none of the three checks this feature ships is about dates. A fix with nothing to fix would be dead code, and dead code is what FR-021C's one-file rule exists to avoid. It arrives with the check it serves.
 - [X] T116 [US5] Implement `GET /api/write-journal` in `packages/server/routes/writeJournal.js`
 - [X] T117 [US5] Implement `packages/client/src/views/ChangeLog/ChangeLogView.tsx`
 
@@ -286,14 +286,14 @@ confirm all three appear in the log.
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
-- [ ] T118 [P] Define the `delivery-narrative` pack in `packages/core/src/packs/definitions/deliveryNarrative.ts`
-- [ ] T119 [P] Add the untransferable-issue, duplicate-key and two-concepts-one-field edge cases to `packages/core/test/edgeCases.test.ts` — rate limiting is covered earlier by T057, beside the code it guards
-- [ ] T120 [P] Verify both themes render correctly by auditing `packages/client/src/styles/tokens.css` for any colour defined only inside a media or `[data-theme]` block
-- [ ] T121 [P] Add keyboard focus states and `prefers-reduced-motion` handling across `packages/client/src/components/`
-- [ ] T122 Confirm every exported function carries a doc comment and every file a purpose comment, per Article IV
-- [ ] T123 Confirm no function exceeds 40 lines across `packages/core/src/`, extracting helpers where it does
-- [ ] T124 Run the full quickstart against the live Jira instance and record the capability probe's answers in `research.md`
-- [ ] T125 Update `CHANGELOG.md` with the user-visible behaviour delivered, per Article VI
+- [X] T118 [P] Define the `delivery-narrative` pack in `packages/core/src/packs/definitions/deliveryNarrative.ts`
+- [X] T119 [P] Add the untransferable-issue, duplicate-key and two-concepts-one-field edge cases to `packages/core/test/edgeCases.test.ts` — rate limiting is covered earlier by T057, beside the code it guards
+- [X] T120 [P] Verify both themes render correctly by auditing `packages/client/src/styles/tokens.css` for any colour defined only inside a media or `[data-theme]` block
+- [X] T121 [P] Add keyboard focus states and `prefers-reduced-motion` handling across `packages/client/src/components/`
+- [X] T122 Confirm every exported function carries a doc comment and every file a purpose comment, per Article IV
+- [X] T123 Confirm no function exceeds 40 lines across `packages/core/src/`, extracting helpers where it does
+- [ ] T124 **Outstanding — needs the live instance.** Run the full quickstart against the real Jira and record the capability probe's answers in `research.md`. This is the one task nobody can complete without the operator's own credential, and it is the task that turns four documented assumptions into evidence.
+- [X] T125 Update `CHANGELOG.md` with the user-visible behaviour delivered, per Article VI
 - [ ] T126 Open the pull request for `feature/issue-set-engine` per Article III
 
 ---
