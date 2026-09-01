@@ -12,6 +12,7 @@ import compression from 'compression';
 import express from 'express';
 
 import { isJiraConfigured } from './config/loader.js';
+import { createConnectionRouter } from './routes/connection.js';
 import { createJiraProxyRouter } from './routes/jiraProxy.js';
 import { createWorkspaceRouter } from './routes/workspace.js';
 import { createWriteJournalRouter } from './routes/writeJournalRoute.js';
@@ -61,6 +62,9 @@ function createApp(config) {
 
   // Every route that reaches Jira. There is exactly one, which is what makes the
   // write journal impossible to bypass.
+  // Setting the one credential. Registered before the proxy so an
+  // unconfigured installation can still be configured.
+  app.use(createConnectionRouter(config));
   app.use(createJiraProxyRouter(config));
   app.use(createWorkspaceRouter());
   app.use(createWriteJournalRouter());

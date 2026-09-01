@@ -47,7 +47,11 @@ export function App(): JSX.Element {
       try {
         const response = await fetch("/api/health");
         const body = await response.json();
-        if (isStillMounted) setJiraBaseUrl(String(body.jiraBaseUrl ?? ""));
+        if (!isStillMounted) return;
+        setJiraBaseUrl(String(body.jiraBaseUrl ?? ""));
+        // Nothing on any other surface can load without a credential, so an
+        // unconfigured installation opens where it can actually be fixed.
+        if (body.isJiraConfigured !== true) setActiveSurface("setup");
       } catch {
         // A missing base URL only costs the links; every number still works.
       }

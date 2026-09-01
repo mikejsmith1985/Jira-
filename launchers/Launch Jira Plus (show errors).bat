@@ -61,7 +61,7 @@ if not defined PAYLOAD_PATH (
 
 echo.
 echo   Starting Jira+ from: %PAYLOAD_PATH%
-echo   Then open http://localhost:5555 in your browser.
+echo   Then open http://localhost:5556 in your browser.
 echo   Close this window to stop it.
 echo.
 

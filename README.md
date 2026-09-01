@@ -51,7 +51,7 @@ No installer. No Node.js. No npm. No terminal. No administrator rights.
 1. Extract `jira-plus-vX.Y.Z.zip` anywhere you can write — your Documents folder
    is fine.
 2. Double-click **`Launch Jira Plus.vbs`**.
-3. Your browser opens at `http://localhost:5555`. Add your Jira address and token
+3. Your browser opens at `http://localhost:5556`. Add your Jira address and token
    on the first screen, and paste a query.
 
 That is the whole thing. The application is one file that carries its own Node
@@ -61,7 +61,7 @@ nothing is fetched at run time.
 **If nothing happens**, double-click `Launch Jira Plus (show errors).bat`. It
 does the same thing with the window left open so the error can be read. The two
 usual causes are Windows SmartScreen blocking an unsigned executable — choose
-*More info*, then *Run anyway* — and port 5555 already being in use.
+*More info*, then *Run anyway* — and port 5556 already being in use.
 
 ### Where your things live
 
