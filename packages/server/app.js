@@ -15,6 +15,7 @@ import { isJiraConfigured } from './config/loader.js';
 import { createConnectionRouter } from './routes/connection.js';
 import { createJiraProxyRouter } from './routes/jiraProxy.js';
 import { createUpdatesRouter } from './routes/updates.js';
+import { describeInstance, scheduleStop } from './services/instanceService.js';
 import { createWorkspaceRouter } from './routes/workspace.js';
 import { createWriteJournalRouter } from './routes/writeJournalRoute.js';
 
@@ -91,6 +92,19 @@ function createApp(config) {
   // Reports what is configured — never the credential itself, only whether one
   // is present. A screen can then say what is missing rather than failing on the
   // first request.
+  // Which copy this is. Jira+ runs hidden, so without this the only way to
+  // tell one copy from another was Task Manager.
+  app.get('/api/instance', (req, res) => {
+    res.json(describeInstance(config));
+  });
+
+  // Answered BEFORE the process exits, so a successful stop is
+  // distinguishable from a broken button.
+  app.post('/api/instance/stop', (req, res) => {
+    res.json({ isStopping: true, processId: process.pid });
+    scheduleStop(config.isStopDeferred === true);
+  });
+
   app.get('/api/health', (req, res) => {
     res.json({
       isRunning: true,

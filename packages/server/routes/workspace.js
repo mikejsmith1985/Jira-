@@ -15,11 +15,19 @@ import os from 'node:os';
 import path from 'node:path';
 
 import express from 'express';
+
 import {
   buildDefaultWorkspaceConfiguration,
   computeFingerprint,
   reviewStoredWorkspace,
 } from '@jira-plus/core';
+
+import {
+  buildFieldMapFromToolbox,
+  isToolboxPresent,
+  readToolboxConfig,
+  readToolboxFieldConfig,
+} from '../services/toolboxImport.js';
 
 /** Where the workspace document lives, beside the credential and the journal. */
 const WORKSPACE_FILE_PATH = path.join(
@@ -99,6 +107,61 @@ function createWorkspaceRouter() {
     // The recomputed fingerprint goes back with the save, so the header updates
     // from the server's own view of the document rather than the browser's.
     res.json({ configuration, fingerprint: computeFingerprint(configuration) });
+  });
+
+  /**
+   * Imports the field mapping already done in NodeToolbox, OVERWRITING ours.
+   *
+   * No confirmation gate, deliberately. Mapping custom fields by hand is the one
+   * genuinely tedious step here and it was already done once; asking for it a
+   * second time is the friction that stopped the predecessor being adopted.
+   *
+   * The defect this product exists to remove is a HARDCODED default silently
+   * binding a check to the wrong field. A value the user configured himself is
+   * evidence of what his instance uses. Treating the two the same just makes him
+   * re-answer his own question.
+   */
+  router.post('/api/workspace/import-toolbox', (req, res) => {
+    if (!isToolboxPresent()) {
+      res.status(404).json({
+        reason:
+          'No NodeToolbox configuration was found on this machine. Jira+ imports from the copy of Toolbox installed beside it.',
+      });
+      return;
+    }
+
+    const toolboxConfig = readToolboxConfig();
+    if (toolboxConfig === null) {
+      res.status(422).json({ reason: 'The NodeToolbox configuration could not be read.' });
+      return;
+    }
+
+    const importedFieldIds = readToolboxFieldConfig(toolboxConfig);
+    if (Object.keys(importedFieldIds).length === 0) {
+      res.status(422).json({
+        reason:
+          'NodeToolbox has no field mappings configured on this machine, so there is nothing to import.',
+      });
+      return;
+    }
+
+    const stored = readStoredWorkspace() ?? buildDefaultWorkspaceConfiguration();
+    const { fieldMap, changes } = buildFieldMapFromToolbox(stored.fieldMap, importedFieldIds);
+
+    const configuration = {
+      ...stored,
+      fieldMap,
+      updatedAtIso: new Date().toISOString(),
+      updatedBy: os.userInfo().username,
+    };
+    writeWorkspace(configuration);
+
+    res.json({
+      configuration,
+      fingerprint: computeFingerprint(configuration),
+      changes,
+      importedFieldIds,
+    });
   });
 
   // Export hands over the whole document, so an import can reproduce the

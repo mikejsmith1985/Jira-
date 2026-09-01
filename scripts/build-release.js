@@ -4,6 +4,7 @@
 //
 //   Launch Jira Plus.vbs                  ← double-click this
 //   Launch Jira Plus (show errors).bat    ← when the first one does not work
+//   Stop Jira Plus.vbs                    ← the way out; it runs hidden
 //   current.txt                           ← which version to run
 //   versions\0.1.0\jiraplus.exe           ← the whole application, one file
 //   README.txt                            ← for somebody who received the zip
@@ -47,6 +48,15 @@ function buildReadmeText(version) {
     "  Node.js to install, and nothing to type. The first screen asks for your Jira",
     "  address and a personal access token, and that is the only thing it ever asks",
     "  you to configure.",
+    "",
+    "TO STOP IT",
+    "",
+    "  Double-click  Stop Jira Plus.vbs",
+    "",
+    "  Jira+ runs hidden, so there is no window to close. That file asks it to",
+    "  stop, and there is a Stop button on the Setup screen that does the same.",
+    "  Starting Jira+ again while it is already running just reopens the copy",
+    "  that is running - it does not start a second one.",
     "",
     "IF NOTHING HAPPENS",
     "",
@@ -106,7 +116,11 @@ function main() {
   // The pointer. One line, deliberately: a human can read and repair it.
   fs.writeFileSync(path.join(STAGING_ROOT, "current.txt"), `${version}\r\n`, "utf8");
 
-  for (const launcherName of ["Launch Jira Plus.vbs", "Launch Jira Plus (show errors).bat"]) {
+  for (const launcherName of [
+    "Launch Jira Plus.vbs",
+    "Launch Jira Plus (show errors).bat",
+    "Stop Jira Plus.vbs",
+  ]) {
     copyInto(
       path.join(REPOSITORY_ROOT, "launchers", launcherName),
       path.join(STAGING_ROOT, launcherName),

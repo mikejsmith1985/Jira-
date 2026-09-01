@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Field mappings import from NodeToolbox, overwriting.** Mapping custom fields by hand is the one
+  genuinely tedious step in setting this up, and it had already been done once in Toolbox. Setup now
+  imports those mappings and replaces what Jira+ holds, with no confirmation gate in front of it &mdash;
+  a summary afterwards says exactly what changed. That is a deliberate exception: the defect this
+  product exists to remove is a *hardcoded default* silently binding a check to the wrong field, and
+  a value the user configured himself is evidence of what his instance uses. Treating the two as the
+  same risk just makes him re-answer his own question. A concept Toolbox never mapped is left alone
+  rather than acquiring a default.
+- **The running copy names itself, and can be stopped.** Jira+ starts hidden so no console window
+  flashes up, and the cost was that Task Manager was the only way to tell one copy from another or
+  to stop one. Setup now shows the port, process id and start time of the copy serving the page, with
+  a **Stop Jira+** button; the zip carries a `Stop Jira Plus.vbs` that does the same from outside.
+  The process id is not decoration &mdash; it is what remains actionable if the button ever fails.
 - **Jira+ updates itself.** Downloading a zip from a website by hand is a step nobody performs
   twice, so an update nobody installs is a fix nobody receives. Setup now shows when a newer
   version has been published and fetches it on one click.
@@ -155,6 +168,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Feature 001 now passes Article V as written, with no outstanding deviation.
 
 ### Fixed
+- **A second copy no longer crashes.** `app.listen` had no error handler, so starting Jira+ while it
+  was already running threw an unhandled `EADDRINUSE` and the process died &mdash; a hidden process
+  crashing on every second double-click of the shortcut. The launcher then polled the port, found the
+  **first** copy listening, and opened the browser, so it looked like it had worked while something
+  had genuinely gone wrong. A port already in use is not a failure: it means the thing the person
+  wanted is already serving. The second copy now says so and exits cleanly, and the browser opens on
+  the copy that is running.
 - **Jira+ no longer blames Jira for its own state.** The first person to use it hit this within a
   minute: their token was fine &mdash; the connection test returned *"Signed in as ..."* &mdash; but
   the proxy refused every request with a 503 because the connection had not been saved, and the

@@ -7,11 +7,12 @@
 
 import { createApp } from './app.js';
 import { isJiraConfigured, loadConfig } from './config/loader.js';
+import { describeStartupFailure } from './services/instanceService.js';
 
 const config = loadConfig();
 const app = createApp(config);
 
-app.listen(config.port, () => {
+const server = app.listen(config.port, () => {
   const readiness = isJiraConfigured(config)
     ? `connected to ${config.baseUrl}`
     : 'not configured yet — open the app and add your Jira URL and token';
@@ -25,4 +26,19 @@ app.listen(config.port, () => {
         're-signs traffic; turn it back on as soon as you can.',
     );
   }
+});
+
+// Without this handler a second copy threw an unhandled EADDRINUSE and died -
+// a hidden process crashing every time somebody double-clicked the shortcut
+// twice, while the launcher found the FIRST copy listening and opened the
+// browser anyway. It looked like it had worked, and something had still gone
+// wrong.
+//
+// A port already in use means the thing the person wanted is already serving,
+// so this copy says so and leaves quietly. Exit code 0, because from their
+// point of view nothing failed.
+server.on('error', (error) => {
+  const described = describeStartupFailure(error, config.port);
+  console.log(described.message);
+  process.exit(described.isAlreadyRunning ? 0 : 1);
 });
