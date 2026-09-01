@@ -294,7 +294,7 @@ confirm all three appear in the log.
 - [X] T123 Confirm no function exceeds 40 lines across `packages/core/src/`, extracting helpers where it does
 - [ ] T124 **Outstanding — needs the live instance.** Run the full quickstart against the real Jira and record the capability probe's answers in `research.md`. This is the one task nobody can complete without the operator's own credential, and it is the task that turns four documented assumptions into evidence.
 - [X] T125 Update `CHANGELOG.md` with the user-visible behaviour delivered, per Article VI
-- [ ] T126 Open the pull request for `feature/issue-set-engine` per Article III
+- [X] T126 Open the pull request for `feature/issue-set-engine` per Article III
 
 ---
 

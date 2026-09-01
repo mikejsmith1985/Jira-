@@ -12,11 +12,12 @@
 > Recorded 2026-09-01. Statuses here are claims, not proof — verify against the codebase before
 > trusting one. The predecessor's ledger drifted badly enough to mislead a later feature's research.
 
-- **001-issue-set-engine** — *(**TASKED** — 126 tasks across 8 phases, ready for
-  `/speckit-implement`. Branch `feature/issue-set-engine`.)* Tasks:
-  `specs/001-issue-set-engine/tasks.md`. **Start with T025, the capability probe** — it answers
-  against the live instance the four things documentation could not confirm, and decides whether US2's
-  history retrieval costs one request or three hundred.
+- **001-issue-set-engine** — *(**IMPLEMENTED** — 129 of 131 tasks, 253 tests green, PR #1 open on
+  `feature/issue-set-engine`.)* Tasks: `specs/001-issue-set-engine/tasks.md`.
+  **T124 is outstanding and is the first thing to do**: run the quickstart against the live Jira and
+  record the capability probe's answers in `research.md`. It needs the operator's own credential, and
+  it is the task that turns four documented assumptions into evidence. T115 is deliberately not built
+  — it serves a check this feature does not ship, so it would be dead code.
   Plan: `specs/001-issue-set-engine/plan.md`.
   Contracts: `retrieval.md`, `measurement-and-checks.md`, `flow-measures.md`, `prompt-packs.md`,
   `apply-and-workspace.md`. The foundation
