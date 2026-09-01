@@ -99,13 +99,11 @@ describe("the search request Jira actually receives", () => {
       buildSearchRequest({ jql: 'project = ENCUC AND summary ~ "a & b"' }),
     );
 
-    // URLSearchParams encodes a query string in form style, so spaces become
-    // "+" and reserved characters become percent escapes. Both forms are valid
-    // and Jira accepts either; what matters is that nothing in the user's JQL
-    // can escape its own parameter and alter the request.
+    // Every space is %20 rather than "+", so the URL reads back unambiguously,
+    // and nothing in the user's JQL can escape its own parameter.
     const requestedPath = requestedPaths[0] ?? "";
 
-    expect(requestedPath).toContain("jql=project+%3D+ENCUC");
+    expect(requestedPath).toContain("jql=project%20%3D%20ENCUC");
     expect(requestedPath).toContain("%26"); // the ampersand is escaped, not a separator
     expect(requestedPath).not.toContain('"a & b"');
   });

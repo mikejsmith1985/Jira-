@@ -30,6 +30,12 @@ export default typescriptEslint.config(
   ...typescriptEslint.configs.recommended,
   {
     files: ["**/*.ts", "**/*.tsx"],
+    // The boolean-naming rule needs to know which identifiers ARE booleans, so
+    // it needs type information. Without this the rule cannot run at all, and a
+    // rule that silently does not run is worse than no rule.
+    languageOptions: {
+      parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
+    },
     rules: {
       "id-length": [
         "error",
@@ -51,6 +57,12 @@ export default typescriptEslint.config(
         },
       ],
       "@typescript-eslint/consistent-type-imports": "error",
+      // A leading underscore marks a parameter kept deliberately: it documents
+      // the shape a function receives even where this implementation ignores it.
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
       "no-magic-numbers": [
         "warn",
         { ignore: [0, 1, -1], ignoreArrayIndexes: true, enforceConst: true },
@@ -69,8 +81,14 @@ export default typescriptEslint.config(
   {
     files: ["packages/server/**/*.js"],
     languageOptions: {
-      sourceType: "commonjs",
-      globals: { require: "readonly", module: "writable", process: "readonly", __dirname: "readonly", console: "readonly" },
+      sourceType: "module",
+      globals: {
+        URL: "readonly",
+        URLSearchParams: "readonly",
+        console: "readonly",
+        fetch: "readonly",
+        process: "readonly",
+      },
     },
     rules: { "no-magic-numbers": "off" },
   },

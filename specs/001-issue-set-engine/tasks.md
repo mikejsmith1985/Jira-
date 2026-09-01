@@ -88,11 +88,11 @@ Three npm workspaces per plan.md: `packages/core` (rules, runs in browser **and*
 
 ### Client shell
 
-- [ ] T031 Create `packages/client/src/main.tsx` and `App.tsx` with routing for Query, Flow, Hygiene, Setup and Change Log
-- [ ] T032 [P] Create the design tokens and base stylesheet in `packages/client/src/styles/tokens.css`, defining both themes at token level
-- [ ] T033 Implement `packages/client/src/components/ProvenanceBanner.tsx` rendering a `RetrievalRecord` — the receipt strip that appears on every surface
-- [ ] T034 Write failing test `packages/client/test/measurementTile.test.tsx` asserting the component rejects a bare number and renders three visually distinct states
-- [ ] T035 Implement `packages/client/src/components/MeasurementTile.tsx` and `WhyThisNumber.tsx`, accepting `Measure` and nothing else
+- [X] T031 Create `packages/client/src/main.tsx` and `App.tsx` with routing for Query, Flow, Hygiene, Setup and Change Log
+- [X] T032 [P] Create the design tokens and base stylesheet in `packages/client/src/styles/tokens.css`, defining both themes at token level
+- [X] T033 Implement `packages/client/src/components/ProvenanceBanner.tsx` rendering a `RetrievalRecord` — the receipt strip that appears on every surface
+- [X] T034 Write failing test `packages/client/test/measurementTile.test.tsx` asserting the component rejects a bare number and renders three visually distinct states
+- [X] T035 Implement `packages/client/src/components/MeasurementTile.tsx` and `WhyThisNumber.tsx`, accepting `Measure` and nothing else
 - [X] T035A Define the retrieval ceiling, page size and transfer budget as named, configurable constants in `packages/core/src/workspace/defaults.ts` — placed here, before the modules that consume them, and never as literals per Article IV
 
 **Checkpoint**: The engine's guarantees hold in isolation. A number cannot be constructed without its
@@ -110,21 +110,21 @@ with no field mapping configured, no board selected, and no write permission exe
 
 ### Tests first ⚠️
 
-- [ ] T036 [P] [US1] Write failing test `packages/core/test/searchIssuesByJql.test.ts` asserting a non-2xx maps to a typed `RetrievalFailure` preserving Jira's `errorMessages` verbatim
-- [ ] T036A [P] [US1] Write failing test `packages/core/test/retrievalFailureKinds.test.ts` covering all four failure kinds distinctly — a bad field reference, an **expired or invalid credential**, a permission-restricted project, and a transport fault — so SC-004's five induced conditions are each proved to yield no passing result
-- [ ] T037 [P] [US1] Write failing test `packages/core/test/paging.test.ts` asserting a page shorter than requested does **not** end a retrieval, per research.md R3 — the silent clamp case
-- [ ] T038 [P] [US1] Write failing test `packages/core/test/fetchIssueSet.test.ts` asserting `failure !== null` implies zero issues and `state === 'failed'`
+- [X] T036 [P] [US1] Write failing test `packages/core/test/searchIssuesByJql.test.ts` asserting a non-2xx maps to a typed `RetrievalFailure` preserving Jira's `errorMessages` verbatim
+- [X] T036A [P] [US1] Write failing test `packages/core/test/retrievalFailureKinds.test.ts` covering all four failure kinds distinctly — a bad field reference, an **expired or invalid credential**, a permission-restricted project, and a transport fault — so SC-004's five induced conditions are each proved to yield no passing result
+- [X] T037 [P] [US1] Write failing test `packages/core/test/paging.test.ts` asserting a page shorter than requested does **not** end a retrieval, per research.md R3 — the silent clamp case
+- [X] T038 [P] [US1] Write failing test `packages/core/test/fetchIssueSet.test.ts` asserting `failure !== null` implies zero issues and `state === 'failed'`
 - [ ] T039 [P] [US1] Write failing test `packages/core/test/buildPromptChunks.test.ts` asserting division never occurs within an issue and each chunk carries its own whitelist
 - [ ] T040 [P] [US1] Write failing test `packages/core/test/packReply.test.ts` covering every rung of the validation ladder in contracts/prompt-packs.md §4
-- [ ] T041 [P] [US1] Write failing integration test `packages/server/test/retrieval.contract.test.js` against recorded fixtures for the clamp, a 400 on an unknown field, and a truncated retrieval
+- [X] T041 [P] [US1] Write failing integration test `packages/server/test/retrieval.contract.test.js` against recorded fixtures for the clamp, a 400 on an unknown field, and a truncated retrieval
 
 ### Retrieval
 
-- [ ] T042 [US1] Implement `searchIssuesByJql` in `packages/core/src/jira/searchIssuesByJql.ts` with an explicit field list mandatory and `expand=names` always present
-- [ ] T043 [US1] Port `fetchIssuesPaged` from NodeToolbox `client/src/services/fetchIssuesPaged.ts` into `packages/core/src/jira/fetchIssuesPaged.ts`, hardened so paging follows Jira's reported total rather than page length
-- [ ] T044 [US1] Implement `fetchIssueSet` in `packages/core/src/jira/fetchIssueSet.ts`, unioning mapped concept field ids into the request and freezing the result
-- [ ] T045 [US1] Implement the per-issue changelog fallback in `fetchIssueSet` at concurrency 6, setting `changelogCoverage` honestly
-- [ ] T046 [P] [US1] Port `escapeJqlValue` from NodeToolbox `client/src/utils/jqlValue.ts` into `packages/core/src/jira/jqlValue.ts`
+- [X] T042 [US1] Implement `searchIssuesByJql` in `packages/core/src/jira/searchIssuesByJql.ts` with an explicit field list mandatory and `expand=names` always present
+- [X] T043 [US1] Port `fetchIssuesPaged` from NodeToolbox `client/src/services/fetchIssuesPaged.ts` into `packages/core/src/jira/fetchIssuesPaged.ts`, hardened so paging follows Jira's reported total rather than page length
+- [X] T044 [US1] Implement `fetchIssueSet` in `packages/core/src/jira/fetchIssueSet.ts`, unioning mapped concept field ids into the request and freezing the result
+- [X] T045 [US1] Implement the per-issue changelog fallback in `fetchIssueSet` at concurrency 6, setting `changelogCoverage` honestly
+- [X] T046 [P] [US1] Port `escapeJqlValue` from NodeToolbox `client/src/utils/jqlValue.ts` into `packages/core/src/jira/jqlValue.ts`
 
 ### The pack runtime
 
@@ -137,10 +137,10 @@ with no field mapping configured, no board selected, and no write permission exe
 
 ### The console
 
-- [ ] T053 [US1] Implement `packages/client/src/views/QueryConsole/QueryConsoleView.tsx` with the query field, the provenance banner and the results table
-- [ ] T054 [US1] Implement the four failure presentations in `packages/client/src/views/QueryConsole/RetrievalFailureNotice.tsx`, each naming its own next action
+- [X] T053 [US1] Implement `packages/client/src/views/QueryConsole/QueryConsoleView.tsx` with the query field, the provenance banner and the results table
+- [X] T054 [US1] Implement the four failure presentations in `packages/client/src/views/QueryConsole/RetrievalFailureNotice.tsx`, each naming its own next action
 - [ ] T055 [US1] Implement `packages/client/src/components/PackPanel.tsx` with per-chunk state, copy buttons and the honest reject ledger
-- [ ] T056 [US1] Wire retrieval through TanStack Query in `packages/client/src/state/useIssueSet.ts`, with no hand-rolled fetch lifecycle
+- [X] T056 [US1] Wire retrieval through TanStack Query in `packages/client/src/state/useIssueSet.ts`, with no hand-rolled fetch lifecycle
 - [ ] T057 [US1] Write failing test `packages/core/test/rateLimit.test.ts` asserting a 429 maps to a `transport` failure carrying `Retry-After`, and — critically — that a throttled page mid-retrieval is never mistaken for the end of the results, then make it pass in `searchIssuesByJql`
 
 **Checkpoint**: Quickstart scenarios 1 and 2 pass. Paste real JQL, see the receipt, complete a Copilot

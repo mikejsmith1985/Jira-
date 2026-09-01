@@ -54,3 +54,32 @@ export {
   DEFAULT_RETRIEVAL_CEILING,
   DEFAULT_TRANSFER_BUDGET_CHARACTERS,
 } from "./workspace/defaults.js";
+
+export type {
+  CapabilityProbe,
+  FieldSelection,
+  JiraAdapter,
+  JiraFieldDescriptor,
+  JiraResponse,
+  JiraSearchPage,
+  JiraTransport,
+  JqlSearchRequest,
+  TransitionDescriptor,
+} from "./jira/jiraAdapter.js";
+export { createDataCenterAdapter } from "./jira/dataCenterAdapter.js";
+export { createCloudAdapter } from "./jira/cloudAdapter.js";
+export { fetchIssueSet } from "./jira/fetchIssueSet.js";
+export type { FetchIssueSetInput } from "./jira/fetchIssueSet.js";
+export { fetchIssuesPaged } from "./jira/fetchIssuesPaged.js";
+export type { FetchedPage, PagedResult, PageFetcher, PagingOptions } from "./jira/fetchIssuesPaged.js";
+export { buildIssueKeyClause, combineJql, escapeJqlValue } from "./jira/jqlValue.js";
+
+export type {
+  CompletionLens,
+  CompletionLensId,
+  FieldMatchMethod,
+  StatusCondition,
+  WorkingCalendar,
+  WorkspaceReview,
+} from "./workspace/workspaceConfig.js";
+export { ASSISTANT_INPUT_LIMIT_CHARACTERS } from "./workspace/defaults.js";

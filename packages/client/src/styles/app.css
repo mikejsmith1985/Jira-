@@ -1,0 +1,522 @@
+/* app.css — Layout and components, built from the tokens.
+ *
+ * The recurring device is the receipt: a bordered strip stating what was
+ * retrieved, when, and under which configuration. It appears on every surface,
+ * so provenance reads as structural rather than as a footnote somebody added.
+ */
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app__header {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-5);
+  flex-wrap: wrap;
+  padding: var(--gap-3) var(--gap-5);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.app__title {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+}
+
+.app__plus {
+  color: var(--accent);
+}
+
+.app__nav {
+  display: flex;
+  gap: var(--gap-1);
+}
+
+.app__tab {
+  font: inherit;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 6px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.app__tab:hover {
+  background: var(--surface-sub);
+}
+
+.app__tab[aria-current="page"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.app__fingerprint {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.app__main {
+  flex: 1;
+  padding: var(--gap-5);
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.app__notice,
+.notice {
+  margin: var(--gap-3) var(--gap-5) 0;
+  padding: var(--gap-3) var(--gap-4);
+  border: 1px solid var(--attn);
+  border-left-width: 3px;
+  border-radius: var(--radius);
+  background: var(--attn-soft);
+  color: var(--ink);
+}
+
+.app__notice--error,
+.notice--error {
+  border-color: var(--crit);
+  background: var(--crit-soft);
+}
+
+.notice {
+  margin: var(--gap-4) 0 0;
+}
+
+.view__title {
+  margin: 0 0 var(--gap-2);
+  font-size: 24px;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.view__lede {
+  margin: 0 0 var(--gap-5);
+  color: var(--ink-2);
+  max-width: 62ch;
+}
+
+/* ── The receipt ─────────────────────────────────────── */
+
+.receipt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap-1) var(--gap-4);
+  margin-top: var(--gap-4);
+  padding: var(--gap-2) var(--gap-3);
+  border: 1px dashed var(--border-firm);
+  border-radius: var(--radius);
+  background: var(--surface-sub);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.receipt__lead {
+  font-weight: 600;
+  color: var(--pass);
+}
+
+.receipt--partial {
+  border-color: var(--attn);
+  background: var(--attn-soft);
+}
+
+.receipt--partial .receipt__lead {
+  color: var(--attn);
+}
+
+.receipt--failed {
+  display: block;
+  border-style: solid;
+  border-color: var(--crit);
+  background: var(--crit-soft);
+}
+
+.receipt__headline {
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 600;
+  color: var(--crit);
+}
+
+.receipt__detail {
+  margin: var(--gap-2) 0 0;
+  color: var(--ink-2);
+}
+
+.receipt__note {
+  flex-basis: 100%;
+  margin: var(--gap-2) 0 0;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.receipt__copy,
+.receipt__item {
+  font: inherit;
+}
+
+.receipt__copy {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 0;
+}
+
+/* ── Query console ───────────────────────────────────── */
+
+.console__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-2);
+}
+
+.console__label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.console__jql {
+  width: 100%;
+  padding: var(--gap-2) var(--gap-3);
+  border: 1px solid var(--border-firm);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  resize: vertical;
+}
+
+.console__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-4);
+  flex-wrap: wrap;
+}
+
+.console__toggle {
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.console__progress,
+.console__empty {
+  margin-top: var(--gap-4);
+  color: var(--ink-3);
+}
+
+.console__results {
+  margin-top: var(--gap-4);
+  overflow-x: auto;
+}
+
+.button {
+  font: inherit;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--on-accent);
+  cursor: pointer;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Tables ──────────────────────────────────────────── */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table th {
+  text-align: left;
+  padding: 0 var(--gap-3) var(--gap-2) 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.table td {
+  padding: var(--gap-2) var(--gap-3) var(--gap-2) 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--ink-2);
+  vertical-align: top;
+}
+
+.issue-row__summary {
+  color: var(--ink);
+}
+
+.chip {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--surface-sub);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-2);
+}
+
+.chip--applied,
+.chip--pass {
+  border-color: var(--pass);
+  background: var(--pass-soft);
+  color: var(--pass);
+}
+
+.chip--failed {
+  border-color: var(--crit);
+  background: var(--crit-soft);
+  color: var(--crit);
+}
+
+.chip--attn {
+  border-color: var(--attn);
+  background: var(--attn-soft);
+  color: var(--attn);
+}
+
+.chip--na {
+  border-color: var(--border-firm);
+  background: var(--na-soft);
+  color: var(--na);
+}
+
+/* ── Measurement tiles ───────────────────────────────── */
+
+.tile {
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--border-firm);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: var(--gap-3) var(--gap-4);
+}
+
+.tile--pass {
+  border-top-color: var(--pass);
+}
+
+.tile--attn {
+  border-top-color: var(--attn);
+}
+
+.tile--na {
+  border-top-color: var(--na);
+}
+
+.tile__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.tile__figure {
+  margin: var(--gap-2) 0 0;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.tile__figure--button {
+  font-family: inherit;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.tile--pass .tile__figure {
+  color: var(--pass);
+}
+
+.tile--attn .tile__figure {
+  color: var(--attn);
+}
+
+.tile--na .tile__figure {
+  color: var(--na);
+}
+
+.tile__state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: var(--gap-2) 0 0;
+  padding: 3px 8px;
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.tile__state--pass {
+  background: var(--pass-soft);
+  color: var(--pass);
+}
+
+.tile__state--attn {
+  background: var(--attn-soft);
+  color: var(--attn);
+}
+
+.tile__state--na {
+  background: var(--na-soft);
+  color: var(--na);
+}
+
+.tile__explanation {
+  margin: var(--gap-2) 0 0;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.tile__population {
+  margin-top: var(--gap-2);
+  font: inherit;
+  font-size: 12px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+/* ── Why this number ─────────────────────────────────── */
+
+.why {
+  margin-top: var(--gap-4);
+  padding: var(--gap-3) var(--gap-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.why__title {
+  margin: 0 0 var(--gap-3);
+  font-size: 14px;
+}
+
+.why__list {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--gap-2) var(--gap-4);
+  margin: 0;
+  font-size: 13px;
+}
+
+.why__list dt {
+  color: var(--ink-3);
+}
+
+.why__list dd {
+  margin: 0;
+  color: var(--ink);
+}
+
+.why__jql {
+  display: inline-block;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 2px 6px;
+  border-radius: 2px;
+  background: var(--surface-sub);
+}
+
+.why__copy {
+  margin-left: var(--gap-2);
+  font: inherit;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.why__fields {
+  margin: 0;
+  padding-left: var(--gap-4);
+}
+
+.why__note {
+  margin: var(--gap-3) 0 0;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+/* ── Setup ───────────────────────────────────────────── */
+
+.setup__fingerprint {
+  margin: 0 0 var(--gap-4);
+  padding: var(--gap-2) var(--gap-3);
+  border-left: 2px solid var(--accent);
+  background: var(--surface-sub);
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.setup__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-2);
+}
+
+.setup__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap-4);
+  padding: var(--gap-3) var(--gap-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.setup__row--pass {
+  border-color: var(--pass);
+}
+
+.setup__concept {
+  margin: 0;
+  font-weight: 600;
+}
+
+.setup__detail {
+  margin: var(--gap-1) 0 0;
+  font-size: 12px;
+  color: var(--ink-3);
+}

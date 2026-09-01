@@ -42,16 +42,30 @@ function renderExpand(doesIncludeChangelog: boolean): string {
   return doesIncludeChangelog ? "names,changelog" : "names";
 }
 
+/**
+ * Encodes query parameters.
+ *
+ * Hand-rolled rather than reaching for `URLSearchParams`, for two reasons: this
+ * package declares no DOM and no Node types, so it compiles identically for both
+ * runtimes; and percent-encoding every space as `%20` avoids the `+` form, whose
+ * meaning differs between a path and a form body. Jira accepts both, but only
+ * one of them is unambiguous when a person reads the URL back.
+ */
+function encodeQueryParameters(parameters: Readonly<Record<string, string>>): string {
+  return Object.entries(parameters)
+    .map(([name, value]) => `${encodeURIComponent(name)}=${encodeURIComponent(value)}`)
+    .join("&");
+}
+
 /** Assembles a search URL with every parameter encoded. */
 function buildSearchPath(request: JqlSearchRequest): string {
-  const parameters = new URLSearchParams({
+  return `${SEARCH_PATH}?${encodeQueryParameters({
     jql: request.jql,
     fields: renderFieldSelection(request.fields),
     expand: renderExpand(request.doesIncludeChangelog),
     startAt: String(request.startAt),
     maxResults: String(request.maxResults),
-  });
-  return `${SEARCH_PATH}?${parameters.toString()}`;
+  })}`;
 }
 
 /** Reads a nested property without throwing when a level is absent. */
