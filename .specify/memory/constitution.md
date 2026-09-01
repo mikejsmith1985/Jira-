@@ -32,10 +32,35 @@ comment. Functions stay under 40 lines; prefer guard clauses over deep nesting.
 
 ## Article V — Testing (Three-Layer Separation)
 
-Unit tests are 100% mocked and run in under 10ms. Integration tests use real infrastructure
-(testcontainers), never mocked drivers. UX tests use Cypress with `cypress-real-events` —
-never synthetic events — launched via `run-dev-clean.ps1`, never by building the binary.
-Follow Red → Green → Refactor: the failing test is written before the implementation.
+Three layers, always separated, and the failing test is always written first:
+Red → Green → Refactor is not negotiable at any layer.
+
+**Unit.** 100% mocked, under 10ms each.
+
+**Integration.** Tests the real thing, never a mocked driver. *How* the real thing is obtained
+depends on who owns it:
+
+- **Infrastructure this project runs** — a database, a queue, a cache — is stood up with
+  testcontainers. A mocked driver here is forbidden, because the project controls the version and
+  the configuration, so there is no excuse for testing against a fiction.
+- **A third-party system this project does not own or host** — a corporate Jira, ServiceNow, an
+  external API — is tested against **fixtures recorded from the real instance**, captured by a
+  committed script and refreshed on demand. A generic container of such a system is explicitly
+  *not* acceptable as a substitute: it reproduces the vendor's defaults rather than the
+  instance's real field identifiers, status names, permissions and limits, so it passes while the
+  software remains wrong about the only deployment that matters. Recorded fixtures must carry the
+  date and the instance they came from, and the recording script must be re-runnable by anyone.
+
+**UX.** Where a feature's behaviour depends on real browser input — dragging, pointer gestures,
+focus and keyboard traversal, drop targets — it is tested with Cypress and `cypress-real-events`,
+never synthetic events, launched via `run-dev-clean.ps1` and never by building the binary. Where a
+feature's user-facing behaviour is a pure function of state — which of several states a component
+renders — that is a unit assertion, and adding a browser layer to restate it is discouraged as
+ceremony. A feature that introduces a real interaction introduces the UX layer with it.
+
+**Recording a deviation.** Any departure from this Article is recorded in the plan's Complexity
+Tracking table with the reason and the rejected alternative, and is accepted explicitly before
+implementation begins. Silence is not acceptance.
 
 ## Article VI — Documentation Discipline
 

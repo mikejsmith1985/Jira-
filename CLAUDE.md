@@ -7,4 +7,81 @@
 @.specify/memory/constitution.md
 
 <!-- SPECKIT START -->
+## Active Spec Kit Feature
+
+> Recorded 2026-09-01. Statuses here are claims, not proof — verify against the codebase before
+> trusting one. The predecessor's ledger drifted badly enough to mislead a later feature's research.
+
+- **001-issue-set-engine** — *(**IMPLEMENTED** — 129 of 131 tasks, 253 tests green, PR #1 open on
+  `feature/issue-set-engine`.)* Tasks: `specs/001-issue-set-engine/tasks.md`.
+  **T124 is outstanding and is the first thing to do**: run the quickstart against the live Jira and
+  record the capability probe's answers in `research.md`. It needs the operator's own credential, and
+  it is the task that turns four documented assumptions into evidence. T115 is deliberately not built
+  — it serves a check this feature does not ship, so it would be dead code.
+  Plan: `specs/001-issue-set-engine/plan.md`.
+  Contracts: `retrieval.md`, `measurement-and-checks.md`, `flow-measures.md`, `prompt-packs.md`,
+  `apply-and-workspace.md`. The foundation
+  Jira+ is built on and the answer to why its predecessor went unused: **one query produces one
+  frozen, provenance-stamped Issue Set, and every result in the product is a pure function over that
+  set rather than a query of its own.** Because no feature issues its own query, the predecessor's
+  most damaging behaviour — a field reference that resolves to nothing rendering as a perfect green
+  score (GH #167) — has no second query left to go wrong in.
+  Spec: `specs/001-issue-set-engine/spec.md`. Checklist: `checklists/requirements.md`.
+  **The organising rule**: no quantity may be shown without the population it was measured against,
+  and a result whose data could not be obtained **cannot** be presented as passing (FR-014). A `0`
+  therefore has three distinct renderings — clean, nothing-in-scope, and not-measurable — where the
+  predecessor rendered all three identically. A displayed count and its drill-through are the same
+  list, so they cannot disagree.
+  **Clarified, and two answers changed the feature's shape.** The assistant is **Microsoft Copilot in
+  a browser**, copy-and-paste only, input box ~18,000 characters, and **full issue content may be
+  sent** — so dividing a prompt is the normal case, never the exception, which is why a visible part
+  count and per-part return tracking are load-bearing rather than cosmetic (FR-035/035A). And
+  **completion is two lenses, not one convention** (FR-049A–E): *delivered to integration test* is the
+  team's Definition of Done and the lens PI commitments are judged by; *released to production*
+  reconciles exactly with an untouched Jira report. Each lens supplies the query that reproduces it,
+  and SC-006A asserts they can never tell contradictory stories.
+  **Each person runs their own local copy** — so configuration is one record per installation shared
+  by whole-file import, and the fingerprint exists so two people discover they were configured
+  differently *before* they argue about a number (FR-028–030B). The spec previously claimed a single
+  shared copy while every user ran their own; that contradiction is fixed.
+  **Three checks ship, chosen to exercise every reportable state** (FR-021A): missing story points and
+  missing acceptance criteria depend on mapped concepts and demonstrate not-measurable; missing fix
+  version depends only on a native field and stays measurable when the others are not — and it is the
+  precise check that reported nothing across seventy-two affected items in the predecessor because it
+  was gated to feature-level issues (FR-021B). The team's real catalogue is deliberately deferred:
+  FR-021C and SC-010A require a new check to be **one file and nothing else**, so deferring carries no
+  design debt.
+  **Zero default custom field ids ship** (FR-023). A hardcoded default silently attached the
+  predecessor's checks to the wrong field and reported clean zeros for months; mappings are confirmed
+  by showing the user a real value from an issue they name (FR-025).
+  **Resolved by Phase 0 research** (`research.md`), and two findings reversed an assumption:
+  Data Center returns **complete, uncapped** change history on `expand=changelog` — Cloud truncates at
+  100, Data Center does not — so the flow engine has its data from the first retrieval at no extra
+  request. But `jira.search.views.default.max` defaults to 1000 and a larger request is **silently
+  clamped, not rejected**, so **a page shorter than requested must never be read as the end of the
+  results**: page against Jira's own reported total. Omitting `fields` on search silently narrows to
+  navigable fields only, so an explicit field list is mandatory and `*all` is a deliberate toggle.
+  `status CHANGED TO … DURING` is supported on Data Center and Status is one of the six fields history
+  operators cover, which makes each lens's verifying query deliverable; and `/rest/api/2/field`
+  returns `clauseNames`, giving the JQL-safe alias (`cf[10236]`) that the predecessor got wrong,
+  producing correct counts beside links that 400'd.
+  **Article V deviation, recorded in the plan's Complexity Tracking**: integration tests use recorded
+  fixtures rather than testcontainers, because Jira is external and a generic container cannot
+  reproduce this instance's field ids, status names or clamp behaviour — which is precisely what needs
+  testing. No Cypress layer until feature 002 brings a real drag interaction.
+  **Slice 0 is a capability probe** answering, against the live instance, the four items official
+  documentation could not confirm. Evidence, not inference.
+
+### Planned, not yet specified
+
+- **002-board-native-rollup** — Feature swimlanes over the **real Jira board's own configuration**,
+  which nothing in the predecessor ever read. Jira columns are the spine and are never invented;
+  sub-status renders as labelled **bands inside** the column it refines, and a code-review sub-task as
+  a **card badge**, never a column — because inventing a column Jira does not have is exactly what
+  breaks agreement between a count and Jira itself.
+- **003-clone-families** — QE and BT clone the dev Feature into their own projects and run their own
+  Scrum sprints, across four-plus projects where no admin rights exist. No Jira board can show this;
+  read-only cross-project JQL needs only Browse permission. Disciplines render as read-only rows
+  inside the Feature lane, in their own columns, with their sprints ignored rather than reconciled,
+  and progress reported as **two figures — dev-only and whole-family — never blended**.
 <!-- SPECKIT END -->

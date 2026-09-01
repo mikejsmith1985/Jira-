@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Test output
+coverage/
+
+# Credentials — never committed. The Jira token lives under the user profile
+# directory, written by the setup step, and is read only by the server.
+.env
+.env.*
+!.env.example
+jiraplus.json
+
+# Recorded fixtures may carry real issue content, so they are opt-in per repo.
+# Uncomment if this repository must not hold them.
+# packages/server/test/fixtures/*.json
+
+# Editors and platforms
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.tmp
+
+# Logs
+*.log
+npm-debug.log*
