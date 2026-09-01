@@ -614,3 +614,158 @@
 .ledger__flag dd {
   color: var(--attn);
 }
+
+/* ── Charts and lenses ───────────────────────────────── */
+
+.lenses {
+  display: flex;
+  width: fit-content;
+  margin-top: var(--gap-5);
+  border: 1px solid var(--border-firm);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.lens-btn {
+  font: inherit;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 7px 14px;
+  border: 0;
+  background: var(--surface);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.lens-btn + .lens-btn {
+  border-left: 1px solid var(--border-firm);
+}
+
+.lens-btn[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.def-line {
+  margin: var(--gap-3) 0 0;
+  padding: var(--gap-2) var(--gap-3);
+  border-left: 2px solid var(--accent);
+  background: var(--surface-sub);
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--gap-3);
+  margin-top: var(--gap-4);
+}
+
+.chart {
+  margin: var(--gap-6) 0 0;
+}
+
+.chart__title {
+  margin: 0;
+  font-size: 16px;
+}
+
+.chart__note {
+  margin: var(--gap-1) 0 var(--gap-3);
+  font-size: 13px;
+  color: var(--ink-3);
+  max-width: 62ch;
+}
+
+/* ── Ageing list ─────────────────────────────────────── */
+
+.aging {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-1);
+}
+
+.aging__row {
+  display: grid;
+  grid-template-columns: 100px 130px 1fr 160px;
+  align-items: center;
+  gap: var(--gap-3);
+  padding: var(--gap-1) 0;
+  font-size: 13px;
+}
+
+@media (max-width: 720px) {
+  .aging__row {
+    grid-template-columns: 1fr;
+    gap: var(--gap-1);
+  }
+}
+
+.aging__key {
+  color: var(--accent);
+}
+
+.aging__bar {
+  position: relative;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--surface-sub);
+  overflow: hidden;
+}
+
+.aging__fill {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  opacity: 0.55;
+}
+
+.aging__threshold {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--ink-3);
+}
+
+.aging__row--over .aging__fill {
+  background: var(--attn);
+  opacity: 0.85;
+}
+
+.aging__flag {
+  color: var(--attn);
+  font-weight: 600;
+}
+
+/* ── Delivery evidence ───────────────────────────────── */
+
+.evidence {
+  margin-top: var(--gap-6);
+  padding-top: var(--gap-5);
+  border-top: 1px solid var(--border);
+}
+
+.evidence__actions {
+  display: flex;
+  gap: var(--gap-2);
+  margin-top: var(--gap-3);
+  flex-wrap: wrap;
+}
+
+.evidence__document {
+  margin-top: var(--gap-4);
+  padding: var(--gap-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-x: auto;
+  max-height: 480px;
+}

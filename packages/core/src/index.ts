@@ -106,3 +106,62 @@ export { parsePackReply } from "./packs/parsePackReply.js";
 export { extractJsonPayload, NoJsonFoundError } from "./packs/extractJsonPayload.js";
 export { ALL_PROMPT_PACKS, findPromptPack } from "./packs/packRegistry.js";
 export { ASK_ANYTHING_PACK } from "./packs/definitions/askAnything.js";
+
+export type { IssueTimeline, Segment } from "./flow/issueTimeline.js";
+export {
+  UNASSIGNED_HOLDER,
+  buildIssueTimeline,
+  buildStateSegments,
+  findFirstEntryMs,
+  findLastEntryMs,
+  summariseTimeInStatus,
+} from "./flow/issueTimeline.js";
+export {
+  businessDaysBetween,
+  businessMillisBetween,
+  isWorkingDay,
+  nextWorkingDay,
+  parseIsoOrNull,
+  toIsoDate,
+  toIsoWeek,
+} from "./flow/workingDays.js";
+export type { ResolvedLens } from "./flow/completionLens.js";
+export {
+  buildVerifyingJql,
+  describeLens,
+  findCompletionMs,
+  findLensContradictions,
+  findStartMs,
+  isLensDefined,
+  resolveConditionStatuses,
+  resolveLens,
+} from "./flow/completionLens.js";
+export type { HolderCredit, HolderTotal } from "./flow/attribution.js";
+export {
+  allocateHolderCredit,
+  assertSharesSumToOne,
+  summariseHolderTotals,
+} from "./flow/attribution.js";
+export type {
+  AgingItem,
+  AgingResult,
+  CycleTimePoint,
+  CycleTimeResult,
+  FlowFact,
+  FlowFactSet,
+  ThroughputResult,
+  ThroughputWeek,
+} from "./flow/flowMeasures.js";
+export {
+  REPORTED_PERCENTILES,
+  buildFlowFacts,
+  computeAgingWork,
+  computeCycleTime,
+  computeHolderTotals,
+  computeThroughput,
+} from "./flow/flowMeasures.js";
+export type { DeliveryEvidenceDocument, EvidenceIssueLine } from "./flow/deliveryEvidence.js";
+export {
+  buildDeliveryEvidence,
+  renderDeliveryEvidenceMarkdown,
+} from "./flow/deliveryEvidence.js";

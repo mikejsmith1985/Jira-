@@ -158,32 +158,32 @@ weekly completion count is reproducible by running the stated query in Jira.
 
 ### Tests first ⚠️
 
-- [ ] T058 [P] [US2] Write failing test `packages/core/test/issueTimeline.test.ts` asserting `isReconstructable` is false when changelog is null, and that such issues are excluded and counted
-- [ ] T059 [P] [US2] Write failing test `packages/core/test/attribution.test.ts` asserting holder shares sum to 1.0 ± 1e-9 per issue and per-person totals sum to the team total
-- [ ] T060 [P] [US2] Write failing test `packages/core/test/lensContainment.test.ts` asserting released-to-prod ⊆ delivered-to-int for every period
-- [ ] T061 [P] [US2] Write failing test `packages/core/test/verifyingJql.test.ts` asserting each lens emits `status CHANGED TO … DURING` against recorded fixtures matching the computed set exactly
+- [X] T058 [P] [US2] Write failing test `packages/core/test/issueTimeline.test.ts` asserting `isReconstructable` is false when changelog is null, and that such issues are excluded and counted
+- [X] T059 [P] [US2] Write failing test `packages/core/test/attribution.test.ts` asserting holder shares sum to 1.0 ± 1e-9 per issue and per-person totals sum to the team total
+- [X] T060 [P] [US2] Write failing test `packages/core/test/lensContainment.test.ts` asserting released-to-prod ⊆ delivered-to-int for every period
+- [X] T061 [P] [US2] Write failing test `packages/core/test/verifyingJql.test.ts` asserting each lens emits `status CHANGED TO … DURING` against recorded fixtures matching the computed set exactly
 
 ### The flow engine
 
-- [ ] T062 [P] [US2] Port `issueTimeline.ts` from NodeToolbox `client/src/views/ReportsHub/issueTimeline.ts` into `packages/core/src/flow/issueTimeline.ts`, keeping `buildStateSegments` and `businessMillisBetween` unmodified
-- [ ] T063 [P] [US2] Port `issueFlow.ts` from NodeToolbox into `packages/core/src/flow/issueFlow.ts`, retaining the explicit unassigned holder
-- [ ] T064 [P] [US2] Port `workingDays.ts` from NodeToolbox `client/src/utils/workingDays.ts` into `packages/core/src/flow/workingDays.ts` with its injectable calendar
-- [ ] T065 [US2] Implement `CompletionLens`, `findCompletionMs`, `findStartMs` and `buildVerifyingJql` in `packages/core/src/flow/completionLens.ts`, including the three stated conventions — completion is the most recent qualifying entry so a regression cannot inflate a period, start is the first entry ever, and an item that reached production without ever passing integration test is **reported as an exception under the stricter lens rather than omitted from it**
-- [ ] T066 [US2] Implement `allocateHolderCredit` in `packages/core/src/flow/attribution.ts` with the sums-to-one runtime assertion in development builds
-- [ ] T067 [P] [US2] Implement `throughput.ts` in `packages/core/src/flow/`, counting distinct issues per ISO week with a rolling mean and a work-mix split
-- [ ] T068 [P] [US2] Implement `cycleTime.ts` in `packages/core/src/flow/` with 50th, 85th and 95th percentiles
+- [X] T062 [P] [US2] Port `issueTimeline.ts` from NodeToolbox `client/src/views/ReportsHub/issueTimeline.ts` into `packages/core/src/flow/issueTimeline.ts`, keeping `buildStateSegments` and `businessMillisBetween` unmodified
+- [X] T063 [P] [US2] Port `issueFlow.ts` from NodeToolbox into `packages/core/src/flow/issueFlow.ts`, retaining the explicit unassigned holder
+- [X] T064 [P] [US2] Port `workingDays.ts` from NodeToolbox `client/src/utils/workingDays.ts` into `packages/core/src/flow/workingDays.ts` with its injectable calendar
+- [X] T065 [US2] Implement `CompletionLens`, `findCompletionMs`, `findStartMs` and `buildVerifyingJql` in `packages/core/src/flow/completionLens.ts`, including the three stated conventions — completion is the most recent qualifying entry so a regression cannot inflate a period, start is the first entry ever, and an item that reached production without ever passing integration test is **reported as an exception under the stricter lens rather than omitted from it**
+- [X] T066 [US2] Implement `allocateHolderCredit` in `packages/core/src/flow/attribution.ts` with the sums-to-one runtime assertion in development builds
+- [X] T067 [P] [US2] Implement `throughput.ts` in `packages/core/src/flow/`, counting distinct issues per ISO week with a rolling mean and a work-mix split
+- [X] T068 [P] [US2] Implement `cycleTime.ts` in `packages/core/src/flow/` with 50th, 85th and 95th percentiles
 - [ ] T069 [P] [US2] Implement `cumulativeFlow.ts` in `packages/core/src/flow/`, reconstructing daily status occupancy
-- [ ] T070 [P] [US2] Implement `agingWip.ts` in `packages/core/src/flow/`, plotting unfinished work against the percentile bands
-- [ ] T071 [P] [US2] Implement `flowEfficiency.ts` in `packages/core/src/flow/`, active over active-plus-waiting
+- [X] T070 [P] [US2] Implement `agingWip.ts` in `packages/core/src/flow/`, plotting unfinished work against the percentile bands
+- [X] T071 [P] [US2] Implement `flowEfficiency.ts` in `packages/core/src/flow/`, active over active-plus-waiting
 
 ### The surface
 
-- [ ] T072 [US2] Implement `packages/client/src/views/Flow/FlowView.tsx` with the lens switch recomputing all six measures together
-- [ ] T073 [US2] Implement `packages/client/src/views/Flow/LensDefinitionLine.tsx` stating the conditions in force above every chart
-- [ ] T074 [P] [US2] Implement the six Recharts charts in `packages/client/src/views/Flow/charts/`, each with hover and drill-through to the exact issue keys
-- [ ] T075 [US2] Implement `packages/client/src/views/Flow/HowDoICheckThis.tsx` handing the user the verifying query for the current lens and period
-- [ ] T076 [US2] Implement `buildDeliveryEvidence` in `packages/core/src/flow/deliveryEvidence.ts` per contracts/flow-measures.md §6
-- [ ] T077 [US2] Implement the export in `packages/client/src/views/Flow/DeliveryEvidenceExport.tsx`, carrying every issue key, the query, the counts and the fingerprint
+- [X] T072 [US2] Implement `packages/client/src/views/Flow/FlowView.tsx` with the lens switch recomputing all six measures together
+- [X] T073 [US2] Implement `packages/client/src/views/Flow/LensDefinitionLine.tsx` stating the conditions in force above every chart
+- [X] T074 [P] [US2] Implement the six Recharts charts in `packages/client/src/views/Flow/charts/`, each with hover and drill-through to the exact issue keys
+- [X] T075 [US2] Implement `packages/client/src/views/Flow/HowDoICheckThis.tsx` handing the user the verifying query for the current lens and period
+- [X] T076 [US2] Implement `buildDeliveryEvidence` in `packages/core/src/flow/deliveryEvidence.ts` per contracts/flow-measures.md §6
+- [X] T077 [US2] Implement the export in `packages/client/src/views/Flow/DeliveryEvidenceExport.tsx`, carrying every issue key, the query, the counts and the fingerprint
 
 **Checkpoint**: Quickstart scenario 3 passes. The Delivery Evidence export for the real team is
 reproducible by someone who has not seen the tool.
