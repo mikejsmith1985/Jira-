@@ -88,6 +88,13 @@ export interface JiraResponse<TBody> {
   /** Jira's own `errorMessages`, preserved word for word. */
   readonly jiraMessages: readonly string[];
   readonly retryAfterSeconds: number | null;
+  /**
+   * Set by Jira+'s own proxy when IT refused, rather than Jira.
+   *
+   * Jira cannot set this, which is what keeps a local refusal separable from
+   * a genuine outage that happens to share a status code.
+   */
+  readonly jiraPlusFailureKind?: string | null;
 }
 
 /** The transport, so the engine never constructs a URL or holds a credential. */

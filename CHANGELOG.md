@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Jira+ updates itself.** Downloading a zip from a website by hand is a step nobody performs
+  twice, so an update nobody installs is a fix nobody receives. Setup now shows when a newer
+  version has been published and fetches it on one click.
+  The install order is the load-bearing part, and it follows from one Windows fact: a running
+  executable cannot be overwritten. The new version is written to `versions\<new>` **beside** the
+  running one, verified on disk, and only then does `current.txt` move to point at it. Interrupt it
+  anywhere &mdash; dropped connection, killed process, full disk &mdash; and the previous version is
+  still installed and still selected. The worst outcome is a wasted folder, never a machine that
+  will not start. Versions are compared by **number**: string comparison puts `0.1.10` before
+  `0.1.9` and the only symptom is that updates quietly stop being offered.
+  A machine with no route to GitHub reports **"could not check"** and how to update by hand. It
+  never claims to be up to date, because nothing established that.
 - **Jira+ ships as a zip you extract and double-click.** This was missing, and its absence would have
   made everything else useless: the environment Jira+ is for has no guaranteed Node.js on PATH, no
   guaranteed reach to the npm registry, and no appetite for a terminal. `npm install` is not an
@@ -143,6 +155,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Feature 001 now passes Article V as written, with no outstanding deviation.
 
 ### Fixed
+- **Jira+ no longer blames Jira for its own state.** The first person to use it hit this within a
+  minute: their token was fine &mdash; the connection test returned *"Signed in as ..."* &mdash; but
+  the proxy refused every request with a 503 because the connection had not been saved, and the
+  screen reported *"Jira answered with status 503."* Jira never answered. Jira+ refused, having no
+  address to forward to. That is this product's own thesis inverted, and it sent somebody hunting an
+  outage that did not exist. An unconfigured refusal is now its own failure kind, marked by the
+  proxy in a way Jira cannot imitate, so it stays distinguishable from a real Jira 503 &mdash; and it
+  reads *"Jira+ has not been pointed at a Jira yet."*
+- **Success no longer looks like a warning.** Only `.notice--error` was ever written, so
+  `notice--pass` and `notice--attn` both fell back to the amber default: *"Signed in as Mike Smith"*
+  and *"Not configured yet"* rendered identically. Two states looking the same is the single defect
+  this product exists to remove, and it had been reproduced in the stylesheet.
+- **Save now tests before it saves.** Test and Save were two buttons with no indication that the
+  first does not imply the second, so a passing test left the address unsaved and every other screen
+  failing. Save runs the same check and then commits; Test stays for checking without committing. A
+  failed test does not block the save &mdash; somebody configuring while Jira is briefly down still
+  has the right address.
+- **Setup stops reporting an unfinished setup as a Jira failure.** The field list and sample issue
+  now say *"Save the connection above first"* rather than surfacing the proxy's status code.
 - **Jira+ can now be set up from its own interface.** It shipped able to READ a stored Jira
   address and token and with no way to SET one: `saveConfig` existed in the loader and nothing
   called it &mdash; no route, no screen. The result started, served its interface, and could not be

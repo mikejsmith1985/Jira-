@@ -41,12 +41,17 @@ export interface FetchIssueSetInput {
 /**
  * Turns an HTTP reply into a typed failure.
  *
- * Four kinds, because each asks something different of the reader. A permission
+ * Five kinds, because each asks something different of the reader. A permission
  * problem shown as an empty backlog is the specific mistake this mapping exists
- * to prevent.
+ * to prevent; an unfinished setup shown as a Jira outage is the second.
  */
 function classifyFailure(response: JiraResponse<unknown>): RetrievalFailure | null {
   if (response.statusCode >= 200 && response.statusCode < 300) return null;
+
+  // Checked FIRST, and by marker rather than status code: Jira can return a
+  // 503 of its own, and telling somebody to finish setup while Jira is down
+  // wastes their afternoon as surely as the reverse.
+  if (response.jiraPlusFailureKind === "not-configured") return { kind: "not-configured" };
 
   if (response.statusCode === HTTP_UNAUTHORISED) return { kind: "authentication" };
 

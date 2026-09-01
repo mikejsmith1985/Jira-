@@ -21,6 +21,16 @@ function describeFailure(failure: RetrievalFailure): { headline: string; detail:
         headline: "Jira rejected this query. Nothing was retrieved.",
         detail: failure.jiraMessages.join(" "),
       };
+    case "not-configured":
+      return {
+        // Named as OURS. Jira was never contacted, so attributing this to Jira
+        // sends somebody hunting an outage that does not exist — which is what
+        // it did to the first person who used this.
+        headline: "Jira+ has not been pointed at a Jira yet.",
+        detail:
+          "Open Setup, enter your Jira address and token, and press Save. " +
+          "Testing the connection checks it; saving is what puts it to work.",
+      };
     case "authentication":
       return {
         headline: "Jira did not accept the credential.",

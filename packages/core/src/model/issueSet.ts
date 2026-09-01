@@ -24,6 +24,10 @@ export type ChangelogCoverage = "none" | "partial" | "full";
  */
 export type RetrievalFailure =
   | { readonly kind: "jql-error"; readonly jiraMessages: readonly string[] }
+  // Jira+ refused to forward, because setup is unfinished. Distinct from
+  // every other kind because Jira was never asked: presenting this as a Jira
+  // failure sends somebody to hunt an outage that does not exist.
+  | { readonly kind: "not-configured" }
   | { readonly kind: "authentication" }
   | { readonly kind: "permission"; readonly projectKeys: readonly string[] }
   | { readonly kind: "transport"; readonly message: string; readonly retryAfterSeconds?: number };

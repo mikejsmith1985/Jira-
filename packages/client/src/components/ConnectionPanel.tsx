@@ -62,31 +62,48 @@ export function ConnectionPanel(): JSX.Element {
     void refresh();
   }, [refresh]);
 
+  /** Asks the server to try the values on screen. Commits nothing. */
+  async function runTest(): Promise<void> {
+    setOutcome(null);
+    const response = await fetch("/api/connection/test", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ baseUrl, personalAccessToken: token }),
+    });
+    const body = await response.json();
+    if (response.ok) setOutcome(body as TestOutcome);
+  }
+
   /** Tries the values on screen, without committing them. */
   async function test(): Promise<void> {
     setIsBusy(true);
     setProblem(null);
-    setOutcome(null);
     try {
-      const response = await fetch("/api/connection/test", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ baseUrl, personalAccessToken: token }),
-      });
-      const body = await response.json();
-      if (response.ok) setOutcome(body as TestOutcome);
-      else setProblem(body.reason);
+      await runTest();
     } finally {
       setIsBusy(false);
     }
   }
 
-  /** Commits the values on screen. */
+  /**
+   * Commits the values on screen, testing them first.
+   *
+   * Save tests before it saves because the first person to use this pressed
+   * Test, saw "Signed in as ...", and reasonably stopped there — leaving the
+   * address unsaved and every other screen failing. One button now does the
+   * whole job; Test remains for checking without committing.
+   *
+   * A failed test does NOT block the save. Somebody setting up while Jira is
+   * briefly down still has the right address, and a setup screen that refuses
+   * to record correct details is worse than one that records them with a
+   * warning attached.
+   */
   async function save(): Promise<void> {
     setIsBusy(true);
     setProblem(null);
     setWasSaved(false);
     try {
+      await runTest();
       const response = await fetch("/api/connection", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
