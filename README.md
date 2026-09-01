@@ -42,27 +42,77 @@ Jira+ makes each of those impossible rather than fixed.
 
 ---
 
-## Getting started
+## Using it
 
-**You need**: Node.js 20 or later, and a Jira Data Center personal access token.
-That is the entire list.
+**You need**: a Jira personal access token. That is the entire list.
+
+No installer. No Node.js. No npm. No terminal. No administrator rights.
+
+1. Extract `jira-plus-vX.Y.Z.zip` anywhere you can write — your Documents folder
+   is fine.
+2. Double-click **`Launch Jira Plus.vbs`**.
+3. Your browser opens at `http://localhost:5555`. Add your Jira address and token
+   on the first screen, and paste a query.
+
+That is the whole thing. The application is one file that carries its own Node
+runtime and the entire interface inside it, so nothing has to be installed and
+nothing is fetched at run time.
+
+**If nothing happens**, double-click `Launch Jira Plus (show errors).bat`. It
+does the same thing with the window left open so the error can be read. The two
+usual causes are Windows SmartScreen blocking an unsigned executable — choose
+*More info*, then *Run anyway* — and port 5555 already being in use.
+
+### Where your things live
+
+`%APPDATA%\JiraPlus` holds your token, your field mappings, and the log of
+everything Jira+ changed. It sits outside the application folder so it survives
+an update, and nothing in it is ever sent anywhere: Jira+ talks to your Jira and
+to nothing else.
+
+### Updating
+
+Extract the new zip over the same folder. The new version installs *beside* the
+old one and the launcher switches to it, because Windows will not overwrite a
+running executable — so an update that fails halfway leaves you with a working
+application rather than a broken folder. Your settings are untouched.
+
+### Removing it
+
+Delete the folder. Delete `%APPDATA%\JiraPlus` too if you want your settings
+gone. Nothing was written to the registry and nothing was installed elsewhere.
+
+---
+
+## Building a release
+
+For whoever produces the zip. Needs Node.js and npm, which the people *using*
+Jira+ do not.
 
 ```powershell
 npm install
-npm run build
-npm run dev
+npm run build:release      # builds the client, the exe, and the zip
 ```
 
-Open `http://localhost:5555`, add your Jira URL and token, and paste a query.
-Nothing else needs configuring before something works.
+The result is `build/jira-plus-vX.Y.Z.zip`, laid out as:
 
-### Commands
+```
+Launch Jira Plus.vbs                  ← double-click this
+Launch Jira Plus (show errors).bat    ← when the first one does not work
+current.txt                           ← which version to run
+versions\X.Y.Z\jiraplus.exe           ← the whole application, one file
+README.txt                            ← for whoever receives the zip
+```
+
+Releases are cut locally and never by a CI runner, per Article VIII.
+
+### Working on the code
 
 ```powershell
-npm test            # unit tests: fully mocked, under 10ms each
+npm test                # unit tests: fully mocked, under 10ms each
 npm run test:contract   # integration tests against recorded Jira fixtures
 npm run lint
-npm run build
+npm run dev             # runs from source, for development only
 ```
 
 To refresh the integration fixtures from your own instance:

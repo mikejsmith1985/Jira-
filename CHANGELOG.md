@@ -8,6 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Jira+ ships as a zip you extract and double-click.** This was missing, and its absence would have
+  made everything else useless: the environment Jira+ is for has no guaranteed Node.js on PATH, no
+  guaranteed reach to the npm registry, and no appetite for a terminal. `npm install` is not an
+  install path there.
+  So the artifact is one executable carrying its own Node runtime, its own dependencies and the whole
+  interface inside it &mdash; 46&nbsp;MB, nothing installed, nothing fetched at run time, no
+  administrator rights. `Launch Jira Plus.vbs` starts it hidden, waits for the port and opens the
+  browser; `Launch Jira Plus (show errors).bat` does the same with the window left open, for the
+  moment the first one does not work.
+  The `versions\<version>` folder with a `current.txt` pointer exists for one reason: **Windows will
+  not overwrite a running executable**. An update installs beside the current one and the pointer is
+  flipped, so an update that fails halfway leaves somebody with a working application rather than a
+  broken folder. Both launchers repair a missing or stale pointer by taking the highest installed
+  version, comparing by version NUMBER rather than folder timestamp &mdash; a build copied later is
+  not necessarily a later build.
+  Settings live in `%APPDATA%\JiraPlus`, outside the application folder, so they survive an update.
+  `npm run build:release` produces the zip locally, per Article VIII.
 - **Work that spans four projects, in one readable lane.** QE clones the dev Feature into its own
   feature project and links stories from its own team project; BT does the same with two more; both
   run their own Scrum sprints; and there are no admin rights in any of those projects. **No Jira
