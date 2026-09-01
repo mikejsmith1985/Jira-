@@ -50,6 +50,10 @@ export function createCloudAdapter(_transport: JiraTransport): JiraAdapter {
     fetchFieldCatalogue: refuse,
     fetchTransitions: refuse,
     probeCapabilities: refuse,
+    fetchBoardConfiguration: refuse,
+    fetchBoardsForProject: refuse,
+    fetchBoardIssues: refuse,
+    applyTransition: refuse,
   };
 }
 

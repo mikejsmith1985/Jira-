@@ -15,6 +15,8 @@
 //    does not need history does not pay for it.
 
 import type {
+  BoardConfigurationResponse,
+  BoardSummary,
   CapabilityProbe,
   FieldSelection,
   JiraAdapter,
@@ -28,6 +30,9 @@ import type {
 
 /** The search endpoint, current on Data Center 9.x through 11.x. */
 const SEARCH_PATH = "/rest/api/2/search";
+
+/** The Agile API, where boards live. Reading a board needs view rights, not admin. */
+const AGILE_BOARD_PATH = "/rest/agile/1.0/board";
 
 /** Page size the probe asks for, above the common configured cap of 1,000. */
 const PROBE_REQUESTED_PAGE_SIZE = 1_500;
@@ -207,12 +212,83 @@ export function createDataCenterAdapter(transport: JiraTransport): JiraAdapter {
     };
   }
 
+  /**
+   * A board's own columns.
+   *
+   * This is the endpoint the predecessor never called, and calling it is what
+   * lets Jira+ show the user's real board rather than a parallel invention.
+   */
+  async function fetchBoardConfiguration(
+    boardId: number,
+  ): Promise<JiraResponse<BoardConfigurationResponse>> {
+    return transport.get<BoardConfigurationResponse>(`${AGILE_BOARD_PATH}/${boardId}/configuration`);
+  }
+
+  /** Boards visible to this user for a project. Browse permission is enough. */
+  async function fetchBoardsForProject(
+    projectKey: string,
+  ): Promise<JiraResponse<readonly BoardSummary[]>> {
+    const response = await transport.get<{ values?: readonly Record<string, unknown>[] }>(
+      `${AGILE_BOARD_PATH}?projectKeyOrId=${encodeURIComponent(projectKey)}`,
+    );
+
+    const rawBoards = response.body?.values;
+    return {
+      ...response,
+      body: Array.isArray(rawBoards)
+        ? rawBoards.map((board) => ({
+            boardId: Number(board.id ?? 0),
+            boardName: String(board.name ?? ""),
+            boardType: String(board.type ?? "unknown"),
+          }))
+        : null,
+    };
+  }
+
+  /**
+   * Every issue the board's own filter selects.
+   *
+   * Using the board's endpoint rather than a query of our own means the board
+   * shows exactly what people see in Jira, filter and all — which is the whole
+   * point of reading the board rather than reinventing it.
+   */
+  async function fetchBoardIssues(
+    boardId: number,
+    request: { fields: FieldSelection; startAt: number; maxResults: number },
+  ): Promise<JiraResponse<JiraSearchPage>> {
+    const parameters = encodeQueryParameters({
+      fields: renderFieldSelection(request.fields),
+      expand: "names",
+      startAt: String(request.startAt),
+      maxResults: String(request.maxResults),
+    });
+    return transport.get<JiraSearchPage>(`${AGILE_BOARD_PATH}/${boardId}/issue?${parameters}`);
+  }
+
+  /** Applies a workflow transition, optionally setting fields on its screen. */
+  async function applyTransition(
+    issueKey: string,
+    transitionId: string,
+    fields?: Record<string, unknown>,
+  ): Promise<JiraResponse<void>> {
+    const body: Record<string, unknown> = { transition: { id: transitionId } };
+    if (fields !== undefined) body.fields = fields;
+    return transport.post<void>(
+      `/rest/api/2/issue/${encodeURIComponent(issueKey)}/transitions`,
+      body,
+    );
+  }
+
   return {
     searchIssuesByJql,
     fetchIssueDetail,
     fetchFieldCatalogue,
     fetchTransitions,
     probeCapabilities,
+    fetchBoardConfiguration,
+    fetchBoardsForProject,
+    fetchBoardIssues,
+    applyTransition,
   };
 }
 

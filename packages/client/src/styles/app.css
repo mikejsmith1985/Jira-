@@ -914,3 +914,243 @@
 .diff__table td {
   vertical-align: middle;
 }
+
+/* ── The board ───────────────────────────────────────── */
+
+.board {
+  margin-top: var(--gap-4);
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.board__header,
+.board__lane {
+  display: grid;
+  grid-template-columns: 220px repeat(var(--board-columns, 5), minmax(200px, 1fr));
+  min-width: fit-content;
+}
+
+.board__header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface-sub);
+  border-bottom: 1px solid var(--border-firm);
+}
+
+.board__column-heading,
+.board__lane-heading {
+  padding: var(--gap-2) var(--gap-3);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  border-right: 1px solid var(--border);
+}
+
+.board__lane {
+  border-top: 1px solid var(--border);
+}
+
+.board__lane .board__lane-heading {
+  text-transform: none;
+  letter-spacing: normal;
+  background: var(--surface-sub);
+}
+
+.board__lane-name {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.board__lane-progress {
+  margin: var(--gap-1) 0 0;
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.board__lane-note {
+  margin: var(--gap-1) 0 0;
+  font-size: 11px;
+  font-style: italic;
+  color: var(--ink-3);
+}
+
+.board__cell {
+  padding: var(--gap-2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-2);
+  min-height: 60px;
+}
+
+.board__unrefined {
+  margin: 0;
+  padding: var(--gap-2);
+  border-left: 2px solid var(--attn);
+  background: var(--attn-soft);
+  font-size: 11px;
+  color: var(--ink-2);
+}
+
+/* A band is drawn INSIDE its column, never as a column of its own. */
+.board__band {
+  border-left: 2px solid var(--border-firm);
+  padding-left: var(--gap-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-1);
+}
+
+.board__band--unclassified {
+  border-left-color: var(--attn);
+}
+
+.board__band-label {
+  margin: 0;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.board__band-count {
+  color: var(--ink-2);
+}
+
+.card {
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border-firm);
+  border-radius: var(--radius);
+  background: var(--ground);
+  padding: var(--gap-2);
+}
+
+.card[data-status-category="done"] {
+  border-left-color: var(--pass);
+}
+
+.card[data-status-category="indeterminate"] {
+  border-left-color: var(--accent);
+}
+
+.card__key {
+  margin: 0;
+  font-size: 11px;
+}
+
+.card__key a {
+  color: var(--accent);
+}
+
+.card__summary {
+  margin: var(--gap-1) 0 0;
+  font-size: 12.5px;
+  color: var(--ink);
+  line-height: 1.4;
+}
+
+.card__meta {
+  margin: var(--gap-2) 0 0;
+  display: flex;
+  gap: var(--gap-1);
+  flex-wrap: wrap;
+}
+
+.card__markers {
+  margin: var(--gap-2) 0 0;
+  display: flex;
+  gap: var(--gap-1);
+  flex-wrap: wrap;
+}
+
+/* A marker is a badge on a card, never a column. */
+.card__marker {
+  padding: 2px 7px;
+  border-radius: 2px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+/* ── Discipline sub-lanes ────────────────────────────── */
+
+.sublane {
+  margin-top: var(--gap-2);
+  border-top: 1px solid var(--border);
+  padding-top: var(--gap-2);
+}
+
+.sublane__summary {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-2);
+  width: 100%;
+  font: inherit;
+  font-size: 11.5px;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  padding: 0;
+}
+
+.sublane__label {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.sublane__note {
+  margin-left: auto;
+  color: var(--ink-3);
+  font-style: italic;
+}
+
+.sublane__body {
+  margin-top: var(--gap-2);
+  padding: var(--gap-2);
+  border-radius: var(--radius);
+  background: var(--ground);
+}
+
+.sublane__reason {
+  margin: 0 0 var(--gap-2);
+  font-size: 11px;
+  color: var(--ink-3);
+  line-height: 1.4;
+}
+
+.sublane__states {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--gap-2);
+}
+
+.sublane__state-label {
+  margin: 0 0 var(--gap-1);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.sublane__keys {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 11px;
+}
+
+.sublane__keys a {
+  color: var(--accent);
+}

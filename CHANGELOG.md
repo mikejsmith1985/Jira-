@@ -8,6 +8,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Jira+ ships as a zip you extract and double-click.** This was missing, and its absence would have
+  made everything else useless: the environment Jira+ is for has no guaranteed Node.js on PATH, no
+  guaranteed reach to the npm registry, and no appetite for a terminal. `npm install` is not an
+  install path there.
+  So the artifact is one executable carrying its own Node runtime, its own dependencies and the whole
+  interface inside it &mdash; 46&nbsp;MB, nothing installed, nothing fetched at run time, no
+  administrator rights. `Launch Jira Plus.vbs` starts it hidden, waits for the port and opens the
+  browser; `Launch Jira Plus (show errors).bat` does the same with the window left open, for the
+  moment the first one does not work.
+  The `versions\<version>` folder with a `current.txt` pointer exists for one reason: **Windows will
+  not overwrite a running executable**. An update installs beside the current one and the pointer is
+  flipped, so an update that fails halfway leaves somebody with a working application rather than a
+  broken folder. Both launchers repair a missing or stale pointer by taking the highest installed
+  version, comparing by version NUMBER rather than folder timestamp &mdash; a build copied later is
+  not necessarily a later build.
+  Settings live in `%APPDATA%\JiraPlus`, outside the application folder, so they survive an update.
+  `npm run build:release` produces the zip locally, per Article VIII.
+- **Work that spans four projects, in one readable lane.** QE clones the dev Feature into its own
+  feature project and links stories from its own team project; BT does the same with two more; both
+  run their own Scrum sprints; and there are no admin rights in any of those projects. **No Jira
+  board can show that** &mdash; a shared board would need administration nobody has and projects mixed
+  into one sprint board, which gets hairy fast. Jira+ is not a board, it is a view assembled from
+  queries, and read-only cross-project JQL needs only Browse permission. The constraint that looked
+  like the obstacle is what makes this possible.
+  **The project decides, not the link.** A Cloners link can equally point at a peer Feature inside the
+  dev team&#39;s own project, and treating every clone link as another discipline&#39;s copy would turn a
+  colleague&#39;s Feature into a QE sub-lane. Only a clone in a project declared as a discipline becomes
+  one; a clone in a project nobody claimed is reported rather than guessed at.
+  Discipline work renders as **read-only rows inside the Feature lane**, collapsed by default, so the
+  board looks exactly as it did without them &mdash; one readable axis rather than the two-axis
+  swimlane board. Their sprints are ignored rather than reconciled, because the view is
+  Feature-scoped. Where their own board cannot be read, the row falls back to Jira&#39;s universal three
+  states **and says so**: forcing their work into the dev team&#39;s column names would be the same lie
+  as the parallel vocabulary this design removed.
+  Progress is **two figures, never blended** &mdash; dev-only beside whole-family. One number would
+  leave a reader unable to say whether dev is finished and QE has not started, or the reverse, and
+  those are opposite situations calling for opposite conversations.
+- **The roll-up board, drawn over the real Jira board.** Feature swimlanes across the board&#39;s own
+  columns &mdash; same names, same order, same status mappings &mdash; with **nothing to configure and
+  no vocabulary to maintain**. The predecessor kept its own column names, order and mappings per team
+  in browser storage and a Confluence property, reconciled against nothing; a full search of that
+  codebase found zero calls to the endpoint this feature is built on. Its board was not a view of a
+  Jira board at all.
+  The reason it invented one is real: **Jira board columns can only be statuses**, and this team&#39;s
+  workflow carries more than that. So a sub-status distinction becomes labelled **bands inside** the
+  column it refines, where the column&#39;s own total still reconciles with Jira exactly; and an open
+  code-review sub-task becomes a **badge on the card**, never a column, because inventing a column
+  Jira does not have is precisely what breaks that reconciliation. A refinement can change how a
+  column looks. It can never lose a card, and an assertion enforces that rather than a convention.
+  Dragging a card decides what the move requires **before sending anything**, so a move Jira would
+  refuse is refused with no request made and no failed write in the log for something nobody could
+  have done. And when a two-part move half-succeeds, the card does **not** snap back: Jira really did
+  perform the transition, and showing the card at its origin would display a state Jira does not
+  hold.
 - **Jira+ works.** Paste a JQL query and every matching issue is retrieved once, with its full
   change history, and frozen. Every other surface is a lens over that one snapshot: the flow
   charts, the quality checks, the prompts pasted into Copilot. No lens goes back and asks Jira a
@@ -89,6 +143,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Feature 001 now passes Article V as written, with no outstanding deviation.
 
 ### Fixed
+- **The release scripts are now actually linted.** They were unlintable rather than clean: no
+  Node globals were declared for that folder, so every `console` and `process` reference was an
+  undefined-name error and none of the rules that matter were running on those files at all.
+  Declaring the globals let the rules run, and the first thing they found was a bare `1048576` in
+  both scripts &mdash; which now has a name.
 - **Test fixtures no longer look like leaked credentials.** A secret scanner flagged the first pull
   request over `pat-do-not-leak-3f9a2b` &mdash; a string invented for a test that asserts it never
   leaves the process. Nothing was ever real and nothing needed revoking, but the scanner was right to

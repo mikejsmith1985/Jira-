@@ -4,6 +4,7 @@
 // real middleware without starting a listener. What the test drives is what
 // runs in production, which is the only way an integration test is worth having.
 
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -18,13 +19,32 @@ import { createWriteJournalRouter } from './routes/writeJournalRoute.js';
 /** Largest JSON body accepted; a workspace document is far smaller than this. */
 const MAXIMUM_BODY_SIZE = '2mb';
 
-/** Where the built client lives, relative to this file. */
-const CLIENT_DIST_PATH = path.join(
-  path.dirname(fileURLToPath(import.meta.url)),
-  '..',
-  'client',
-  'dist',
-);
+/**
+ * Where the built client lives.
+ *
+ * Two very different situations, and getting this wrong means a server that
+ * starts and serves nothing — a confusing way to fail. Running from source, the
+ * client sits beside this package. Running from the packaged executable, it is
+ * inside the snapshot the bundler wrote, next to the bundled entry point.
+ *
+ * Both are tried, in that order, and the first one that actually exists wins.
+ */
+function resolveClientDistPath() {
+  const thisDirectory = path.dirname(fileURLToPath(import.meta.url));
+
+  const candidates = [
+    // From source: packages/server → packages/client/dist
+    path.join(thisDirectory, '..', 'client', 'dist'),
+    // From the packaged executable: the bundle sits beside the snapshot assets.
+    path.join(thisDirectory, 'packages', 'client', 'dist'),
+    path.join(thisDirectory, '..', 'packages', 'client', 'dist'),
+  ];
+
+  return candidates.find((candidate) => fs.existsSync(path.join(candidate, 'index.html')))
+    ?? candidates[0];
+}
+
+const CLIENT_DIST_PATH = resolveClientDistPath();
 
 /**
  * Builds the application.
@@ -54,6 +74,8 @@ function createApp(config) {
       isJiraConfigured: isJiraConfigured(config),
       jiraBaseUrl: config.baseUrl,
       isSslVerified: config.isSslVerified,
+      // Reported so a blank page has an explanation rather than a mystery.
+      isInterfaceAvailable: fs.existsSync(path.join(CLIENT_DIST_PATH, 'index.html')),
     });
   });
 

@@ -31,3 +31,7 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+
+# Release artifacts. Built locally by npm run build:release, never committed —
+# a 46 MB executable in git history is a permanent cost for a transient file.
+build/

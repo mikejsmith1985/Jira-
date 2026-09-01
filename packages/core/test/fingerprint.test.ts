@@ -82,6 +82,41 @@ describe("computeFingerprint", () => {
     expect(computeFingerprint(redefined)).not.toBe(computeFingerprint(original));
   });
 
+  it("changes when a board refinement changes, because it changes what a column shows", () => {
+    const original = buildDefaultWorkspaceConfiguration();
+    const refined = {
+      ...original,
+      boardRefinements: [
+        {
+          refinementId: "test-stage",
+          refinesColumnName: "Testing",
+          splitByConcept: "programIncrement" as const,
+          unclassifiedLabel: "Unclassified",
+          bands: [{ bandId: "int", label: "Internal", equalsAnyOf: ["Internal"] }],
+        },
+      ],
+    };
+
+    expect(computeFingerprint(refined)).not.toBe(computeFingerprint(original));
+  });
+
+  it("changes when a card marker changes, because it changes what a card shows", () => {
+    const original = buildDefaultWorkspaceConfiguration();
+    const marked = {
+      ...original,
+      cardMarkers: [
+        {
+          markerId: "code-review",
+          label: "In code review",
+          childIssueTypeNames: ["Sub-task"],
+          childSummaryContains: "code review",
+        },
+      ],
+    };
+
+    expect(computeFingerprint(marked)).not.toBe(computeFingerprint(original));
+  });
+
   it("changes when the working calendar changes, because it changes every duration", () => {
     const original = buildDefaultWorkspaceConfiguration();
     const withHoliday = {
@@ -94,12 +129,17 @@ describe("computeFingerprint", () => {
 
   it("does not depend on the order keys happen to be written in", () => {
     const original = buildDefaultWorkspaceConfiguration();
+    // Deliberately enumerated rather than spread, so a field added to the
+    // configuration without being considered here fails this test rather than
+    // slipping silently into or out of the fingerprint.
     const reordered = {
       updatedBy: original.updatedBy,
       workingCalendar: original.workingCalendar,
+      cardMarkers: original.cardMarkers,
       enabledCheckIds: original.enabledCheckIds,
       schemaVersion: original.schemaVersion,
       retrievalCeiling: original.retrievalCeiling,
+      boardRefinements: original.boardRefinements,
       transferBudgetCharacters: original.transferBudgetCharacters,
       completionLenses: original.completionLenses,
       fieldMap: original.fieldMap,

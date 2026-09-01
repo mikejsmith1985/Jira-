@@ -214,3 +214,57 @@ export {
 
 export { DELIVERY_NARRATIVE_PACK } from "./packs/definitions/deliveryNarrative.js";
 export { FIX_ACCEPTANCE_CRITERIA_PACK } from "./packs/definitions/fixAcceptanceCriteria.js";
+
+export type {
+  BoardSpine,
+  BoardSpineFailure,
+  BoardSpineResult,
+  SpineColumn,
+} from "./board/boardSpine.js";
+export {
+  UNMAPPED_COLUMN_ID,
+  UNMAPPED_COLUMN_NAME,
+  fetchBoardSpine,
+  findDuplicateColumnNames,
+  resolveColumnForStatus,
+} from "./board/boardSpine.js";
+export type {
+  BandedColumn,
+  BandedGroup,
+  CardMarker,
+  ColumnRefinement,
+  RefinementBand,
+  RefinementValidation,
+} from "./board/columnRefinement.js";
+export {
+  UNCLASSIFIED_BAND_ID,
+  assertBandsHoldEveryCard,
+  assignCardsToBands,
+  hasCardMarker,
+  validateRefinements,
+} from "./board/columnRefinement.js";
+export type { BoardLane, BoardLayout } from "./board/boardLayout.js";
+export {
+  NO_FEATURE_LANE_ID,
+  NO_FEATURE_LANE_NAME,
+  assertEveryIssueAppearsOnce,
+  buildBoardLayout,
+} from "./board/boardLayout.js";
+export type { MoveOutcome, MovePlan, MoveTarget } from "./board/planStatusMove.js";
+export { executeStatusMove, planStatusMove } from "./board/planStatusMove.js";
+export type { BoardSummary } from "./jira/jiraAdapter.js";
+
+export type {
+  CloneFamilyMap,
+  CloneMatch,
+  CloneMatchMethod,
+  DisciplineProject,
+} from "./family/cloneFamily.js";
+export { buildDisciplineWorkJql, discoverCloneFamily } from "./family/cloneFamily.js";
+export type { DisciplineRow, DisciplineView, FamilyProgress } from "./family/familyProgress.js";
+export {
+  buildDisciplineRow,
+  buildFamilyProgress,
+  describeFamilyProgress,
+  toCoarseState,
+} from "./family/familyProgress.js";

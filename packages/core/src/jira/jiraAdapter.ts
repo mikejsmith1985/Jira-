@@ -52,6 +52,13 @@ export interface JiraFieldDescriptor {
   readonly clauseNames: readonly string[];
 }
 
+/** One board in the picker. */
+export interface BoardSummary {
+  readonly boardId: number;
+  readonly boardName: string;
+  readonly boardType: string;
+}
+
 /** A transition Jira will accept from an issue's current status. */
 export interface TransitionDescriptor {
   readonly transitionId: string;
@@ -100,4 +107,45 @@ export interface JiraAdapter {
   fetchFieldCatalogue(): Promise<JiraResponse<readonly JiraFieldDescriptor[]>>;
   fetchTransitions(issueKey: string): Promise<JiraResponse<readonly TransitionDescriptor[]>>;
   probeCapabilities(): Promise<CapabilityProbe>;
+
+  /**
+   * A board's own columns and their status mappings.
+   *
+   * Nothing in the predecessor ever called this, which is why its roll-up board
+   * maintained a parallel vocabulary reconciled against nothing.
+   */
+  fetchBoardConfiguration(boardId: number): Promise<JiraResponse<BoardConfigurationResponse>>;
+
+  /** Boards this user can see for a project, for the picker. */
+  fetchBoardsForProject(projectKey: string): Promise<JiraResponse<readonly BoardSummary[]>>;
+
+  /** Every issue the board's own filter selects. */
+  fetchBoardIssues(
+    boardId: number,
+    request: { fields: FieldSelection; startAt: number; maxResults: number },
+  ): Promise<JiraResponse<JiraSearchPage>>;
+
+  /** Applies a workflow transition, optionally setting fields on its screen. */
+  applyTransition(
+    issueKey: string,
+    transitionId: string,
+    fields?: Record<string, unknown>,
+  ): Promise<JiraResponse<void>>;
+}
+
+/** One board in the picker. */
+export interface BoardSummary {
+  readonly boardId: number;
+  readonly boardName: string;
+  readonly boardType: string;
+}
+
+/** One board's raw configuration, as Jira returns it. */
+export interface BoardConfigurationResponse {
+  readonly id?: number;
+  readonly name?: string;
+  readonly type?: string;
+  readonly columnConfig?: {
+    readonly columns?: readonly Record<string, unknown>[];
+  };
 }

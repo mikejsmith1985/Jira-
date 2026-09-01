@@ -12,6 +12,7 @@
 // before anyone defends a figure. That is the achievable win without asking
 // somebody to provision a server.
 
+import type { CardMarker, ColumnRefinement } from "../board/columnRefinement.js";
 import type { ConceptId } from "../fields/conceptId.js";
 import { ALL_CONCEPT_IDS } from "../fields/conceptId.js";
 import {
@@ -100,6 +101,10 @@ export interface WorkspaceConfiguration {
   readonly workingCalendar: WorkingCalendar;
   readonly retrievalCeiling: number;
   readonly transferBudgetCharacters: number;
+  /** Declared deltas on the board's own columns. Part of the fingerprint. */
+  readonly boardRefinements: readonly ColumnRefinement[];
+  /** Badge rules driven by an open child issue. Never a column. */
+  readonly cardMarkers: readonly CardMarker[];
   readonly updatedAtIso: string;
   readonly updatedBy: string;
 }
@@ -155,6 +160,8 @@ export function buildDefaultWorkspaceConfiguration(): WorkspaceConfiguration {
     workingCalendar: { weekendDays: DEFAULT_WEEKEND_DAYS, holidayIsoDates: [] },
     retrievalCeiling: DEFAULT_RETRIEVAL_CEILING,
     transferBudgetCharacters: DEFAULT_TRANSFER_BUDGET_CHARACTERS,
+    boardRefinements: [],
+    cardMarkers: [],
     updatedAtIso: "1970-01-01T00:00:00.000Z",
     updatedBy: "",
   };
@@ -208,6 +215,10 @@ export function computeFingerprint(configuration: WorkspaceConfiguration): strin
       workingCalendar: configuration.workingCalendar,
       retrievalCeiling: configuration.retrievalCeiling,
       transferBudgetCharacters: configuration.transferBudgetCharacters,
+      // A refinement changes how a column reads, so it changes what somebody
+      // sees on a board - and therefore belongs inside the identifier.
+      boardRefinements: configuration.boardRefinements,
+      cardMarkers: configuration.cardMarkers,
     }),
   );
 }
