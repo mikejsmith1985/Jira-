@@ -7,7 +7,7 @@
 
 import type { JSX } from "react";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { ChangeLogView } from "./views/ChangeLogView.js";
 import { FlowView } from "./views/FlowView.js";
@@ -31,8 +31,27 @@ type SurfaceId = (typeof SURFACES)[number]["id"];
 /** The application shell. */
 export function App(): JSX.Element {
   const [activeSurface, setActiveSurface] = useState<SurfaceId>("query");
+  const [jiraBaseUrl, setJiraBaseUrl] = useState("");
   const workspace = useWorkspace();
   const issueSetState = useIssueSet(workspace.configuration);
+
+  // Read once, so links into Jira point at the right instance. The health route
+  // reports whether a credential exists; it never returns the credential.
+  useEffect(() => {
+    let isStillMounted = true;
+    void (async () => {
+      try {
+        const response = await fetch("/api/health");
+        const body = await response.json();
+        if (isStillMounted) setJiraBaseUrl(String(body.jiraBaseUrl ?? ""));
+      } catch {
+        // A missing base URL only costs the links; every number still works.
+      }
+    })();
+    return () => {
+      isStillMounted = false;
+    };
+  }, []);
 
   return (
     <div className="app">
@@ -82,7 +101,11 @@ export function App(): JSX.Element {
           <FlowView issueSetState={issueSetState} configuration={workspace.configuration} />
         ) : null}
         {activeSurface === "hygiene" ? (
-          <HygieneView issueSetState={issueSetState} configuration={workspace.configuration} />
+          <HygieneView
+            issueSetState={issueSetState}
+            configuration={workspace.configuration}
+            jiraBaseUrl={jiraBaseUrl}
+          />
         ) : null}
         {activeSurface === "changes" ? <ChangeLogView /> : null}
         {activeSurface === "setup" ? <SetupView workspace={workspace} /> : null}

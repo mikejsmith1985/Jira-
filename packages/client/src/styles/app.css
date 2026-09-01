@@ -769,3 +769,113 @@
   overflow-x: auto;
   max-height: 480px;
 }
+
+/* ── Hygiene ─────────────────────────────────────────── */
+
+.not-measurable {
+  margin-top: var(--gap-5);
+  padding: var(--gap-3) var(--gap-4);
+  border: 1px solid var(--attn);
+  border-left-width: 3px;
+  border-radius: var(--radius);
+  background: var(--attn-soft);
+}
+
+.not-measurable__list {
+  margin: 0;
+  padding-left: var(--gap-5);
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.hygiene__explain {
+  display: flex;
+  gap: var(--gap-4);
+  flex-wrap: wrap;
+  margin-top: var(--gap-4);
+}
+
+.drill {
+  margin-top: var(--gap-5);
+  padding: var(--gap-4);
+  border: 1px solid var(--border-firm);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.drill__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--gap-4);
+}
+
+.drill__link {
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.drill__keys {
+  list-style: none;
+  margin: var(--gap-3) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: var(--gap-1);
+  font-size: 12px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.drill__keys a {
+  color: var(--accent);
+}
+
+/* ── Setup ───────────────────────────────────────────── */
+
+.setup__row {
+  align-items: flex-start;
+}
+
+.setup__body {
+  flex: 1;
+}
+
+.setup__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--gap-2);
+}
+
+.setup__candidates {
+  list-style: none;
+  margin: var(--gap-3) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-2);
+}
+
+.setup__candidate {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap-3);
+  padding: var(--gap-2) var(--gap-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--ground);
+  font-size: 13px;
+}
+
+.setup__sample {
+  margin: var(--gap-1) 0 0;
+  padding: 2px 8px;
+  display: inline-block;
+  border-radius: 2px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+}

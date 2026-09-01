@@ -165,3 +165,30 @@ export {
   buildDeliveryEvidence,
   renderDeliveryEvidenceMarkdown,
 } from "./flow/deliveryEvidence.js";
+
+export type { CheckContext, CheckDefinition, CheckSeverity } from "./checks/defineCheck.js";
+export {
+  DELIVERY_ISSUE_TYPE_NAMES,
+  defineCheck,
+  hasMeaningfulValue,
+  isDeliveryIssueType,
+} from "./checks/defineCheck.js";
+export { ALL_CHECKS, ALL_CHECK_IDS, findCheck } from "./checks/registry.js";
+export type { CheckResult, CheckSummary } from "./checks/runChecks.js";
+export { buildCheckContext, runCheck, runChecks, summariseChecks } from "./checks/runChecks.js";
+export type {
+  ConceptProposal,
+  FieldCandidate,
+  FieldMapResolution,
+} from "./fields/resolveFieldMap.js";
+export {
+  clearFieldChoice,
+  confirmConceptAbsent,
+  confirmFieldChoice,
+  listAbsentConcepts,
+  listUnresolvedConcepts,
+  readConceptValue,
+  resolveFieldMap,
+} from "./fields/resolveFieldMap.js";
+
+export { buildJiraBrowseUrl, buildJiraSearchUrl } from "./jira/jiraUrls.js";

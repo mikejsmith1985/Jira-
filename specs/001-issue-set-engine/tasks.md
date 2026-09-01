@@ -200,21 +200,21 @@ data in it, and watch the fingerprint appear in the header and on an export.
 
 ### Tests first ⚠️
 
-- [ ] T078 [P] [US3] Write failing test `packages/core/test/resolveFieldMap.test.ts` asserting exact-name matching only, that a match is proposed and never committed, and that catalogue failure yields `unresolved` rather than defaults
-- [ ] T079 [P] [US3] Write failing test `packages/core/test/fieldMapStates.test.ts` asserting `absent` and `unmapped` produce different measure states
+- [X] T078 [P] [US3] Write failing test `packages/core/test/resolveFieldMap.test.ts` asserting exact-name matching only, that a match is proposed and never committed, and that catalogue failure yields `unresolved` rather than defaults
+- [X] T079 [P] [US3] Write failing test `packages/core/test/fieldMapStates.test.ts` asserting `absent` and `unmapped` produce different measure states
 - [ ] T080 [P] [US3] Write failing test `packages/core/test/workspaceImport.test.ts` asserting import replaces wholly and reproduces the exporter's fingerprint exactly
 
 ### Implementation
 
-- [ ] T081 [P] [US3] Define `ConceptId` and `FieldMapEntry` in `packages/core/src/fields/logicalFields.ts` with no default field ids anywhere
-- [ ] T082 [US3] Implement `resolveFieldMap` and `fetchFieldCatalogue` in `packages/core/src/fields/resolveFieldMap.ts`, capturing `clauseNames` for later drill-through
-- [ ] T083 [US3] Implement `readConcept` in `packages/core/src/fields/readConcept.ts` as the only path from a rule to a Jira field
-- [ ] T084 [US3] Implement sample-value reading in `packages/core/src/fields/readSampleValue.ts`, pulling a real value from an issue the user names
-- [ ] T085 [US3] Implement `packages/client/src/views/Setup/SetupView.tsx` — the connectivity step, the probe result, and the mapping confirmation
-- [ ] T086 [US3] Implement `packages/client/src/views/Setup/FieldMappingConfirm.tsx` showing id, Jira's own name, type and the sample value for every candidate
-- [ ] T087 [US3] Implement `packages/client/src/components/FingerprintBadge.tsx` in the application header
+- [X] T081 [P] [US3] Define `ConceptId` and `FieldMapEntry` in `packages/core/src/fields/logicalFields.ts` with no default field ids anywhere
+- [X] T082 [US3] Implement `resolveFieldMap` and `fetchFieldCatalogue` in `packages/core/src/fields/resolveFieldMap.ts`, capturing `clauseNames` for later drill-through
+- [X] T083 [US3] Implement `readConcept` in `packages/core/src/fields/readConcept.ts` as the only path from a rule to a Jira field
+- [X] T084 [US3] Implement sample-value reading in `packages/core/src/fields/readSampleValue.ts`, pulling a real value from an issue the user names
+- [X] T085 [US3] Implement `packages/client/src/views/Setup/SetupView.tsx` — the connectivity step, the probe result, and the mapping confirmation
+- [X] T086 [US3] Implement `packages/client/src/views/Setup/FieldMappingConfirm.tsx` showing id, Jira's own name, type and the sample value for every candidate
+- [X] T087 [US3] Implement `packages/client/src/components/FingerprintBadge.tsx` in the application header
 - [ ] T088 [US3] Implement export and import in `packages/server/routes/workspace.js`, with a diff and confirmation before replacement
-- [ ] T089 [US3] Mark results whose fingerprint no longer matches current configuration as stale in `packages/client/src/state/useWorkspace.ts`
+- [X] T089 [US3] Mark results whose fingerprint no longer matches current configuration as stale in `packages/client/src/state/useWorkspace.ts`
 
 **Checkpoint**: Quickstart scenarios 4 and 7 pass. Two installations sharing a configuration file
 produce identical fingerprints and identical numbers.
@@ -230,23 +230,23 @@ explicit not-measurable state — never to a passing score.
 
 ### Tests first ⚠️
 
-- [ ] T090 [P] [US4] Write failing test `packages/core/test/registryIntegrity.test.ts` asserting every exported check definition is registered and no check-id literal appears outside the registry
-- [ ] T091 [P] [US4] Write failing test `packages/core/test/noRawFieldIds.test.ts` asserting no `customfield_` literal exists outside `packages/core/src/fields/`
-- [ ] T092 [P] [US4] Write failing test `packages/core/test/noQueriesInChecks.test.ts` asserting no module under `checks/` imports from `jira/`
-- [ ] T093 [P] [US4] Write failing test `packages/core/test/populationIsDenominator.test.ts` asserting `eligibleKeys` equals the set satisfying `isInPopulation`
-- [ ] T094 [P] [US4] Write failing test `packages/core/test/runChecks.test.ts` asserting an unmapped required concept short-circuits to `unresolved` **before** evaluation runs
+- [X] T090 [P] [US4] Write failing test `packages/core/test/registryIntegrity.test.ts` asserting every exported check definition is registered and no check-id literal appears outside the registry
+- [X] T091 [P] [US4] Write failing test `packages/core/test/noRawFieldIds.test.ts` asserting no `customfield_` literal exists outside `packages/core/src/fields/`
+- [X] T092 [P] [US4] Write failing test `packages/core/test/noQueriesInChecks.test.ts` asserting no module under `checks/` imports from `jira/`
+- [X] T093 [P] [US4] Write failing test `packages/core/test/populationIsDenominator.test.ts` asserting `eligibleKeys` equals the set satisfying `isInPopulation`
+- [X] T094 [P] [US4] Write failing test `packages/core/test/runChecks.test.ts` asserting an unmapped required concept short-circuits to `unresolved` **before** evaluation runs
 
 ### Implementation
 
-- [ ] T095 [US4] Implement `defineCheck` and `CheckContext` in `packages/core/src/checks/defineCheck.ts`
-- [ ] T096 [US4] Implement `packages/core/src/checks/registry.ts` deriving the catalogue and the id union from the definition array
-- [ ] T097 [US4] Implement `runChecks` in `packages/core/src/checks/runChecks.ts` with concept resolution strictly before population partitioning
-- [ ] T098 [P] [US4] Define `missing-story-points` in `packages/core/src/checks/builtins/missingStoryPoints.ts`
-- [ ] T099 [P] [US4] Define `missing-acceptance-criteria` in `packages/core/src/checks/builtins/missingAcceptanceCriteria.ts`
-- [ ] T100 [P] [US4] Define `missing-fix-version` in `packages/core/src/checks/builtins/missingFixVersion.ts`, applying to every type that can carry a fix version — the FR-021B regression
-- [ ] T101 [US4] Implement `buildDrillThroughJql` using `clauseNames` in `packages/core/src/checks/drillThrough.ts`, never the REST field id
-- [ ] T102 [US4] Implement `packages/client/src/views/Hygiene/HygieneView.tsx` with the tile grid, the not-measurable section and denominator drill-through
-- [ ] T103 [US4] Exclude `not-applicable` and `unresolved` results from every aggregate in `packages/core/src/checks/aggregate.ts`
+- [X] T095 [US4] Implement `defineCheck` and `CheckContext` in `packages/core/src/checks/defineCheck.ts`
+- [X] T096 [US4] Implement `packages/core/src/checks/registry.ts` deriving the catalogue and the id union from the definition array
+- [X] T097 [US4] Implement `runChecks` in `packages/core/src/checks/runChecks.ts` with concept resolution strictly before population partitioning
+- [X] T098 [P] [US4] Define `missing-story-points` in `packages/core/src/checks/builtins/missingStoryPoints.ts`
+- [X] T099 [P] [US4] Define `missing-acceptance-criteria` in `packages/core/src/checks/builtins/missingAcceptanceCriteria.ts`
+- [X] T100 [P] [US4] Define `missing-fix-version` in `packages/core/src/checks/builtins/missingFixVersion.ts`, applying to every type that can carry a fix version — the FR-021B regression
+- [X] T101 [US4] Implement `buildDrillThroughJql` using `clauseNames` in `packages/core/src/checks/drillThrough.ts`, never the REST field id
+- [X] T102 [US4] Implement `packages/client/src/views/Hygiene/HygieneView.tsx` with the tile grid, the not-measurable section and denominator drill-through
+- [X] T103 [US4] Exclude `not-applicable` and `unresolved` results from every aggregate in `packages/core/src/checks/aggregate.ts`
 
 **Checkpoint**: Quickstart scenario 5 passes — the five-minute trust demo. Unmap a field and the tile
 goes amber, not green.
