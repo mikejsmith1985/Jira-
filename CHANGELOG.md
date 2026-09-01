@@ -89,6 +89,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Feature 001 now passes Article V as written, with no outstanding deviation.
 
 ### Fixed
+- **Test fixtures no longer look like leaked credentials.** A secret scanner flagged the first pull
+  request over `pat-do-not-leak-3f9a2b` &mdash; a string invented for a test that asserts it never
+  leaves the process. Nothing was ever real and nothing needed revoking, but the scanner was right to
+  raise it: a high-entropy value assigned to a credential field is indistinguishable from the thing
+  it was imitating, and a fixture that has to be investigated before it can be dismissed has cost
+  somebody their afternoon for nothing. The stand-ins are now low-entropy and say what they are.
 - **Six consistency defects found by a cross-artifact analysis, before any code was written.** A
   constants task sat *after* the modules that consume it; the measurement module was filed under two
   different directories in two documents; and four behaviours specified in the contracts had no task

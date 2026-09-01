@@ -16,8 +16,18 @@ import { createApp } from '../app.js';
 import { buildDownstreamPath } from '../routes/jiraProxy.js';
 import { readJournal, resetJournalForTesting } from '../services/writeJournal.js';
 
-/** The token under test. It must never appear in anything the browser receives. */
-const SECRET_TOKEN = 'pat-do-not-leak-3f9a2b';
+/**
+ * The stand-in credential these tests trace through the proxy.
+ *
+ * Deliberately low-entropy and self-describing. An earlier version read like a
+ * real token and a secret scanner flagged the pull request - correctly, because
+ * a high-entropy string assigned to a credential field is exactly what a leaked
+ * one looks like. A fixture should not have to be investigated to be dismissed.
+ *
+ * The assertions only need a string they can prove never leaves the process, so
+ * the shape of it carries no weight.
+ */
+const FAKE_TOKEN = 'not-a-real-token-for-tests-only';
 
 /** Requests the stub Jira received, so the test can inspect what was actually sent. */
 let receivedRequests = [];
@@ -49,7 +59,7 @@ beforeAll(async () => {
 
   config = {
     baseUrl: `http://127.0.0.1:${stubServer.address().port}`,
-    personalAccessToken: SECRET_TOKEN,
+    personalAccessToken: FAKE_TOKEN,
     isSslVerified: false,
     port: 0,
   };
@@ -76,28 +86,28 @@ describe('the credential', () => {
   it('is attached to the upstream request as a Bearer token', async () => {
     await request(createApp(config)).get('/jira-proxy/rest/api/2/search?jql=project=ENCUC');
 
-    expect(receivedRequests[0].authorization).toBe(`Bearer ${SECRET_TOKEN}`);
+    expect(receivedRequests[0].authorization).toBe(`Bearer ${FAKE_TOKEN}`);
   });
 
   it('never appears in a successful response the browser receives', async () => {
     const response = await request(createApp(config)).get('/jira-proxy/rest/api/2/myself');
 
-    expect(JSON.stringify(response.body)).not.toContain(SECRET_TOKEN);
-    expect(JSON.stringify(response.headers)).not.toContain(SECRET_TOKEN);
+    expect(JSON.stringify(response.body)).not.toContain(FAKE_TOKEN);
+    expect(JSON.stringify(response.headers)).not.toContain(FAKE_TOKEN);
   });
 
   it('never appears in an error response either', async () => {
     const response = await request(createApp(config)).get('/jira-proxy/rest/api/2/search?jql=boom');
 
     expect(response.status).toBe(400);
-    expect(JSON.stringify(response.body)).not.toContain(SECRET_TOKEN);
+    expect(JSON.stringify(response.body)).not.toContain(FAKE_TOKEN);
   });
 
   it('never appears in the health report, which says only whether one is present', async () => {
     const response = await request(createApp(config)).get('/api/health');
 
     expect(response.body.isJiraConfigured).toBe(true);
-    expect(JSON.stringify(response.body)).not.toContain(SECRET_TOKEN);
+    expect(JSON.stringify(response.body)).not.toContain(FAKE_TOKEN);
   });
 });
 
@@ -113,7 +123,7 @@ describe('when Jira is not configured', () => {
   it('reports an example URL as unconfigured, not as a real instance', async () => {
     const placeholder = {
       baseUrl: 'https://jira.example.com',
-      personalAccessToken: 'anything',
+      personalAccessToken: 'not-a-real-token-for-tests-only',
       isSslVerified: true,
       port: 0,
     };
