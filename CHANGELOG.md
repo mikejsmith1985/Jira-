@@ -143,6 +143,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Feature 001 now passes Article V as written, with no outstanding deviation.
 
 ### Fixed
+- **The release scripts are now actually linted.** They were unlintable rather than clean: no
+  Node globals were declared for that folder, so every `console` and `process` reference was an
+  undefined-name error and none of the rules that matter were running on those files at all.
+  Declaring the globals let the rules run, and the first thing they found was a bare `1048576` in
+  both scripts &mdash; which now has a name.
 - **Test fixtures no longer look like leaked credentials.** A secret scanner flagged the first pull
   request over `pat-do-not-leak-3f9a2b` &mdash; a string invented for a test that asserts it never
   leaves the process. Nothing was ever real and nothing needed revoking, but the scanner was right to

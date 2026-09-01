@@ -31,6 +31,9 @@ const EXECUTABLE_PATH = path.join(REPOSITORY_ROOT, "build", "jiraplus.exe");
 /** The Node runtime baked into the executable. */
 const PKG_TARGET = "node20-win-x64";
 
+/** Bytes in a megabyte, so a size can be reported the way people read it. */
+const BYTES_PER_MEGABYTE = 1_048_576;
+
 /** Reads the version the release will carry. */
 function readVersion() {
   const manifest = JSON.parse(
@@ -140,7 +143,7 @@ async function main() {
     { stdio: "inherit", cwd: REPOSITORY_ROOT },
   );
 
-  const sizeInMegabytes = (fs.statSync(EXECUTABLE_PATH).size / 1_048_576).toFixed(1);
+  const sizeInMegabytes = (fs.statSync(EXECUTABLE_PATH).size / BYTES_PER_MEGABYTE).toFixed(1);
   console.log(`\nBuilt ${EXECUTABLE_PATH} (${sizeInMegabytes} MB).`);
   console.log("It needs no Node.js, no npm, and no node_modules beside it.");
 }

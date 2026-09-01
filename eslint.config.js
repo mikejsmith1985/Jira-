@@ -108,4 +108,13 @@ export default typescriptEslint.config(
     },
     rules: { "no-magic-numbers": "off" },
   },
+  {
+    // The release scripts are Node programs that talk to a person through the
+    // terminal, so console and process are the interface, not a lapse.
+    files: ["scripts/**/*.js"],
+    languageOptions: {
+      sourceType: "module",
+      globals: { console: "readonly", process: "readonly" },
+    },
+  },
 );

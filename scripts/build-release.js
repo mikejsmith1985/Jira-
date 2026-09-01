@@ -26,6 +26,9 @@ const REPOSITORY_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)
 /** Where the staged release is assembled before zipping. */
 const STAGING_ROOT = path.join(REPOSITORY_ROOT, "build", "release");
 
+/** Bytes in a megabyte, so a size can be reported the way people read it. */
+const BYTES_PER_MEGABYTE = 1_048_576;
+
 /** Reads the version this release will carry. */
 function readVersion() {
   return JSON.parse(fs.readFileSync(path.join(REPOSITORY_ROOT, "package.json"), "utf8")).version;
@@ -123,7 +126,7 @@ function main() {
     { stdio: "inherit" },
   );
 
-  const sizeInMegabytes = (fs.statSync(zipPath).size / 1_048_576).toFixed(1);
+  const sizeInMegabytes = (fs.statSync(zipPath).size / BYTES_PER_MEGABYTE).toFixed(1);
   console.log(`\nBuilt ${zipPath} (${sizeInMegabytes} MB).`);
   console.log("Send that file. Extract it anywhere, double-click the .vbs, done.");
 }
