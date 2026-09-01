@@ -22,8 +22,14 @@ const CONFIG_DIRECTORY = path.join(process.env.APPDATA || os.homedir(), 'JiraPlu
 /** Absolute path to the configuration document. */
 const CONFIG_FILE_PATH = path.join(CONFIG_DIRECTORY, CONFIG_FILENAME);
 
-/** Port the local server listens on when nothing else is specified. */
-const DEFAULT_PORT = 5555;
+/**
+ * Port the local server listens on when nothing else is specified.
+ *
+ * Deliberately NOT 5555, which NodeToolbox occupies. Jira+ exists to be
+ * compared against its predecessor, and that comparison is impossible if only
+ * one of the two can be running. They are meant to be open side by side.
+ */
+const DEFAULT_PORT = 5556;
 
 /** Substrings that mean the base URL is still the example, not a real instance. */
 const PLACEHOLDER_URL_FRAGMENTS = ['example.com', 'your-instance', 'your-jira'];

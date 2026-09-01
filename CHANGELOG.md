@@ -143,6 +143,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Feature 001 now passes Article V as written, with no outstanding deviation.
 
 ### Fixed
+- **Jira+ can now be set up from its own interface.** It shipped able to READ a stored Jira
+  address and token and with no way to SET one: `saveConfig` existed in the loader and nothing
+  called it &mdash; no route, no screen. The result started, served its interface, and could not be
+  pointed at a Jira, which from the user's side is indistinguishable from broken. Setup now opens
+  with the connection: address, token, a TLS toggle for networks that re-sign traffic, and a
+  **Test connection** button that asks Jira who the token belongs to and reports the name back,
+  because "it worked" is a claim and "signed in as ..." is evidence. An unconfigured installation
+  now opens on Setup rather than on an empty query console.
+  The token is write-only throughout. `GET /api/connection` returns the address and whether a
+  token is present, never the token, so it cannot reach a screenshot, a cache or a log; the field
+  renders empty even when one is stored, and an empty field on save means *unchanged*, never
+  *delete* &mdash; otherwise correcting a typo in the address would silently wipe the credential.
+  Saving mutates the live configuration in place, so a credential works on the next request rather
+  than the next launch.
+- **Jira+ no longer fights NodeToolbox for a port.** Both defaulted to 5555, so only one could run
+  &mdash; and Jira+ exists to be compared against its predecessor, which requires both to be open
+  at once. Jira+ now defaults to **5556**, with the reason recorded at the constant and in the
+  launcher so the next person to hit a clash knows which one moved and why.
 - **The release scripts are now actually linted.** They were unlintable rather than clean: no
   Node globals were declared for that folder, so every `console` and `process` reference was an
   undefined-name error and none of the rules that matter were running on those files at all.

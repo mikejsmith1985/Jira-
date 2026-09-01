@@ -30,6 +30,7 @@ import type {
   FieldMapResolution,
 } from "@jira-plus/core";
 
+import { ConnectionPanel } from "../components/ConnectionPanel.js";
 import { createBrowserJiraTransport } from "../state/jiraTransport.js";
 import type { WorkspaceState } from "../state/useWorkspace.js";
 
@@ -108,13 +109,31 @@ export function SetupView({ workspace }: SetupViewProps): JSX.Element {
     await save({ ...configuration, fieldMap: clearFieldChoice(configuration.fieldMap, conceptId) });
   }
 
-  if (isLoading) return <p>Reading the configuration…</p>;
+  // The connection renders even while the workspace is still loading, and
+  // even when it could not be read at all: an installation that cannot reach
+  // Jira yet is EXACTLY the one that needs this panel, so gating it behind a
+  // successful load would hide it from the only person who needs it.
+  if (isLoading) {
+    return (
+      <section>
+        <ConnectionPanel />
+        <p>Reading the configuration…</p>
+      </section>
+    );
+  }
   if (configuration === null) {
-    return <p className="notice notice--error">The configuration could not be read.</p>;
+    return (
+      <section>
+        <ConnectionPanel />
+        <p className="notice notice--error">The configuration could not be read.</p>
+      </section>
+    );
   }
 
   return (
     <section>
+      <ConnectionPanel />
+
       <h2 className="view__title">What this app is reading</h2>
       <p className="view__lede">
         Jira+ ships no assumptions about which field is which. Confirm each one by seeing a real

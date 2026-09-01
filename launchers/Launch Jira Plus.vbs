@@ -14,7 +14,9 @@ Option Explicit
 
 ' ── Configuration ──────────────────────────────────────────────────────────────
 
-Const SERVER_PORT = 5555
+' Deliberately not 5555, which NodeToolbox occupies. The two are meant to be
+' open side by side while one is compared against the other.
+Const SERVER_PORT = 5556
 Const SERVER_READY_TIMEOUT_SECONDS = 30
 Const POLL_INTERVAL_MS = 1000
 Const CURRENT_POINTER_FILENAME = "current.txt"
