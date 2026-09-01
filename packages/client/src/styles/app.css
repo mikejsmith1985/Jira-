@@ -879,3 +879,38 @@
   color: var(--accent);
   font-size: 12px;
 }
+
+/* ── Apply pipeline ──────────────────────────────────── */
+
+.fixes {
+  margin-top: var(--gap-5);
+  padding: var(--gap-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.diff {
+  margin-top: var(--gap-5);
+  padding: var(--gap-4);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.diff__was {
+  color: var(--ink-3);
+  text-decoration: line-through;
+}
+
+.diff__will {
+  color: var(--ink);
+}
+
+.diff__row--rejected {
+  opacity: 0.45;
+}
+
+.diff__table td {
+  vertical-align: middle;
+}

@@ -192,3 +192,23 @@ export {
 } from "./fields/resolveFieldMap.js";
 
 export { buildJiraBrowseUrl, buildJiraSearchUrl } from "./jira/jiraUrls.js";
+
+export type {
+  ChangeBlocker,
+  ChangeSet,
+  PlannedChange,
+  Proposal as ChangeProposal,
+  WriteRoute,
+} from "./apply/buildChangeSet.js";
+export { buildChangeSet, canApplyChangeSet } from "./apply/buildChangeSet.js";
+export type { ApplyOutcome, ApplyResult } from "./apply/runApplyPlan.js";
+export { runApplyPlan } from "./apply/runApplyPlan.js";
+export type { FieldWriteRequest, FieldWriter } from "./jira/write/fieldWriters.js";
+export { inferWriteRoute, resolveFieldWriteRoute } from "./jira/write/fieldWriters.js";
+export type { DeterministicFix } from "./apply/fixes/deterministicFixes.js";
+export {
+  ALL_DETERMINISTIC_FIXES,
+  SET_MISSING_FIX_VERSION,
+  findDeterministicFix,
+  findFixForCheck,
+} from "./apply/fixes/deterministicFixes.js";

@@ -262,23 +262,23 @@ confirm all three appear in the log.
 
 ### Tests first ⚠️
 
-- [ ] T104 [P] [US5] Write failing test `packages/core/test/buildChangeSet.test.ts` asserting an unchanged value produces no planned change and that one blocker refuses the whole action
-- [ ] T105 [P] [US5] Write failing test `packages/core/test/runApplyPlan.test.ts` asserting per-item independence — one failure neither prevents nor undoes the others
-- [ ] T106 [P] [US5] Write failing test `packages/core/test/fieldWriters.test.ts` asserting fixVersion uses `update.set` and story points handles the dropdown case
+- [X] T104 [P] [US5] Write failing test `packages/core/test/buildChangeSet.test.ts` asserting an unchanged value produces no planned change and that one blocker refuses the whole action
+- [X] T105 [P] [US5] Write failing test `packages/core/test/runApplyPlan.test.ts` asserting per-item independence — one failure neither prevents nor undoes the others
+- [X] T106 [P] [US5] Write failing test `packages/core/test/fieldWriters.test.ts` asserting fixVersion uses `update.set` and story points handles the dropdown case
 
 ### Implementation
 
-- [ ] T107 [US5] Implement `Proposal`, `PlannedChange`, `ChangeSet` and `buildChangeSet` in `packages/core/src/apply/buildChangeSet.ts` as a pure diff
-- [ ] T108 [US5] Port the writer set from NodeToolbox `client/src/views/SprintDashboard/featureReviewFixes.ts` into `packages/core/src/jira/write/fieldWriters.ts`
-- [ ] T109 [US5] Port `resolveFieldWriteRoute` from NodeToolbox `client/src/components/IssueFieldEditors/editableFieldWrite.ts` into `packages/core/src/jira/write/resolveFieldWriteRoute.ts`
-- [ ] T110 [US5] Implement `runApplyPlan` in `packages/core/src/apply/runApplyPlan.ts` with independent per-item outcomes and no rollback
-- [ ] T111 [US5] Implement `packages/client/src/components/ChangeDiffTable.tsx` rendering was-to-will-be with per-row checkboxes
+- [X] T107 [US5] Implement `Proposal`, `PlannedChange`, `ChangeSet` and `buildChangeSet` in `packages/core/src/apply/buildChangeSet.ts` as a pure diff
+- [X] T108 [US5] Port the writer set from NodeToolbox `client/src/views/SprintDashboard/featureReviewFixes.ts` into `packages/core/src/jira/write/fieldWriters.ts`
+- [X] T109 [US5] Port `resolveFieldWriteRoute` from NodeToolbox `client/src/components/IssueFieldEditors/editableFieldWrite.ts` into `packages/core/src/jira/write/resolveFieldWriteRoute.ts`
+- [X] T110 [US5] Implement `runApplyPlan` in `packages/core/src/apply/runApplyPlan.ts` with independent per-item outcomes and no rollback
+- [X] T111 [US5] Implement `packages/client/src/components/ChangeDiffTable.tsx` rendering was-to-will-be with per-row checkboxes
 - [ ] T112 [P] [US5] Define the `fix-acceptance-criteria` pack in `packages/core/src/packs/definitions/fixAcceptanceCriteria.ts`
 - [ ] T113 [P] [US5] Define the `fix-thin-description` pack in `packages/core/src/packs/definitions/fixThinDescription.ts`
-- [ ] T114 [P] [US5] Implement the deterministic `set-missing-fix-version` fix in `packages/core/src/apply/fixes/setMissingFixVersion.ts`
+- [X] T114 [P] [US5] Implement the deterministic `set-missing-fix-version` fix in `packages/core/src/apply/fixes/setMissingFixVersion.ts`
 - [ ] T115 [P] [US5] Implement the deterministic `align-out-of-sync-dates` fix in `packages/core/src/apply/fixes/alignOutOfSyncDates.ts`
-- [ ] T116 [US5] Implement `GET /api/write-journal` in `packages/server/routes/writeJournal.js`
-- [ ] T117 [US5] Implement `packages/client/src/views/ChangeLog/ChangeLogView.tsx`
+- [X] T116 [US5] Implement `GET /api/write-journal` in `packages/server/routes/writeJournal.js`
+- [X] T117 [US5] Implement `packages/client/src/views/ChangeLog/ChangeLogView.tsx`
 
 **Checkpoint**: Quickstart scenario 6 passes. All five stories are independently functional.
 

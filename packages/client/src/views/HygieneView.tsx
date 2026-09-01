@@ -14,13 +14,24 @@ import type { JSX } from "react";
 import { useEffect, useMemo, useState } from "react";
 
 import {
+  buildChangeSet,
   buildJiraSearchUrl,
   createDataCenterAdapter,
+  findFixForCheck,
+  runApplyPlan,
   runChecks,
   summariseChecks,
 } from "@jira-plus/core";
-import type { CheckResult, JiraFieldDescriptor, WorkspaceConfiguration } from "@jira-plus/core";
+import type {
+  ApplyOutcome,
+  ChangeSet,
+  CheckResult,
+  JiraFieldDescriptor,
+  PlannedChange,
+  WorkspaceConfiguration,
+} from "@jira-plus/core";
 
+import { ChangeDiffTable } from "../components/ChangeDiffTable.js";
 import { MeasurementTile } from "../components/MeasurementTile.js";
 import { ProvenanceBanner } from "../components/ProvenanceBanner.js";
 import { WhyThisNumber } from "../components/WhyThisNumber.js";
@@ -51,6 +62,9 @@ export function HygieneView({
   const [fieldCatalogue, setFieldCatalogue] = useState<readonly JiraFieldDescriptor[]>([]);
   const [drillThrough, setDrillThrough] = useState<DrillThrough | null>(null);
   const [openExplanationId, setOpenExplanationId] = useState<string | null>(null);
+  const [changeSet, setChangeSet] = useState<ChangeSet | null>(null);
+  const [applyOutcome, setApplyOutcome] = useState<ApplyOutcome | null>(null);
+  const [fixVersionName, setFixVersionName] = useState("");
 
   // The catalogue lets a result name Jira's own label for whichever field it
   // read, which is what makes a mapping auditable rather than merely configured.
@@ -74,6 +88,40 @@ export function HygieneView({
   const summary = useMemo(() => summariseChecks(results), [results]);
 
   const notMeasurable = results.filter((result) => result.measure.state === "unresolved");
+
+  /** Builds a reviewable change set from a one-click fix. Nothing is sent yet. */
+  function prepareFix(result: CheckResult): void {
+    const fix = findFixForCheck(result);
+    if (fix === undefined || issueSet === null || configuration === null) return;
+    if (result.measure.state !== "measured") return;
+
+    const flaggedIssues = result.measure.flaggedKeys
+      .map((issueKey) => issueSet.byKey.get(issueKey))
+      .filter((issue): issue is NonNullable<typeof issue> => issue !== undefined);
+
+    setApplyOutcome(null);
+    setChangeSet(
+      buildChangeSet({
+        proposals: fix.buildProposals({
+          issueSet,
+          flaggedIssues,
+          parameters: { versionName: fixVersionName },
+        }),
+        issueSet,
+        fieldMap: configuration.fieldMap,
+      }),
+    );
+  }
+
+  /** Applies the reviewed plan. Every write passes the journal on the way out. */
+  async function applyChanges(accepted: readonly PlannedChange[]): Promise<void> {
+    if (changeSet === null) return;
+    const outcome = await runApplyPlan(
+      { ...changeSet, plannedChanges: accepted },
+      createBrowserJiraTransport(),
+    );
+    setApplyOutcome(outcome);
+  }
 
   return (
     <section>
@@ -176,6 +224,62 @@ export function HygieneView({
               </button>
             ))}
           </div>
+
+          {results.some((result) => findFixForCheck(result) !== undefined) ? (
+            <section className="fixes">
+              <h3 className="chart__title">Fix without writing a prompt</h3>
+              <p className="chart__note">
+                These need no assistant. They produce the same reviewable diff, because
+                &ldquo;it was obvious&rdquo; is how a batch of unwanted writes gets made.
+              </p>
+
+              <div className="console__actions">
+                <input
+                  className="console__jql mono"
+                  value={fixVersionName}
+                  placeholder="Which fix version? e.g. 2026.09"
+                  aria-label="Fix version to set"
+                  onChange={(event) => setFixVersionName(event.target.value)}
+                />
+              </div>
+
+              <div className="evidence__actions">
+                {results
+                  .filter((result) => findFixForCheck(result) !== undefined)
+                  .filter((result) => result.measure.state === "measured")
+                  .map((result) => {
+                    const fix = findFixForCheck(result);
+                    const flaggedCount =
+                      result.measure.state === "measured" ? result.measure.flaggedKeys.length : 0;
+                    if (fix === undefined || flaggedCount === 0) return null;
+                    return (
+                      <button
+                        key={fix.fixId}
+                        type="button"
+                        className="button"
+                        disabled={fixVersionName.trim().length === 0}
+                        onClick={() => prepareFix(result)}
+                        title={fix.describe(flaggedCount)}
+                      >
+                        {fix.title} on {flaggedCount} issue{flaggedCount === 1 ? "" : "s"}
+                      </button>
+                    );
+                  })}
+              </div>
+            </section>
+          ) : null}
+
+          {changeSet === null ? null : (
+            <ChangeDiffTable
+              changeSet={changeSet}
+              outcome={applyOutcome}
+              onApply={applyChanges}
+              onDismiss={() => {
+                setChangeSet(null);
+                setApplyOutcome(null);
+              }}
+            />
+          )}
 
           {drillThrough === null ? null : (
             <section className="drill">
