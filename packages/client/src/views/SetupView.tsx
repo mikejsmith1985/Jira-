@@ -31,6 +31,7 @@ import type {
 } from "@jira-plus/core";
 
 import { ConnectionPanel } from "../components/ConnectionPanel.js";
+import { InstancePanel } from "../components/InstancePanel.js";
 import { UpdatePanel } from "../components/UpdatePanel.js";
 import { createBrowserJiraTransport } from "../state/jiraTransport.js";
 import type { WorkspaceState } from "../state/useWorkspace.js";
@@ -56,6 +57,9 @@ export function SetupView({ workspace }: SetupViewProps): JSX.Element {
   const [sampleError, setSampleError] = useState<string | null>(null);
   const [resolution, setResolution] = useState<FieldMapResolution | null>(null);
   const [isConnectionMissing, setIsConnectionMissing] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importSummary, setImportSummary] = useState<string | null>(null);
+  const [importProblem, setImportProblem] = useState<string | null>(null);
 
   // Asked once, so a failure below can name its real cause instead of
   // reporting an unfinished setup as a Jira problem.
@@ -119,6 +123,39 @@ export function SetupView({ workspace }: SetupViewProps): JSX.Element {
     });
   }
 
+  /**
+   * Takes the mapping already done in NodeToolbox, overwriting ours.
+   *
+   * No confirmation step, deliberately: this work was done once already, and a
+   * gate in front of somebody's own prior answers is friction rather than
+   * safety. The summary afterwards is a receipt, so the result can still be
+   * checked.
+   */
+  async function importFromToolbox(): Promise<void> {
+    setIsImporting(true);
+    setImportSummary(null);
+    setImportProblem(null);
+    try {
+      const response = await fetch("/api/workspace/import-toolbox", { method: "POST" });
+      const body = await response.json();
+      if (!response.ok) {
+        setImportProblem(body.reason);
+        return;
+      }
+      const changed = body.changes as { conceptId: string; fieldId: string }[];
+      setImportSummary(
+        changed.length === 0
+          ? "NodeToolbox agreed with every mapping already set. Nothing changed."
+          : `Imported ${changed.length} mapping${changed.length === 1 ? "" : "s"} from NodeToolbox: ${changed
+              .map((change) => `${change.conceptId} → ${change.fieldId}`)
+              .join(", ")}.`,
+      );
+      await workspace.reload();
+    } finally {
+      setIsImporting(false);
+    }
+  }
+
   async function clear(conceptId: ConceptId): Promise<void> {
     if (configuration === null) return;
     await save({ ...configuration, fieldMap: clearFieldChoice(configuration.fieldMap, conceptId) });
@@ -147,11 +184,30 @@ export function SetupView({ workspace }: SetupViewProps): JSX.Element {
 
   return (
     <section>
+      <InstancePanel />
+
       <UpdatePanel />
 
       <ConnectionPanel />
 
       <h2 className="view__title">What this app is reading</h2>
+
+      <div className="console__actions">
+        <button
+          type="button"
+          className="button"
+          disabled={isImporting}
+          onClick={() => void importFromToolbox()}
+        >
+          {isImporting ? "Importing…" : "Import mappings from NodeToolbox"}
+        </button>
+      </div>
+      {importSummary === null ? null : (
+        <p className="notice notice--pass">{importSummary}</p>
+      )}
+      {importProblem === null ? null : (
+        <p className="notice notice--attn">{importProblem}</p>
+      )}
       <p className="view__lede">
         Jira+ ships no assumptions about which field is which. Confirm each one by seeing a real
         value from one of your own issues.
