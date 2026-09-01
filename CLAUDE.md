@@ -72,16 +72,20 @@
   **Slice 0 is a capability probe** answering, against the live instance, the four items official
   documentation could not confirm. Evidence, not inference.
 
-### Planned, not yet specified
+- **002-board-native-rollup** — *(**IMPLEMENTED** on `feature/board-native-rollup`.)* Feature
+  swimlanes over the **real Jira board's own configuration**, which nothing in the predecessor ever
+  read. Jira's columns are the spine and are never invented; sub-status renders as labelled **bands
+  inside** the column it refines, and a code-review sub-task as a **card badge**, never a column,
+  because inventing a column Jira does not have is exactly what breaks agreement between a count and
+  Jira itself. Two assertions carry it, and neither failure is visible by looking: a banding holds
+  exactly the cards its column held, and every retrieved issue is drawn exactly once.
+  Spec: `specs/002-board-native-rollup/spec.md`.
 
-- **002-board-native-rollup** — Feature swimlanes over the **real Jira board's own configuration**,
-  which nothing in the predecessor ever read. Jira columns are the spine and are never invented;
-  sub-status renders as labelled **bands inside** the column it refines, and a code-review sub-task as
-  a **card badge**, never a column — because inventing a column Jira does not have is exactly what
-  breaks agreement between a count and Jira itself.
-- **003-clone-families** — QE and BT clone the dev Feature into their own projects and run their own
-  Scrum sprints, across four-plus projects where no admin rights exist. No Jira board can show this;
-  read-only cross-project JQL needs only Browse permission. Disciplines render as read-only rows
-  inside the Feature lane, in their own columns, with their sprints ignored rather than reconciled,
-  and progress reported as **two figures — dev-only and whole-family — never blended**.
+- **003-clone-families** — *(**IMPLEMENTED** on the same branch.)* QE and BT clone the dev Feature
+  into their own projects and run their own Scrum sprints, across four-plus projects where no admin
+  rights exist. No Jira board can show this; read-only cross-project JQL needs only Browse
+  permission. **The project decides, not the link** — a Cloners link inside a dev project is a peer
+  Feature, not a sub-lane. Disciplines render as read-only rows inside the Feature lane, in their own
+  columns or an honest coarse view that says which it is, with their sprints ignored rather than
+  reconciled, and progress reported as **two figures — dev-only and whole-family — never blended**.
 <!-- SPECKIT END -->

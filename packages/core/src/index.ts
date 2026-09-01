@@ -253,3 +253,18 @@ export {
 export type { MoveOutcome, MovePlan, MoveTarget } from "./board/planStatusMove.js";
 export { executeStatusMove, planStatusMove } from "./board/planStatusMove.js";
 export type { BoardSummary } from "./jira/jiraAdapter.js";
+
+export type {
+  CloneFamilyMap,
+  CloneMatch,
+  CloneMatchMethod,
+  DisciplineProject,
+} from "./family/cloneFamily.js";
+export { buildDisciplineWorkJql, discoverCloneFamily } from "./family/cloneFamily.js";
+export type { DisciplineRow, DisciplineView, FamilyProgress } from "./family/familyProgress.js";
+export {
+  buildDisciplineRow,
+  buildFamilyProgress,
+  describeFamilyProgress,
+  toCoarseState,
+} from "./family/familyProgress.js";

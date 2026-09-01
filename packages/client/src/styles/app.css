@@ -1080,3 +1080,77 @@
   font-size: 10.5px;
   font-weight: 600;
 }
+
+/* ── Discipline sub-lanes ────────────────────────────── */
+
+.sublane {
+  margin-top: var(--gap-2);
+  border-top: 1px solid var(--border);
+  padding-top: var(--gap-2);
+}
+
+.sublane__summary {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-2);
+  width: 100%;
+  font: inherit;
+  font-size: 11.5px;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  padding: 0;
+}
+
+.sublane__label {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.sublane__note {
+  margin-left: auto;
+  color: var(--ink-3);
+  font-style: italic;
+}
+
+.sublane__body {
+  margin-top: var(--gap-2);
+  padding: var(--gap-2);
+  border-radius: var(--radius);
+  background: var(--ground);
+}
+
+.sublane__reason {
+  margin: 0 0 var(--gap-2);
+  font-size: 11px;
+  color: var(--ink-3);
+  line-height: 1.4;
+}
+
+.sublane__states {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--gap-2);
+}
+
+.sublane__state-label {
+  margin: 0 0 var(--gap-1);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.sublane__keys {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 11px;
+}
+
+.sublane__keys a {
+  color: var(--accent);
+}

@@ -8,6 +8,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Work that spans four projects, in one readable lane.** QE clones the dev Feature into its own
+  feature project and links stories from its own team project; BT does the same with two more; both
+  run their own Scrum sprints; and there are no admin rights in any of those projects. **No Jira
+  board can show that** &mdash; a shared board would need administration nobody has and projects mixed
+  into one sprint board, which gets hairy fast. Jira+ is not a board, it is a view assembled from
+  queries, and read-only cross-project JQL needs only Browse permission. The constraint that looked
+  like the obstacle is what makes this possible.
+  **The project decides, not the link.** A Cloners link can equally point at a peer Feature inside the
+  dev team&#39;s own project, and treating every clone link as another discipline&#39;s copy would turn a
+  colleague&#39;s Feature into a QE sub-lane. Only a clone in a project declared as a discipline becomes
+  one; a clone in a project nobody claimed is reported rather than guessed at.
+  Discipline work renders as **read-only rows inside the Feature lane**, collapsed by default, so the
+  board looks exactly as it did without them &mdash; one readable axis rather than the two-axis
+  swimlane board. Their sprints are ignored rather than reconciled, because the view is
+  Feature-scoped. Where their own board cannot be read, the row falls back to Jira&#39;s universal three
+  states **and says so**: forcing their work into the dev team&#39;s column names would be the same lie
+  as the parallel vocabulary this design removed.
+  Progress is **two figures, never blended** &mdash; dev-only beside whole-family. One number would
+  leave a reader unable to say whether dev is finished and QE has not started, or the reverse, and
+  those are opposite situations calling for opposite conversations.
 - **The roll-up board, drawn over the real Jira board.** Feature swimlanes across the board&#39;s own
   columns &mdash; same names, same order, same status mappings &mdash; with **nothing to configure and
   no vocabulary to maintain**. The predecessor kept its own column names, order and mappings per team
