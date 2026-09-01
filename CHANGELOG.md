@@ -8,6 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **The roll-up board, drawn over the real Jira board.** Feature swimlanes across the board&#39;s own
+  columns &mdash; same names, same order, same status mappings &mdash; with **nothing to configure and
+  no vocabulary to maintain**. The predecessor kept its own column names, order and mappings per team
+  in browser storage and a Confluence property, reconciled against nothing; a full search of that
+  codebase found zero calls to the endpoint this feature is built on. Its board was not a view of a
+  Jira board at all.
+  The reason it invented one is real: **Jira board columns can only be statuses**, and this team&#39;s
+  workflow carries more than that. So a sub-status distinction becomes labelled **bands inside** the
+  column it refines, where the column&#39;s own total still reconciles with Jira exactly; and an open
+  code-review sub-task becomes a **badge on the card**, never a column, because inventing a column
+  Jira does not have is precisely what breaks that reconciliation. A refinement can change how a
+  column looks. It can never lose a card, and an assertion enforces that rather than a convention.
+  Dragging a card decides what the move requires **before sending anything**, so a move Jira would
+  refuse is refused with no request made and no failed write in the log for something nobody could
+  have done. And when a two-part move half-succeeds, the card does **not** snap back: Jira really did
+  perform the transition, and showing the card at its origin would display a state Jira does not
+  hold.
 - **Jira+ works.** Paste a JQL query and every matching issue is retrieved once, with its full
   change history, and frozen. Every other surface is a lens over that one snapshot: the flow
   charts, the quality checks, the prompts pasted into Copilot. No lens goes back and asks Jira a

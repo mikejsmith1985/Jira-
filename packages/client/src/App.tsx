@@ -9,17 +9,20 @@ import type { JSX } from "react";
 
 import { useEffect, useState } from "react";
 
+import { BoardView } from "./views/BoardView.js";
 import { ChangeLogView } from "./views/ChangeLogView.js";
 import { FlowView } from "./views/FlowView.js";
 import { HygieneView } from "./views/HygieneView.js";
 import { QueryConsoleView } from "./views/QueryConsoleView.js";
 import { SetupView } from "./views/SetupView.js";
+import { useBoard } from "./state/useBoard.js";
 import { useIssueSet } from "./state/useIssueSet.js";
 import { useWorkspace } from "./state/useWorkspace.js";
 
 /** The surfaces, in the order someone meets them. */
 const SURFACES = [
   { id: "query", label: "Query" },
+  { id: "board", label: "Board" },
   { id: "flow", label: "Flow" },
   { id: "hygiene", label: "Hygiene" },
   { id: "changes", label: "Changes" },
@@ -34,6 +37,7 @@ export function App(): JSX.Element {
   const [jiraBaseUrl, setJiraBaseUrl] = useState("");
   const workspace = useWorkspace();
   const issueSetState = useIssueSet(workspace.configuration);
+  const boardState = useBoard(workspace.configuration);
 
   // Read once, so links into Jira point at the right instance. The health route
   // reports whether a credential exists; it never returns the credential.
@@ -96,6 +100,15 @@ export function App(): JSX.Element {
       <main className="app__main">
         {activeSurface === "query" ? (
           <QueryConsoleView issueSetState={issueSetState} configuration={workspace.configuration} />
+        ) : null}
+        {activeSurface === "board" ? (
+          <BoardView
+            boardState={boardState}
+            configuration={workspace.configuration}
+            refinements={workspace.configuration?.boardRefinements ?? []}
+            cardMarkers={workspace.configuration?.cardMarkers ?? []}
+            jiraBaseUrl={jiraBaseUrl}
+          />
         ) : null}
         {activeSurface === "flow" ? (
           <FlowView issueSetState={issueSetState} configuration={workspace.configuration} />
