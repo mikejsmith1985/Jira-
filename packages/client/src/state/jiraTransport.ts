@@ -26,6 +26,18 @@ function readJiraMessages(body: unknown): readonly string[] {
   return [];
 }
 
+/**
+ * Reads the marker our own proxy sets when IT refused rather than Jira.
+ *
+ * Jira cannot set this field, so it is the one signal that separates an
+ * unfinished setup from a genuine outage sharing the same status code.
+ */
+function readJiraPlusFailureKind(body: unknown): string | null {
+  if (body === null || typeof body !== "object") return null;
+  const kind = (body as { jiraPlusFailureKind?: unknown }).jiraPlusFailureKind;
+  return typeof kind === "string" ? kind : null;
+}
+
 /** Reads Retry-After, which distinguishes throttling from an empty result. */
 function readRetryAfterSeconds(response: Response): number | null {
   const header = response.headers.get("retry-after");
@@ -48,6 +60,7 @@ async function toJiraResponse<TBody>(response: Response): Promise<JiraResponse<T
     body: response.ok ? (body as TBody) : null,
     jiraMessages: readJiraMessages(body),
     retryAfterSeconds: readRetryAfterSeconds(response),
+    jiraPlusFailureKind: readJiraPlusFailureKind(body),
   };
 }
 

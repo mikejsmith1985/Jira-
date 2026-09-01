@@ -36,8 +36,14 @@ const FORWARDED_RESPONSE_HEADERS = [
  */
 function forwardToJira(req, res, config, downstreamPath) {
   if (config.baseUrl.length === 0) {
+    // Marked as Jira+'s own refusal. Jira cannot set this field, which is what
+    // lets the interface tell an unfinished setup apart from a Jira outage that
+    // happens to share the status code - and stops it reporting "Jira answered
+    // with 503" about a request Jira never received.
     res.status(503).json({
       error: 'Jira is not configured',
+      errorMessages: ['Jira+ has no Jira address yet. Open Setup and save your connection.'],
+      jiraPlusFailureKind: 'not-configured',
       message: 'Set the Jira base URL and personal access token before making requests.',
     });
     return;

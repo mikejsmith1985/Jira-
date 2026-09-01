@@ -105,6 +105,7 @@ export default typescriptEslint.config(
         fetch: "readonly",
         process: "readonly",
         AbortController: "readonly",
+        Buffer: "readonly",
         setTimeout: "readonly",
         clearTimeout: "readonly",
       },

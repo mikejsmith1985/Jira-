@@ -31,6 +31,7 @@ import type {
 } from "@jira-plus/core";
 
 import { ConnectionPanel } from "../components/ConnectionPanel.js";
+import { UpdatePanel } from "../components/UpdatePanel.js";
 import { createBrowserJiraTransport } from "../state/jiraTransport.js";
 import type { WorkspaceState } from "../state/useWorkspace.js";
 
@@ -54,6 +55,20 @@ export function SetupView({ workspace }: SetupViewProps): JSX.Element {
   const [sampleIssue, setSampleIssue] = useState<DetailedIssue | null>(null);
   const [sampleError, setSampleError] = useState<string | null>(null);
   const [resolution, setResolution] = useState<FieldMapResolution | null>(null);
+  const [isConnectionMissing, setIsConnectionMissing] = useState(false);
+
+  // Asked once, so a failure below can name its real cause instead of
+  // reporting an unfinished setup as a Jira problem.
+  useEffect(() => {
+    void (async () => {
+      try {
+        const response = await fetch("/api/connection");
+        if (response.ok) setIsConnectionMissing((await response.json()).isJiraConfigured !== true);
+      } catch {
+        // Leaving the flag false shows the underlying message, which is honest.
+      }
+    })();
+  }, [resolution]);
 
   const refreshProposals = useCallback(
     async (issue: DetailedIssue | null) => {
@@ -132,6 +147,8 @@ export function SetupView({ workspace }: SetupViewProps): JSX.Element {
 
   return (
     <section>
+      <UpdatePanel />
+
       <ConnectionPanel />
 
       <h2 className="view__title">What this app is reading</h2>
@@ -167,7 +184,13 @@ export function SetupView({ workspace }: SetupViewProps): JSX.Element {
             Load it
           </button>
         </div>
-        {sampleError === null ? null : <p className="notice notice--error">{sampleError}</p>}
+        {sampleError === null ? null : (
+          <p className={`notice notice--${isConnectionMissing ? "attn" : "error"}`}>
+            {isConnectionMissing
+              ? "Save the connection above first — this reads the issue from your Jira."
+              : sampleError}
+          </p>
+        )}
         {sampleIssue === null ? (
           <p className="chart__note">
             Without a sample issue the candidates below show only their names and types. That is
@@ -181,7 +204,11 @@ export function SetupView({ workspace }: SetupViewProps): JSX.Element {
       </div>
 
       {resolution?.status === "catalogue-unavailable" ? (
-        <p className="notice notice--error">{resolution.reason}</p>
+        <p className="notice notice--attn">
+          {isConnectionMissing
+            ? "Set the connection above and press Save first — the field list comes from your Jira, and Jira+ has not been given one yet."
+            : resolution.reason}
+        </p>
       ) : null}
 
       <ul className="setup__list">

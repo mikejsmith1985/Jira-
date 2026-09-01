@@ -89,6 +89,20 @@
   background: var(--crit-soft);
 }
 
+/* A notice has three meanings and needs three appearances. Without these two
+   rules every notice fell back to the amber default, so "signed in as ..." and
+   "not configured yet" rendered identically - success and failure looking the
+   same, which is the single defect this product exists to remove. */
+.notice--pass {
+  border-color: var(--pass);
+  background: var(--pass-soft);
+}
+
+.notice--attn {
+  border-color: var(--attn);
+  background: var(--attn-soft);
+}
+
 .notice {
   margin: var(--gap-4) 0 0;
 }

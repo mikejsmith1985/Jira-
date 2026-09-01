@@ -14,6 +14,7 @@ import express from 'express';
 import { isJiraConfigured } from './config/loader.js';
 import { createConnectionRouter } from './routes/connection.js';
 import { createJiraProxyRouter } from './routes/jiraProxy.js';
+import { createUpdatesRouter } from './routes/updates.js';
 import { createWorkspaceRouter } from './routes/workspace.js';
 import { createWriteJournalRouter } from './routes/writeJournalRoute.js';
 
@@ -48,6 +49,21 @@ function resolveClientDistPath() {
 const CLIENT_DIST_PATH = resolveClientDistPath();
 
 /**
+ * The version this process is running.
+ *
+ * Read from the manifest bundled into the executable rather than from a
+ * constant, so a build can never claim a version it is not.
+ */
+function readInstalledVersion() {
+  try {
+    const manifestPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'package.json');
+    return JSON.parse(fs.readFileSync(manifestPath, 'utf8')).version ?? '0.0.0';
+  } catch {
+    return '0.0.0';
+  }
+}
+
+/**
  * Builds the application.
  *
  * The configuration object is held by reference rather than copied, so a
@@ -67,6 +83,9 @@ function createApp(config) {
   app.use(createConnectionRouter(config));
   app.use(createJiraProxyRouter(config));
   app.use(createWorkspaceRouter());
+  // Checking for a newer version needs no credential and reaches GitHub, not
+  // Jira, so it works on an installation that was never configured.
+  app.use(createUpdatesRouter(readInstalledVersion()));
   app.use(createWriteJournalRouter());
 
   // Reports what is configured — never the credential itself, only whether one
