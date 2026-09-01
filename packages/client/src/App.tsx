@@ -75,7 +75,9 @@ export function App(): JSX.Element {
       )}
 
       <main className="app__main">
-        {activeSurface === "query" ? <QueryConsoleView issueSetState={issueSetState} /> : null}
+        {activeSurface === "query" ? (
+          <QueryConsoleView issueSetState={issueSetState} configuration={workspace.configuration} />
+        ) : null}
         {activeSurface === "flow" ? (
           <FlowView issueSetState={issueSetState} configuration={workspace.configuration} />
         ) : null}

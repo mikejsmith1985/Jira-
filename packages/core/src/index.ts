@@ -83,3 +83,26 @@ export type {
   WorkspaceReview,
 } from "./workspace/workspaceConfig.js";
 export { ASSISTANT_INPUT_LIMIT_CHARACTERS } from "./workspace/defaults.js";
+
+export type {
+  ChunkState,
+  ChunkOptions,
+  PromptChunk,
+  PromptChunkSet,
+} from "./packs/buildPromptChunks.js";
+export { buildPromptChunks } from "./packs/buildPromptChunks.js";
+export type {
+  PackContext,
+  PackFieldSpec,
+  PackItemSchema,
+  PromptPack,
+  Proposal,
+  ValidatedFieldValue,
+  ValidatedItem,
+} from "./packs/promptPack.js";
+export { SHARED_PROMPT_RULES, renderItemSchema } from "./packs/promptPack.js";
+export type { PackReplyResult, ReplyRejection } from "./packs/parsePackReply.js";
+export { parsePackReply } from "./packs/parsePackReply.js";
+export { extractJsonPayload, NoJsonFoundError } from "./packs/extractJsonPayload.js";
+export { ALL_PROMPT_PACKS, findPromptPack } from "./packs/packRegistry.js";
+export { ASK_ANYTHING_PACK } from "./packs/definitions/askAnything.js";

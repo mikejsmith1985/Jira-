@@ -114,8 +114,8 @@ with no field mapping configured, no board selected, and no write permission exe
 - [X] T036A [P] [US1] Write failing test `packages/core/test/retrievalFailureKinds.test.ts` covering all four failure kinds distinctly — a bad field reference, an **expired or invalid credential**, a permission-restricted project, and a transport fault — so SC-004's five induced conditions are each proved to yield no passing result
 - [X] T037 [P] [US1] Write failing test `packages/core/test/paging.test.ts` asserting a page shorter than requested does **not** end a retrieval, per research.md R3 — the silent clamp case
 - [X] T038 [P] [US1] Write failing test `packages/core/test/fetchIssueSet.test.ts` asserting `failure !== null` implies zero issues and `state === 'failed'`
-- [ ] T039 [P] [US1] Write failing test `packages/core/test/buildPromptChunks.test.ts` asserting division never occurs within an issue and each chunk carries its own whitelist
-- [ ] T040 [P] [US1] Write failing test `packages/core/test/packReply.test.ts` covering every rung of the validation ladder in contracts/prompt-packs.md §4
+- [X] T039 [P] [US1] Write failing test `packages/core/test/buildPromptChunks.test.ts` asserting division never occurs within an issue and each chunk carries its own whitelist
+- [X] T040 [P] [US1] Write failing test `packages/core/test/packReply.test.ts` covering every rung of the validation ladder in contracts/prompt-packs.md §4
 - [X] T041 [P] [US1] Write failing integration test `packages/server/test/retrieval.contract.test.js` against recorded fixtures for the clamp, a 400 on an unknown field, and a truncated retrieval
 
 ### Retrieval
@@ -128,20 +128,20 @@ with no field mapping configured, no board selected, and no write permission exe
 
 ### The pack runtime
 
-- [ ] T047 [P] [US1] Port `extractJsonPayload` from NodeToolbox `client/src/utils/extractJsonPayload.ts` into `packages/core/src/packs/extractJsonPayload.ts` verbatim
-- [ ] T048 [US1] Define `PromptPack`, `PackItemSchema` and `PackFieldSpec` in `packages/core/src/packs/promptPack.ts`
-- [ ] T049 [US1] Implement `buildPromptChunks` in `packages/core/src/packs/buildPromptChunks.ts`, rendering absent values as `(none in Jira)` and reporting untransferable issues rather than splitting them
-- [ ] T050 [US1] Implement `parsePackReply` in `packages/core/src/packs/parsePackReply.ts` with the pack-id guard, whitelist drop, tri-state booleans and honest unparsed counts
-- [ ] T051 [US1] Generate the required-shape prompt section from `itemSchema` in `packages/core/src/packs/renderItemSchema.ts`, so prompt and parser cannot drift
-- [ ] T052 [P] [US1] Define the `ask-anything` pack in `packages/core/src/packs/definitions/askAnything.ts`, which produces no proposals
+- [X] T047 [P] [US1] Port `extractJsonPayload` from NodeToolbox `client/src/utils/extractJsonPayload.ts` into `packages/core/src/packs/extractJsonPayload.ts` verbatim
+- [X] T048 [US1] Define `PromptPack`, `PackItemSchema` and `PackFieldSpec` in `packages/core/src/packs/promptPack.ts`
+- [X] T049 [US1] Implement `buildPromptChunks` in `packages/core/src/packs/buildPromptChunks.ts`, rendering absent values as `(none in Jira)` and reporting untransferable issues rather than splitting them
+- [X] T050 [US1] Implement `parsePackReply` in `packages/core/src/packs/parsePackReply.ts` with the pack-id guard, whitelist drop, tri-state booleans and honest unparsed counts
+- [X] T051 [US1] Generate the required-shape prompt section from `itemSchema` in `packages/core/src/packs/renderItemSchema.ts`, so prompt and parser cannot drift
+- [X] T052 [P] [US1] Define the `ask-anything` pack in `packages/core/src/packs/definitions/askAnything.ts`, which produces no proposals
 
 ### The console
 
 - [X] T053 [US1] Implement `packages/client/src/views/QueryConsole/QueryConsoleView.tsx` with the query field, the provenance banner and the results table
 - [X] T054 [US1] Implement the four failure presentations in `packages/client/src/views/QueryConsole/RetrievalFailureNotice.tsx`, each naming its own next action
-- [ ] T055 [US1] Implement `packages/client/src/components/PackPanel.tsx` with per-chunk state, copy buttons and the honest reject ledger
+- [X] T055 [US1] Implement `packages/client/src/components/PackPanel.tsx` with per-chunk state, copy buttons and the honest reject ledger
 - [X] T056 [US1] Wire retrieval through TanStack Query in `packages/client/src/state/useIssueSet.ts`, with no hand-rolled fetch lifecycle
-- [ ] T057 [US1] Write failing test `packages/core/test/rateLimit.test.ts` asserting a 429 maps to a `transport` failure carrying `Retry-After`, and — critically — that a throttled page mid-retrieval is never mistaken for the end of the results, then make it pass in `searchIssuesByJql`
+- [X] T057 [US1] Write failing test `packages/core/test/rateLimit.test.ts` asserting a 429 maps to a `transport` failure carrying `Retry-After`, and — critically — that a throttled page mid-retrieval is never mistaken for the end of the results, then make it pass in `searchIssuesByJql`
 
 **Checkpoint**: Quickstart scenarios 1 and 2 pass. Paste real JQL, see the receipt, complete a Copilot
 round trip. A made-up field is red with Jira's words and no number appears.

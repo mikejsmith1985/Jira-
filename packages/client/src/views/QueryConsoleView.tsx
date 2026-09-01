@@ -11,10 +11,23 @@ import type { JSX } from "react";
 
 import { useState } from "react";
 
-import type { DetailedIssue } from "@jira-plus/core";
+import { ASK_ANYTHING_PACK } from "@jira-plus/core";
+import type { DetailedIssue, WorkspaceConfiguration } from "@jira-plus/core";
 
+import { PackPanel } from "../components/PackPanel.js";
 import { ProvenanceBanner } from "../components/ProvenanceBanner.js";
 import type { IssueSetState } from "../state/useIssueSet.js";
+
+/**
+ * Reads a concept for the prompt.
+ *
+ * The free-form pack requires no mapped concept, so this returns nothing today.
+ * It exists as the seam every other pack reads through, so no pack can ever
+ * reach a raw Jira field id directly.
+ */
+function readNoConcept(): unknown {
+  return null;
+}
 
 /** Copies text, tolerating a browser that refuses clipboard access. */
 async function copyToClipboard(text: string): Promise<void> {
@@ -43,10 +56,14 @@ function IssueRow({ issue }: { readonly issue: DetailedIssue }): JSX.Element {
 /** What the console needs. */
 export interface QueryConsoleViewProps {
   readonly issueSetState: IssueSetState;
+  readonly configuration: WorkspaceConfiguration | null;
 }
 
 /** The query console. */
-export function QueryConsoleView({ issueSetState }: QueryConsoleViewProps): JSX.Element {
+export function QueryConsoleView({
+  issueSetState,
+  configuration,
+}: QueryConsoleViewProps): JSX.Element {
   const [draftJql, setDraftJql] = useState("");
   const [doesRequestAllFields, setDoesRequestAllFields] = useState(false);
   const { issueSet, isRetrieving, progress, run } = issueSetState;
@@ -131,6 +148,15 @@ export function QueryConsoleView({ issueSetState }: QueryConsoleViewProps): JSX.
                     ))}
                   </tbody>
                 </table>
+              )}
+
+              {configuration === null || issueSet.issues.length === 0 ? null : (
+                <PackPanel
+                  pack={ASK_ANYTHING_PACK}
+                  issueSet={issueSet}
+                  configuration={configuration}
+                  readConcept={readNoConcept}
+                />
               )}
             </div>
           )}
