@@ -12,6 +12,27 @@
 // wanted is already there, so the second copy bows out quietly and the browser
 // opens on the copy that is running.
 
+/**
+ * The only interface Jira+ listens on.
+ *
+ * `app.listen(port)` with no host binds every interface, and that caused two
+ * problems with one cause. Windows Firewall prompted - "allow public and
+ * private networks to access this app?" - on a program with no business on a
+ * network; loopback listeners are exempt from that dialog entirely, so the
+ * right answer was never to click Allow.
+ *
+ * More seriously, the proxy attaches the operator's Jira personal access token
+ * to everything it forwards. Bound to the wildcard, anyone on the corporate
+ * network who could reach the port had a credentialled Jira gateway. Nothing
+ * about that has a symptom, which is exactly why it needs to be explicit.
+ */
+const LOOPBACK_HOST = '127.0.0.1';
+
+/** Where the server is listening, for the line a person actually reads. */
+function describeListenTarget(port) {
+  return `http://${LOOPBACK_HOST}:${port}`;
+}
+
 /** When this process began serving. Fixed at import, which is close enough. */
 const STARTED_AT_ISO = new Date().toISOString();
 
@@ -62,4 +83,12 @@ function scheduleStop(isDeferred) {
   setTimeout(() => process.exit(0), STOP_GRACE_MS);
 }
 
-export { STARTED_AT_ISO, STOP_GRACE_MS, describeInstance, describeStartupFailure, scheduleStop };
+export {
+  LOOPBACK_HOST,
+  STARTED_AT_ISO,
+  STOP_GRACE_MS,
+  describeInstance,
+  describeListenTarget,
+  describeStartupFailure,
+  scheduleStop,
+};

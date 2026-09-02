@@ -1,6 +1,6 @@
 {
   "name": "@jira-plus/server",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Express host that injects the Jira credential server-side so the browser never holds it",
   "main": "server.js",
