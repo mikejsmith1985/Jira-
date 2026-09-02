@@ -168,6 +168,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Feature 001 now passes Article V as written, with no outstanding deviation.
 
 ### Fixed
+- **The "Jira+ did not start within 30 seconds" popup.** It fired after *every* launch, while Jira+
+  was running perfectly well behind it. The launcher polled with
+  `netstat -ano | findstr "127.0.0.1:<port>"`, but the server binds `0.0.0.0` and `[::]`, never the
+  literal `127.0.0.1` &mdash; so the string never matched, the poll always failed, and the dialog
+  always appeared. It now asks the health route directly, which answers only when the server is
+  genuinely serving. Parsing another program's output to infer that was always the indirect route.
+- **Every packaged build called itself 0.0.0.** The version was read from `package.json` at a path
+  relative to the *source* tree, which does not exist inside the executable, so the fallback won
+  every time. That single wrong answer caused the second failure: believing it was 0.0.0, the
+  updater treated 0.1.3 as an upgrade, computed its target as `versions .1.3` &mdash; the folder the
+  **running** executable lives in &mdash; and tried to copy over itself. Windows refused with `EBUSY`,
+  which is exactly what the install-beside-it design exists to prevent. The version is now baked in
+  at build time, and the installer refuses to write into the folder it is running from whatever the
+  numbers claim.
+- **Program Increment reported as absent when it exists.** The field is called
+  **"PI (Program Increment)"** on this instance and no expected name matched it. Matching is exact by
+  design and stays that way; the list was simply too short. The label is also spelled *Program*, not
+  *Programme* &mdash; a label that disagrees with the field it names reads as a different concept.
+- **Mojibake in the launcher dialogs.** Em-dashes rendered as `a€"`. Anything a message box shows is
+  now plain ASCII.
 - **A second copy no longer crashes.** `app.listen` had no error handler, so starting Jira+ while it
   was already running threw an unhandled `EADDRINUSE` and the process died &mdash; a hidden process
   crashing on every second double-click of the shortcut. The launcher then polled the port, found the

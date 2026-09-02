@@ -106,6 +106,7 @@ export default typescriptEslint.config(
         process: "readonly",
         AbortController: "readonly",
         Buffer: "readonly",
+        __JIRAPLUS_VERSION__: "readonly",
         setTimeout: "readonly",
         clearTimeout: "readonly",
       },

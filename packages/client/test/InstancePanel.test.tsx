@@ -18,6 +18,7 @@ beforeEach(() => vi.unstubAllGlobals());
 
 /** The running copy, as the server describes it. */
 const INSTANCE = {
+  version: "0.1.4",
   processId: 12345,
   port: 5556,
   startedAtIso: "2026-09-01T09:14:00.000Z",
@@ -41,6 +42,16 @@ describe("naming the running copy", () => {
     render(<InstancePanel />);
 
     expect(await screen.findByText(/port 5556/i)).toBeTruthy();
+  });
+
+  it("shows the version, which is how a build lying about itself gets caught", async () => {
+    // v0.1.3 reported 0.0.0 because the version was read from a file the
+    // packaged build does not contain. It was visible on screen, and that is
+    // how it was found.
+    stubInstance();
+    render(<InstancePanel />);
+
+    expect(await screen.findByText(/version 0.1.4/i)).toBeTruthy();
   });
 
   it("shows the process id, so it can still be ended if the button fails", async () => {

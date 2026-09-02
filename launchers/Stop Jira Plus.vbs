@@ -1,4 +1,4 @@
-' Stop Jira Plus.vbs — the way out.
+' Stop Jira Plus.vbs - the way out.
 '
 ' Jira+ runs hidden so no console window flashes up when it starts. The cost was
 ' that there was no window to close, and Task Manager was the only way to stop

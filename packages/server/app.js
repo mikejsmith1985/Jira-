@@ -16,6 +16,7 @@ import { createConnectionRouter } from './routes/connection.js';
 import { createJiraProxyRouter } from './routes/jiraProxy.js';
 import { createUpdatesRouter } from './routes/updates.js';
 import { describeInstance, scheduleStop } from './services/instanceService.js';
+import { resolveInstalledVersion } from './services/versionService.js';
 import { createWorkspaceRouter } from './routes/workspace.js';
 import { createWriteJournalRouter } from './routes/writeJournalRoute.js';
 
@@ -52,16 +53,30 @@ const CLIENT_DIST_PATH = resolveClientDistPath();
 /**
  * The version this process is running.
  *
- * Read from the manifest bundled into the executable rather than from a
- * constant, so a build can never claim a version it is not.
+ * Baked into the bundle at build time. v0.1.3 read it from a package.json path
+ * relative to the SOURCE tree, which does not exist inside the packaged
+ * executable, so every packaged build reported itself as 0.0.0 - and the updater
+ * then tried to install 0.1.3 over the 0.1.3 it was running from.
+ *
+ * A build that has to find a file to know what it is will one day not find it.
  */
 function readInstalledVersion() {
-  try {
-    const manifestPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'package.json');
-    return JSON.parse(fs.readFileSync(manifestPath, 'utf8')).version ?? '0.0.0';
-  } catch {
-    return '0.0.0';
-  }
+  return resolveInstalledVersion(
+    typeof __JIRAPLUS_VERSION__ === 'string' ? __JIRAPLUS_VERSION__ : undefined,
+    () => {
+      try {
+        const manifestPath = path.join(
+          path.dirname(fileURLToPath(import.meta.url)),
+          '..',
+          '..',
+          'package.json',
+        );
+        return JSON.parse(fs.readFileSync(manifestPath, 'utf8')).version ?? null;
+      } catch {
+        return null;
+      }
+    },
+  );
 }
 
 /**
@@ -95,7 +110,7 @@ function createApp(config) {
   // Which copy this is. Jira+ runs hidden, so without this the only way to
   // tell one copy from another was Task Manager.
   app.get('/api/instance', (req, res) => {
-    res.json(describeInstance(config));
+    res.json({ ...describeInstance(config), version: readInstalledVersion() });
   });
 
   // Answered BEFORE the process exits, so a successful stop is

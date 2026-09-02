@@ -1,5 +1,5 @@
 @echo off
-:: Launch Jira Plus (show errors).bat — the same thing, with the window visible.
+:: Launch Jira Plus (show errors).bat - the same thing, with the window visible.
 ::
 :: Most people should double-click "Launch Jira Plus.vbs", which starts hidden and
 :: opens the browser for them. This file exists for the moment that one does not

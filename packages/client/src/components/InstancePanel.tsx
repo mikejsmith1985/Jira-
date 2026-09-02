@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 
 /** What the running copy says about itself. */
 interface InstanceState {
+  readonly version: string;
   readonly processId: number;
   readonly port: number;
   readonly startedAtIso: string;
@@ -65,7 +66,8 @@ export function InstancePanel(): JSX.Element | null {
   return (
     <div className="notice">
       <p>
-        You are looking at the copy on <strong>port {instance.port}</strong>, process{" "}
+        You are looking at <strong>version {instance.version}</strong> on{" "}
+        <strong>port {instance.port}</strong>, process{" "}
         <span className="mono">{instance.processId}</span>, running since{" "}
         {formatMoment(instance.startedAtIso)}.
       </p>

@@ -68,7 +68,19 @@ export const CONCEPT_DESCRIPTIONS: Readonly<
     expectedJiraNames: ["Target End", "Target end"],
   },
   programIncrement: {
-    label: "Programme increment",
-    expectedJiraNames: ["PI", "Program Increment", "Programme Increment"],
+    // "Program", not "Programme". The field is American-spelled in Jira and in
+    // SAFe, and a label that disagrees with the field it names reads as a
+    // different concept to the person looking for it.
+    label: "Program increment",
+    // The real field on this instance is called "PI (Program Increment)". None
+    // of the shorter forms matched it, and because matching is exact by design,
+    // one of the most important fields in the instance reported as absent.
+    // Exactness is right; the list being too short was the bug.
+    expectedJiraNames: [
+      "PI (Program Increment)",
+      "PI",
+      "Program Increment",
+      "Programme Increment",
+    ],
   },
 };
