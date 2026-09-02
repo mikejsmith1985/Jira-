@@ -22,6 +22,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
+import { isTargetTheRunningVersion } from './versionService.js';
+
 /** Where releases are published. Public, so no credential is involved. */
 const LATEST_RELEASE_URL = 'https://api.github.com/repos/mikejsmith1985/Jira-/releases/latest';
 
@@ -226,6 +228,19 @@ async function installUpdate(installedVersion) {
     // Written BESIDE the running version. Windows will not overwrite a running
     // executable, and this is also what makes the step reversible.
     const targetDirectory = path.join(installRoot, VERSIONS_DIRECTORY, latestVersion);
+
+    // The guard that does not depend on the version number being right. When it
+    // was wrong, this is the copy that was attempted - the running executable
+    // over itself - and Windows answered with a raw EBUSY. A refusal naming the
+    // cause is worth more than an error code.
+    if (isTargetTheRunningVersion(targetDirectory, process.execPath)) {
+      return {
+        isInstalled: false,
+        reason:
+          `This copy is already running from version ${latestVersion}. ` +
+          `There is nothing newer to install.`,
+      };
+    }
     fs.mkdirSync(targetDirectory, { recursive: true });
     fs.copyFileSync(stagedPayload, path.join(targetDirectory, PAYLOAD_FILENAME));
 

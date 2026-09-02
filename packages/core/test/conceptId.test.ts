@@ -60,3 +60,22 @@ describe("concept descriptions", () => {
     expect(storyPointsNames[0]).not.toBe(storyPointsNames[1]);
   });
 });
+
+describe("the program increment field", () => {
+  it("matches the name this instance actually uses", () => {
+    // The field is called "PI (Program Increment)". None of the shorter forms
+    // matched it, and because matching is exact by design, one of the most
+    // important fields in the instance reported as absent. Exactness is right;
+    // the list being too short was the bug.
+    expect(CONCEPT_DESCRIPTIONS.programIncrement.expectedJiraNames).toContain(
+      "PI (Program Increment)",
+    );
+  });
+
+  it("is spelled the way Jira and SAFe spell it", () => {
+    // A label that disagrees with the field it names reads as a different
+    // concept to the person hunting for it.
+    expect(CONCEPT_DESCRIPTIONS.programIncrement.label).toBe("Program increment");
+    expect(CONCEPT_DESCRIPTIONS.programIncrement.label).not.toMatch(/programme/i);
+  });
+});

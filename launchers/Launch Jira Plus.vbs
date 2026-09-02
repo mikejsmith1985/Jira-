@@ -1,18 +1,18 @@
-' Launch Jira Plus.vbs — double-click this.
+' Launch Jira Plus.vbs - double-click this.
 '
 ' It starts Jira+ hidden, waits for the port, and opens the dashboard in your
-' default browser. No console window, no terminal, no Node.js required — the
+' default browser. No console window, no terminal, no Node.js required - the
 ' executable it starts carries its own runtime inside it.
 '
 ' The launcher is deliberately stable across updates. A new version is installed
 ' under versions\<version> and current.txt is pointed at it, rather than the
-' running executable being replaced — because Windows will not let you overwrite
+' running executable being replaced - because Windows will not let you overwrite
 ' a file that is currently running, and an update that fails halfway leaves
 ' somebody with nothing.
 
 Option Explicit
 
-' ── Configuration ──────────────────────────────────────────────────────────────
+' -- Configuration --------------------------------------------------------------
 
 ' Deliberately not 5555, which NodeToolbox occupies. The two are meant to be
 ' open side by side while one is compared against the other.
@@ -23,7 +23,7 @@ Const CURRENT_POINTER_FILENAME = "current.txt"
 Const VERSIONS_DIRECTORY_NAME = "versions"
 Const PAYLOAD_EXE_FILENAME = "jiraplus.exe"
 
-' ── Entry point ────────────────────────────────────────────────────────────────
+' -- Entry point ----------------------------------------------------------------
 
 Dim objFSO, objShell
 
@@ -46,7 +46,7 @@ Sub Main()
         MsgBox "Jira+ could not find its program files." & vbNewLine & vbNewLine & _
                "Expected current.txt and versions\<version>\" & PAYLOAD_EXE_FILENAME & " in:" & vbNewLine & _
                installRoot & vbNewLine & vbNewLine & _
-               "Extract the whole zip to one folder and try again — the launcher and the " & _
+               "Extract the whole zip to one folder and try again - the launcher and the " & _
                "versions folder have to stay together.", _
                16, "Jira+ could not start"
         Exit Sub
@@ -64,7 +64,7 @@ Sub Main()
     End If
 End Sub
 
-' ── Finding the program ────────────────────────────────────────────────────────
+' -- Finding the program --------------------------------------------------------
 
 Function ResolvePayloadPath(installRoot)
     Dim selectedVersion
@@ -185,7 +185,7 @@ Function ReadVersionPart(versionParts, partIndex)
     End If
 End Function
 
-' ── Waiting for the server ─────────────────────────────────────────────────────
+' -- Waiting for the server -----------------------------------------------------
 
 Function WaitForServerReady()
     Dim pollAttempt
@@ -200,12 +200,31 @@ Function WaitForServerReady()
     Next
 End Function
 
+' Asks the server directly, rather than reading netstat.
+'
+' The previous check ran: netstat -ano | findstr "127.0.0.1:<port>". The server
+' binds 0.0.0.0 and [::], never the literal 127.0.0.1, so that string NEVER
+' matched. The poll failed every time, and thirty seconds after every single
+' launch a dialog appeared saying Jira+ had not started - while it was running
+' perfectly well behind it.
+'
+' A request to the health route cannot fail that way: it answers only when the
+' server is actually serving, which is the thing being waited for. Parsing
+' another program's output to infer it was always the indirect route.
 Function IsPortListening(portNumber)
-    Dim checkExitCode
-    checkExitCode = objShell.Run( _
-        "cmd /c netstat -ano | findstr " & Chr(34) & "127.0.0.1:" & portNumber & Chr(34), _
-        0, True)
-    IsPortListening = (checkExitCode = 0)
+    Dim httpRequest
+    IsPortListening = False
+
+    On Error Resume Next
+    Set httpRequest = CreateObject("MSXML2.ServerXMLHTTP.6.0")
+    httpRequest.SetTimeouts 1000, 1000, 2000, 2000
+    httpRequest.Open "GET", "http://localhost:" & portNumber & "/api/health", False
+    httpRequest.Send ""
+    If Err.Number = 0 Then
+        If httpRequest.Status = 200 Then IsPortListening = True
+    End If
+    Err.Clear
+    On Error GoTo 0
 End Function
 
 Sub ShowStartupTimeout(payloadPath)
@@ -216,6 +235,6 @@ Sub ShowStartupTimeout(payloadPath)
            "  " & Chr(149) & " Port " & SERVER_PORT & " is already in use. Open Task Manager, end any" & vbNewLine & _
            "    'jiraplus' process, and try again." & vbNewLine & vbNewLine & _
            "To see the error for yourself, double-click 'Launch Jira Plus (show errors).bat'" & vbNewLine & _
-           "in this folder — it does the same thing with the console visible.", _
+           "in this folder - it does the same thing with the console visible.", _
            48, "Jira+ did not start"
 End Sub

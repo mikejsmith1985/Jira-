@@ -68,7 +68,16 @@ async function bundleServer() {
     // which would make the packaged build a different program from the one the
     // tests exercise — it is defined here in terms of the CommonJS equivalents,
     // so both builds locate the same files by the same logic.
-    define: { "import.meta.url": "__jiraPlusModuleUrl" },
+    // The version is BAKED IN rather than read from a file at run time.
+    // v0.1.3 resolved it from a package.json path relative to the source
+    // tree, which does not exist inside the packaged executable, so every
+    // packaged build called itself 0.0.0 - and then tried to install itself
+    // over itself. A build that must find a file to know what it is will one
+    // day not find it.
+    define: {
+      "import.meta.url": "__jiraPlusModuleUrl",
+      __JIRAPLUS_VERSION__: JSON.stringify(readVersion()),
+    },
     banner: {
       js: [
         "// Bundled by scripts/build-exe.js. Do not edit; edit the source under",

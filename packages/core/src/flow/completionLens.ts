@@ -1,7 +1,7 @@
 // completionLens.ts — Two definitions of finished, both checkable.
 //
 // "Delivered to integration test" is the team's Definition of Done and the lens
-// their Programme Increment commitments are judged by. "Released to production"
+// their Program Increment commitments are judged by. "Released to production"
 // is the later milestone, and it reconciles with a report run in Jira untouched.
 //
 // Having both is worth more than either alone. The production figure is the one
