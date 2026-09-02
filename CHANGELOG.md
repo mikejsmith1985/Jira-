@@ -151,6 +151,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Jira field id and no check issues a query of its own.
 
 ### Changed
+- **The interface now looks like the tool it sits beside.** Jira+ is a companion to NodeToolbox, and
+  looking like a stranger next to it is its own kind of friction. The palette, depth model and
+  component shapes are Toolbox's, near-verbatim.
+  **Dark is now the default and the operating system is not asked.** The previous build defined a
+  complete dark palette and then gated it behind `prefers-color-scheme`, so anyone on a light Windows
+  &mdash; which is everyone this was built for &mdash; used it for a week without once seeing the
+  theme it was designed in. The choice is explicit, remembered, and stamped on `<html>` before first
+  paint so the page never flips after loading.
+  Four shapes carry the look, and each earns its place: a **sticky glass top bar** so where you are
+  never scrolls away; a **pill tab strip** where the active surface is the only lit thing on the bar;
+  **gradient cards that lift on hover** so a panel reads as an object rather than a box; and
+  **999px chips** so state is legible at a glance. Depth is a signal, not decoration &mdash; in a dark
+  interface height reads as lightness, so raised things get a lighter surface *and* a contact shadow.
+  Under `prefers-contrast: more` the depth is stripped and borders carry the signal instead.
+  Navigation has icons now, drawn as inline SVG rather than pulled from a package: this ships as one
+  executable into an environment with no npm and no CDN, and six glyphs do not justify a dependency.
 - **Article V of the constitution now says why real infrastructure matters, and is therefore stricter
   where it counts.** It previously required testcontainers for all integration tests, which cannot be
   satisfied against a corporate Jira this project neither owns nor hosts. Weakening the rule was the

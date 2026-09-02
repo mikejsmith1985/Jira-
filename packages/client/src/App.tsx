@@ -15,18 +15,29 @@ import { FlowView } from "./views/FlowView.js";
 import { HygieneView } from "./views/HygieneView.js";
 import { QueryConsoleView } from "./views/QueryConsoleView.js";
 import { SetupView } from "./views/SetupView.js";
+import {
+  BoardIcon,
+  ChangesIcon,
+  FlowIcon,
+  HygieneIcon,
+  MoonIcon,
+  QueryIcon,
+  SetupIcon,
+  SunIcon,
+} from "./components/SurfaceIcons.js";
 import { useBoard } from "./state/useBoard.js";
 import { useIssueSet } from "./state/useIssueSet.js";
+import { useTheme } from "./state/useTheme.js";
 import { useWorkspace } from "./state/useWorkspace.js";
 
 /** The surfaces, in the order someone meets them. */
 const SURFACES = [
-  { id: "query", label: "Query" },
-  { id: "board", label: "Board" },
-  { id: "flow", label: "Flow" },
-  { id: "hygiene", label: "Hygiene" },
-  { id: "changes", label: "Changes" },
-  { id: "setup", label: "Setup" },
+  { id: "query", label: "Query", Icon: QueryIcon },
+  { id: "board", label: "Board", Icon: BoardIcon },
+  { id: "flow", label: "Flow", Icon: FlowIcon },
+  { id: "hygiene", label: "Hygiene", Icon: HygieneIcon },
+  { id: "changes", label: "Changes", Icon: ChangesIcon },
+  { id: "setup", label: "Setup", Icon: SetupIcon },
 ] as const;
 
 type SurfaceId = (typeof SURFACES)[number]["id"];
@@ -35,6 +46,7 @@ type SurfaceId = (typeof SURFACES)[number]["id"];
 export function App(): JSX.Element {
   const [activeSurface, setActiveSurface] = useState<SurfaceId>("query");
   const [jiraBaseUrl, setJiraBaseUrl] = useState("");
+  const { theme, setTheme } = useTheme();
   const workspace = useWorkspace();
   const issueSetState = useIssueSet(workspace.configuration);
   const boardState = useBoard(workspace.configuration);
@@ -68,25 +80,54 @@ export function App(): JSX.Element {
           Jira<span className="app__plus">+</span>
         </h1>
 
-        <nav className="app__nav" aria-label="Surfaces">
+        <nav className="app__nav" aria-label="Surfaces" role="tablist">
           {SURFACES.map((surface) => (
             <button
               key={surface.id}
               type="button"
+              role="tab"
               className="app__tab"
+              aria-selected={activeSurface === surface.id}
               aria-current={activeSurface === surface.id ? "page" : undefined}
               onClick={() => setActiveSurface(surface.id)}
             >
+              <surface.Icon />
               {surface.label}
             </button>
           ))}
         </nav>
 
-        {/* Shown always, so two people can compare eight characters before they
-            compare a number. */}
-        <span className="app__fingerprint mono" title="The configuration every number here was computed under">
-          config {workspace.fingerprint || "—"}
-        </span>
+        <div className="app__meta">
+          {/* Shown always, so two people can compare eight characters before
+              they compare a number. */}
+          <span
+            className="app__fingerprint mono"
+            title="The configuration every number here was computed under"
+          >
+            config {workspace.fingerprint || "—"}
+          </span>
+
+          <div className="segmented" role="group" aria-label="Theme">
+            <button
+              type="button"
+              className="segmented__button"
+              aria-pressed={theme === "dark"}
+              onClick={() => setTheme("dark")}
+              title="Dark"
+            >
+              <MoonIcon />
+            </button>
+            <button
+              type="button"
+              className="segmented__button"
+              aria-pressed={theme === "light"}
+              onClick={() => setTheme("light")}
+              title="Light"
+            >
+              <SunIcon />
+            </button>
+          </div>
+        </div>
       </header>
 
       {workspace.reviewMessage === null ? null : (
