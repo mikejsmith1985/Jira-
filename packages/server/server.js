@@ -7,17 +7,25 @@
 
 import { createApp } from './app.js';
 import { isJiraConfigured, loadConfig } from './config/loader.js';
-import { describeStartupFailure } from './services/instanceService.js';
+import {
+  LOOPBACK_HOST,
+  describeListenTarget,
+  describeStartupFailure,
+} from './services/instanceService.js';
 
 const config = loadConfig();
 const app = createApp(config);
 
-const server = app.listen(config.port, () => {
+// The host is explicit. Without it Node binds every interface, which both
+// triggers the Windows Firewall dialog and hands anyone on the network a
+// Jira proxy carrying this operator's token.
+const server = app.listen(config.port, LOOPBACK_HOST, () => {
   const readiness = isJiraConfigured(config)
     ? `connected to ${config.baseUrl}`
     : 'not configured yet — open the app and add your Jira URL and token';
 
-  console.log(`Jira+ is running at http://localhost:${config.port}`);
+  console.log(`Jira+ is running at ${describeListenTarget(config.port)}`);
+  console.log('It listens on this machine only. Nothing else on the network can reach it.');
   console.log(`Jira: ${readiness}`);
 
   if (!config.isSslVerified) {

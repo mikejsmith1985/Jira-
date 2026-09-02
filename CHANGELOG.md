@@ -184,6 +184,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Feature 001 now passes Article V as written, with no outstanding deviation.
 
 ### Fixed
+- **Jira+ listens on this machine only.** `app.listen(port)` with no host binds *every* interface,
+  and that one omission caused two problems. Windows Firewall prompted &mdash; *"do you want to allow
+  public and private networks to access this app?"* &mdash; on a program with no business on a
+  network at all; loopback-only listeners are exempt from that dialog entirely, so the right answer
+  was never to click Allow.
+  The second problem had no symptom, which is why it is the more serious one. The proxy attaches the
+  operator's Jira personal access token to everything it forwards. Bound to the wildcard, **anyone on
+  the corporate network who could reach port 5556 had a credentialled Jira gateway** &mdash; no
+  password, no prompt, using someone else's identity. The host is now `127.0.0.1`, explicitly, with a
+  test that stops it silently reverting and a startup line that says so out loud.
 - **The "Jira+ did not start within 30 seconds" popup.** It fired after *every* launch, while Jira+
   was running perfectly well behind it. The launcher polled with
   `netstat -ano | findstr "127.0.0.1:<port>"`, but the server binds `0.0.0.0` and `[::]`, never the
