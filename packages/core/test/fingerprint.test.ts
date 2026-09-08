@@ -186,3 +186,38 @@ describe("reviewStoredWorkspace", () => {
     expect(reviewStoredWorkspace({ nonsense: true }).status).toBe("unreadable");
   });
 });
+
+describe("what the fingerprint deliberately excludes", () => {
+  it("does not move when the description template changes", () => {
+    // The fingerprint exists so two people disputing a NUMBER can compare eight
+    // characters. A section heading changes no number, so folding it in would
+    // invalidate the comparison of unrelated figures every time somebody
+    // reworded a piece of guidance — and worse, would make people leave a
+    // heading wrong rather than risk it.
+    const base = buildDefaultWorkspaceConfiguration();
+    const reworded = {
+      ...base,
+      descriptionSections: [{ heading: "Something Else Entirely", guidance: "Anything." }],
+    };
+
+    expect(computeFingerprint(reworded)).toBe(computeFingerprint(base));
+  });
+
+  it("does not move when the template is emptied altogether", () => {
+    const base = buildDefaultWorkspaceConfiguration();
+
+    expect(computeFingerprint({ ...base, descriptionSections: [] })).toBe(
+      computeFingerprint(base),
+    );
+  });
+
+  it("still moves when something that DOES change a number changes", () => {
+    // The counterpart assertion: excluding the template must not have made the
+    // fingerprint insensitive to the things it exists for.
+    const base = buildDefaultWorkspaceConfiguration();
+
+    expect(computeFingerprint({ ...base, retrievalCeiling: base.retrievalCeiling + 1 })).not.toBe(
+      computeFingerprint(base),
+    );
+  });
+});

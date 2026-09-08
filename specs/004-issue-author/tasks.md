@@ -24,7 +24,7 @@ npm workspaces. Engine in `packages/core/src/`, server in `packages/server/`, su
 
 - [X] T001 Create `packages/core/src/authoring/` and export its public surface from `packages/core/src/index.ts`
 - [X] T002 [P] Add the section template to the workspace document's shape in `packages/core/src/workspace/workspaceConfig.ts`, seeded with the nine sections (FR-019, FR-020)
-- [ ] T003 [P] Assert in `packages/core/test/fingerprint.test.ts` that editing the section template does **not** change the workspace fingerprint. The fingerprint exists so two people disputing a number compare eight characters; a reworded section heading changes no number, and folding it in would invalidate comparison of unrelated figures
+- [X] T003 [P] Assert in `packages/core/test/fingerprint.test.ts` that editing the section template does **not** change the workspace fingerprint. The fingerprint exists so two people disputing a number compare eight characters; a reworded section heading changes no number, and folding it in would invalidate comparison of unrelated figures
 
 ---
 
@@ -77,11 +77,8 @@ one correctly-typed issue in Jira (SC-001).
 **Checkpoint** — slice 3 of the plan. **BUILT.** A real issue, created from a hand-written draft,
 diff first. 522 tests green.
 
-Two tasks in phases 1–2 remain open and are not blocking:
+One task in phases 1–2 remains open and is not blocking:
 
-- **T003** — the fingerprint assertion. The fingerprint enumerates its inputs explicitly, so the
-  section template is already excluded by construction; the test that pins it there is still to
-  write.
 - **T011** — recorded fixtures for the two createmeta routes. They need a recording from the live
   instance, which is the same credential T062 needs.
 
@@ -165,10 +162,15 @@ bad reply named rather than dropped. 622 tests green.
 
 ## Phase 7: User Story 4 — Template as configuration (P3)
 
-- [ ] T053 [P] [US4] Failing test: an edited section list changes the next prompt (FR-021, SC-005)
-- [ ] T054 [P] [US4] Failing test: an empty list yields a prompt with no imposed structure (FR-022)
-- [ ] T055 [US4] Build the template editor in `packages/client/src/views/SetupView.tsx` — add, remove, reorder, edit guidance (FR-021)
-- [ ] T056 [US4] Confirm a template change alters the fingerprint, and that the change needs no restart
+- [X] T053 [P] [US4] Failing test: an edited section list changes the next prompt (FR-021, SC-005)
+- [X] T054 [P] [US4] Failing test: an empty list yields a prompt with no imposed structure (FR-022)
+- [X] T055 [US4] Build the template editor in `packages/client/src/views/SetupView.tsx` — add, remove, reorder, edit guidance (FR-021)
+- [X] T056 [US4] Confirm a template change alters the fingerprint, and that the change needs no restart
+
+---
+
+**Checkpoint** — slice 6. **BUILT.** Edit the sections in Setup; the next prompt reflects it. No
+restart, no new version. 635 tests green.
 
 ---
 

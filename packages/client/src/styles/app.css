@@ -1510,3 +1510,62 @@
 .authoring__proposal {
   margin-top: var(--gap-4);
 }
+
+/* ── The section template ────────────────────────────────── */
+
+.setup__template {
+  margin-top: var(--gap-6);
+  padding: var(--gap-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-card-bg);
+  box-shadow: var(--shadow-surface), inset 0 1px 0 var(--color-surface-highlight);
+  backdrop-filter: blur(14px) saturate(135%);
+}
+
+/* Numbered because the order is real: it is the order the sections appear in
+   the description, and the order the assistant is asked for them. */
+.template__list {
+  margin: var(--gap-4) 0 0;
+  padding-left: var(--gap-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-3);
+}
+
+.template__list li::marker {
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+.template__row {
+  display: flex;
+  gap: var(--gap-3);
+  align-items: flex-end;
+  padding: var(--gap-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  box-shadow: var(--elevation-raised);
+}
+
+.template__fields {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-1);
+}
+
+.template__actions {
+  display: flex;
+  gap: var(--gap-1);
+  flex-shrink: 0;
+}
+
+@media (max-width: 760px) {
+  .template__row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

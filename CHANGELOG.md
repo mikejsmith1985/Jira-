@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **The description template is editable in Setup.** Add a section, remove one, reorder them, and
+  rewrite the line of guidance that tells the assistant what belongs in each. The next prompt asks
+  for exactly what is configured. No restart and no new version of Jira+.
+  The nine shipped sections are seed values, not rules, and a button restores them. **An empty
+  template is a valid choice** presented as one &mdash; it means descriptions are free-form prose
+  &mdash; rather than a state the screen defends against.
+  The panel says out loud that changing the template does **not** move the configuration fingerprint,
+  and a test now pins that. The fingerprint exists so two people disputing a number can compare eight
+  characters; somebody who believed a heading affected it would leave the heading wrong rather than
+  risk invalidating a figure they were about to defend.
 - **The assistant round trip, on the Author screen.** Build a prompt from your gathered material,
   your own words, the section template and the fields your instance actually offers; copy it into
   Copilot; paste the reply back. Proposals land in the draft where you can change or ignore them,

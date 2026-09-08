@@ -33,6 +33,7 @@ import type {
 import { ConnectionPanel } from "../components/ConnectionPanel.js";
 import { InstancePanel } from "../components/InstancePanel.js";
 import { RelayPanel } from "../components/RelayPanel.js";
+import { SectionTemplatePanel } from "../components/authoring/SectionTemplatePanel.js";
 import { UpdatePanel } from "../components/UpdatePanel.js";
 import { createBrowserJiraTransport } from "../state/jiraTransport.js";
 import type { WorkspaceState } from "../state/useWorkspace.js";
@@ -273,6 +274,8 @@ export function SetupView({ workspace }: SetupViewProps): JSX.Element {
             : resolution.reason}
         </p>
       ) : null}
+
+      <SectionTemplatePanel configuration={configuration} onSave={save} />
 
       <ul className="setup__list">
         {(resolution?.status === "resolved" ? resolution.proposals : []).map(
