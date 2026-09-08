@@ -298,6 +298,13 @@ export {
   readSectionTemplate,
 } from "./authoring/sectionTemplate.js";
 export type { DescriptionSection } from "./authoring/sectionTemplate.js";
+export { assessDraftReadiness } from "./authoring/assessDraftReadiness.js";
+export type {
+  ReadinessAssessment,
+  ReadinessFinding,
+  UnassessedCheck,
+} from "./authoring/assessDraftReadiness.js";
+export { DRAFT_ISSUE_KEY, projectDraftAsIssue } from "./authoring/projectDraftAsIssue.js";
 export {
   AUTHORING_PACK_ID,
   SOURCE_EXCERPT_LIMIT,

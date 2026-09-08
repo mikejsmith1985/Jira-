@@ -117,15 +117,15 @@ silent rewrite. 578 tests green.
 
 ### Tests
 
-- [ ] T036 [P] [US3] Failing test: no field is written that did not appear in the diff (SC-003)
-- [ ] T037 [P] [US3] Failing test: one rejected field does not prevent the others, and reports Jira's own reason verbatim (FR-038, FR-039)
-- [ ] T038 [P] [US3] Failing test: a failure to reach Jira reads as our own inability, never as a refusal by Jira (FR-041)
+- [X] T036 [P] [US3] Failing test: no field is written that did not appear in the diff (SC-003)
+- [X] T037 [P] [US3] Failing test: one rejected field does not prevent the others, and reports Jira's own reason verbatim (FR-038, FR-039)
+- [X] T038 [P] [US3] Failing test: a failure to reach Jira reads as our own inability, never as a refusal by Jira (FR-041)
 
 ### Implementation
 
-- [ ] T039 [US3] Render the change set through the existing diff component — no new diff
-- [ ] T040 [US3] Report per-field outcomes, and confirm every write reaches the journal already in the product (FR-040)
-- [ ] T041 [US3] Discard the draft **only** on full success, so a failed write never loses the work (FR-008)
+- [X] T039 [US3] Render the change set through the existing diff component — no new diff
+- [X] T040 [US3] Report per-field outcomes, and confirm every write reaches the journal already in the product (FR-040)
+- [X] T041 [US3] Discard the draft **only** on full success, so a failed write never loses the work (FR-008)
 
 ---
 
@@ -176,13 +176,13 @@ restart, no new version. 635 tests green.
 
 ## Phase 8: Polish
 
-- [ ] T057 [P] Structural test in `packages/core/test/structuralRules.test.ts`: no `customfield_` literal in authoring source outside the field map (invariant 4)
-- [ ] T058 [P] Type-level test: a readiness finding cannot be constructed where a blocking condition is required (invariant 5)
-- [ ] T058a [P] Failing tests in `packages/core/test/projectDraftAsIssue.test.ts`: an unfilled field projects as **absent**, not empty, so a check reports it as it would on a real issue; when enriching, the projection starts from the loaded issue (invariant 9)
-- [ ] T058b [P] Implement `packages/core/src/authoring/projectDraftAsIssue.ts`. The alternative — reimplementing every check for drafts — is how the predecessor acquired five live divergences between two rule engines
-- [ ] T059 [P] Implement `packages/core/src/authoring/assessDraftReadiness.ts` over the projection, using the shipped checks, returning a type that is **not** `ChangeBlocker` (FR-033, FR-034)
-- [ ] T060 [P] Build `packages/client/src/components/authoring/ReadinessPanel.tsx` — visibly not a blocker (FR-036, SC-008)
-- [ ] T061 Update `CHANGELOG.md`
+- [X] T057 [P] Structural test in `packages/core/test/structuralRules.test.ts`: no `customfield_` literal in authoring source outside the field map (invariant 4)
+- [X] T058 [P] Type-level test: a readiness finding cannot be constructed where a blocking condition is required (invariant 5)
+- [X] T058a [P] Failing tests in `packages/core/test/projectDraftAsIssue.test.ts`: an unfilled field projects as **absent**, not empty, so a check reports it as it would on a real issue; when enriching, the projection starts from the loaded issue (invariant 9)
+- [X] T058b [P] Implement `packages/core/src/authoring/projectDraftAsIssue.ts`. The alternative — reimplementing every check for drafts — is how the predecessor acquired five live divergences between two rule engines
+- [X] T059 [P] Implement `packages/core/src/authoring/assessDraftReadiness.ts` over the projection, using the shipped checks, returning a type that is **not** `ChangeBlocker` (FR-033, FR-034)
+- [X] T060 [P] Build `packages/client/src/components/authoring/ReadinessPanel.tsx` — visibly not a blocker (FR-036, SC-008)
+- [X] T061 Update `CHANGELOG.md`
 - [ ] T062 **Outstanding — needs the live instance.** Walk [quickstart.md](quickstart.md) against the real Jira, including scenario 2 step 6, which compares a stored description byte for byte. Nobody can complete this without the operator's own Jira.
 
 ---
@@ -215,6 +215,17 @@ issue, diff first — with no assistant and no enrichment. If creating one issue
 doing twice, the remaining phases are not worth building.
 
 ---
+
+## What remains
+
+Two tasks, both needing the live instance rather than more code:
+
+- **T011** — recorded createmeta fixtures. The routes are written and used; the fixtures need a
+  recording from the real Jira.
+- **T062** — walking the quickstart against the real Jira, including scenario 2 step 6, which
+  compares a stored description byte for byte after a save.
+
+Everything else in this feature is built. 669 tests green.
 
 ## Task count
 

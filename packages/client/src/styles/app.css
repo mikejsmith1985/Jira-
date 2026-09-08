@@ -1569,3 +1569,41 @@
     align-items: stretch;
   }
 }
+
+/* ── Readiness: advice, and it must not look like a refusal ── */
+
+/* Deliberately the neutral surface rather than a tone. A panel that borrowed the
+   error colour would train somebody to dismiss the red that actually matters. */
+.authoring__readiness {
+  margin-top: var(--layout-grid-gap, var(--gap-4));
+  padding: var(--gap-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-card-bg-subtle);
+}
+
+.readiness__list {
+  list-style: none;
+  margin: var(--gap-3) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-2);
+}
+
+.readiness__item {
+  padding: var(--gap-2) var(--gap-3);
+  border-left: 3px solid var(--color-text-secondary);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-subtle);
+}
+
+/* A check that could not run is not a check that passed, and it is not a finding
+   either. Its own marker keeps the three apart. */
+.readiness__item--unassessed {
+  border-left-color: var(--color-warning);
+}
+
+.readiness__unassessed {
+  margin-top: var(--gap-4);
+}
