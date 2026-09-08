@@ -139,22 +139,27 @@ and building it this way order proves that.
 
 ### Tests
 
-- [ ] T042 [P] [US1] Failing tests in `packages/core/test/authoringPack.test.ts`: every field identifier in a generated prompt appears in the create screen shape (invariant 3)
-- [ ] T043 [P] [US1] Failing test: a reply whose pack identifier does not match is rejected whole (FR-026)
-- [ ] T044 [P] [US1] Failing test: an unknown field id is dropped **and named**, never silently ignored (FR-027, SC-004)
-- [ ] T045 [P] [US1] Failing test: a value outside a field's allowed values becomes null and is named (FR-028, SC-004)
-- [ ] T046 [P] [US1] Failing test: unreadable content is counted and shown (FR-029)
-- [ ] T047 [P] [US1] Failing tests in `packages/core/test/normaliseDescription.test.ts`: every configured section present and in order; absent ones marked as needing validation; **running it twice adds nothing** (FR-031, invariant 7)
-- [ ] T048 [P] [US1] Failing test: claims of assistant authorship are removed (FR-032)
+- [X] T042 [P] [US1] Failing tests in `packages/core/test/authoringPack.test.ts`: every field identifier in a generated prompt appears in the create screen shape (invariant 3)
+- [X] T043 [P] [US1] Failing test: a reply whose pack identifier does not match is rejected whole (FR-026)
+- [X] T044 [P] [US1] Failing test: an unknown field id is dropped **and named**, never silently ignored (FR-027, SC-004)
+- [X] T045 [P] [US1] Failing test: a value outside a field's allowed values becomes null and is named (FR-028, SC-004)
+- [X] T046 [P] [US1] Failing test: unreadable content is counted and shown (FR-029)
+- [X] T047 [P] [US1] Failing tests in `packages/core/test/normaliseDescription.test.ts`: every configured section present and in order; absent ones marked as needing validation; **running it twice adds nothing** (FR-031, invariant 7)
+- [X] T048 [P] [US1] Failing test: claims of assistant authorship are removed (FR-032)
 
 ### Implementation
 
-- [ ] T049 [US1] Implement `packages/core/src/authoring/normaliseDescription.ts` — idempotent, sections from configuration
-- [ ] T050 [US1] Implement `packages/core/src/authoring/authoringPack.ts` — one schema generates the required reply shape and the parser, so they cannot drift (FR-023, FR-024)
-- [ ] T050a [P] [US1] Failing tests in `packages/core/test/chunkAuthoringPrompt.test.ts`: the draft, narrative, template and field list repeat as the head of every part; a source too large for one part is truncated **and said to be truncated** (invariant 8)
-- [ ] T050b [US1] Implement `packages/core/src/authoring/chunkAuthoringPrompt.ts`, dividing on **source** boundaries. The shipped `buildPromptChunks` divides an issue set on issue boundaries and cannot be reused — an authoring prompt has no issues
-- [ ] T051 [US1] Render the parts through the existing pack panel, reusing its per-part return tracking (FR-025)
-- [ ] T052 [US1] Land accepted proposals in the draft; nothing reaches Jira until the operator presses create or save (FR-030)
+- [X] T049 [US1] Implement `packages/core/src/authoring/normaliseDescription.ts` — idempotent, sections from configuration
+- [X] T050 [US1] Implement `packages/core/src/authoring/authoringPack.ts` — one schema generates the required reply shape and the parser, so they cannot drift (FR-023, FR-024)
+- [X] T050a [P] [US1] Failing tests in `packages/core/test/chunkAuthoringPrompt.test.ts`: the draft, narrative, template and field list repeat as the head of every part; a source too large for one part is truncated **and said to be truncated** (invariant 8)
+- [X] T050b [US1] Implement `packages/core/src/authoring/chunkAuthoringPrompt.ts`, dividing on **source** boundaries. The shipped `buildPromptChunks` divides an issue set on issue boundaries and cannot be reused — an authoring prompt has no issues
+- [X] T051 [US1] Render the parts through the existing pack panel, reusing its per-part return tracking (FR-025)
+- [X] T052 [US1] Land accepted proposals in the draft; nothing reaches Jira until the operator presses create or save (FR-030)
+
+---
+
+**Checkpoint** — slice 5. **BUILT.** Prompt out, reply back, proposals in the draft, four kinds of
+bad reply named rather than dropped. 622 tests green.
 
 ---
 

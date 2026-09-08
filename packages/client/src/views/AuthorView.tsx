@@ -27,6 +27,7 @@ import {
 } from "@jira-plus/core";
 import type {
   ApplyOutcome,
+  AuthoringProposal,
   ChangeSet,
   PlannedChange,
   CreateScreenShape,
@@ -35,6 +36,7 @@ import type {
 } from "@jira-plus/core";
 
 import { ChangeDiffTable } from "../components/ChangeDiffTable.js";
+import { AssistantPanel } from "../components/authoring/AssistantPanel.js";
 import { CreateTargetPanel } from "../components/authoring/CreateTargetPanel.js";
 import { DraftPanel } from "../components/authoring/DraftPanel.js";
 import { SourcesPanel } from "../components/authoring/SourcesPanel.js";
@@ -247,6 +249,23 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
     await discard();
   }
 
+  /**
+   * Puts an accepted proposal into the draft.
+   *
+   * The draft, and nowhere else. A proposal the operator does not accept lands
+   * nowhere at all, and even an accepted one reaches Jira only through the
+   * create or save they press afterwards.
+   */
+  function acceptProposal(proposal: AuthoringProposal): void {
+    update({
+      summary: proposal.summary ?? draft.summary,
+      description: proposal.description ?? draft.description,
+      acceptanceCriteria: proposal.acceptanceCriteria ?? draft.acceptanceCriteria,
+      fieldValues: { ...draft.fieldValues, ...proposal.fieldValues },
+    });
+    setChangeSet(null);
+  }
+
   if (isLoading) return <p>Reading your draft…</p>;
 
   return (
@@ -293,6 +312,14 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
           <DraftPanel draft={draft} onChange={update} />
         </div>
       </div>
+
+      <AssistantPanel
+        draft={draft}
+        shape={shape}
+        sections={configuration?.descriptionSections ?? []}
+        budgetCharacters={configuration?.transferBudgetCharacters ?? 18000}
+        onAccept={acceptProposal}
+      />
 
       <div className="console__actions">
         <button type="button" className="button" onClick={review}>

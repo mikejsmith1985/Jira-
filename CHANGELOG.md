@@ -8,6 +8,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **The assistant round trip, on the Author screen.** Build a prompt from your gathered material,
+  your own words, the section template and the fields your instance actually offers; copy it into
+  Copilot; paste the reply back. Proposals land in the draft where you can change or ignore them,
+  and Jira is reached only by the create or save you press afterwards.
+  **The prompt cannot ask for what Jira will refuse.** Every field identifier in it comes from the
+  create screen for your chosen project and type, and a field with a fixed set of values has those
+  values stated. A proposal outside either is dropped **and named** &mdash; a silent drop is
+  indistinguishable from the assistant not having proposed it.
+  A reply belonging to another prompt is rejected whole rather than partly applied. Content that
+  cannot be read is counted and shown. Sections the reply skipped are still written, marked as
+  needing validation, so a gap is visible rather than filled with something confident and invented;
+  running that normalisation twice changes nothing, so markers cannot accumulate. Any claim that an
+  assistant wrote the text is removed &mdash; a marker means information is missing, never a
+  disclaimer about authorship.
+  A prompt too long for one paste is divided on **source** boundaries, with the head repeated in
+  every part, since a part without it is unanswerable. A source too large for a single part is cut
+  and **said to be cut**, in the prompt and on screen: silently sending half of somebody's pasted
+  brief is the failure that avoids.
+- **The section template now lives in the workspace document**, seeded with the current nine
+  sections and deliberately outside the fingerprint &mdash; a reworded heading changes no number, and
+  folding it in would invalidate the comparison of unrelated figures.
 - **Author can now enrich an existing issue.** Put a key in, load it, add what the issue was
   missing, and save. **Only the fields you actually changed are written** &mdash; a save compares
   against what the issue held when it was loaded, never against a normalised or default form, so a
