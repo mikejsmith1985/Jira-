@@ -89,3 +89,19 @@
   columns or an honest coarse view that says which it is, with their sprints ignored rather than
   reconciled, and progress reported as **two figures — dev-only and whole-family — never blended**.
 <!-- SPECKIT END -->
+
+- **004-issue-author** — *(**PLANNED**, not built. Branch `feature/issue-author`.)* Write a Jira
+  issue from material scattered across four places, with an assistant round trip, and create it.
+  Plan: `specs/004-issue-author/plan.md`. Spec: `specs/004-issue-author/spec.md`.
+  **One field decides everything**: an existing issue key means update that issue, blank means create
+  a new one, and there is no other path to either — which is what makes "enriched a stub, got a
+  duplicate" structurally impossible rather than merely unlikely. The predecessor spent ~4,400 lines
+  here; most of that was seven source adapters producing truncated text and a nine-section template
+  frozen into a module. **The template is configuration**: an ordered list of headings in the
+  workspace document, seeded with the current nine, editable without a release.
+  Fields come only from Jira's own createmeta for the chosen project and type, so the assistant can
+  only propose field ids the instance has and values a select will accept. Everything else is
+  assembly: the pack machinery, change set, blocker gate, was-to-will-be diff, readiness checks,
+  write journal and the tokenless relay all already exist.
+  Two failures have no symptom and are checked explicitly in the quickstart: a duplicate issue, and
+  a description silently rewritten by normalising one the operator never touched.
