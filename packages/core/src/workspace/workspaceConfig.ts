@@ -12,6 +12,8 @@
 // before anyone defends a figure. That is the achievable win without asking
 // somebody to provision a server.
 
+import { SEED_DESCRIPTION_SECTIONS } from "../authoring/sectionTemplate.js";
+import type { DescriptionSection } from "../authoring/sectionTemplate.js";
 import type { CardMarker, ColumnRefinement } from "../board/columnRefinement.js";
 import type { ConceptId } from "../fields/conceptId.js";
 import { ALL_CONCEPT_IDS } from "../fields/conceptId.js";
@@ -105,6 +107,16 @@ export interface WorkspaceConfiguration {
   readonly boardRefinements: readonly ColumnRefinement[];
   /** Badge rules driven by an open child issue. Never a column. */
   readonly cardMarkers: readonly CardMarker[];
+  /**
+   * The sections an authored description is written in.
+   *
+   * Deliberately NOT part of the fingerprint. The fingerprint exists so two
+   * people disputing a NUMBER can compare eight characters, and a reworded
+   * section heading changes no number — folding it in would invalidate the
+   * comparison of unrelated figures every time somebody edited a piece of
+   * guidance. An empty list is valid and means the description is free-form.
+   */
+  readonly descriptionSections: readonly DescriptionSection[];
   readonly updatedAtIso: string;
   readonly updatedBy: string;
 }
@@ -160,6 +172,9 @@ export function buildDefaultWorkspaceConfiguration(): WorkspaceConfiguration {
     workingCalendar: { weekendDays: DEFAULT_WEEKEND_DAYS, holidayIsoDates: [] },
     retrievalCeiling: DEFAULT_RETRIEVAL_CEILING,
     transferBudgetCharacters: DEFAULT_TRANSFER_BUDGET_CHARACTERS,
+    // Seed values, not rules: this organisation's current template, expected
+    // to be edited without a release.
+    descriptionSections: SEED_DESCRIPTION_SECTIONS,
     boardRefinements: [],
     cardMarkers: [],
     updatedAtIso: "1970-01-01T00:00:00.000Z",

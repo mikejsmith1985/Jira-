@@ -299,6 +299,20 @@ export {
 } from "./authoring/sectionTemplate.js";
 export type { DescriptionSection } from "./authoring/sectionTemplate.js";
 export {
+  AUTHORING_PACK_ID,
+  SOURCE_EXCERPT_LIMIT,
+  buildAuthoringPromptHead,
+  chunkAuthoringPrompt,
+  parseAuthoringReply,
+} from "./authoring/authoringPack.js";
+export type { AuthoringPromptPart, AuthoringProposal } from "./authoring/authoringPack.js";
+export {
+  VALIDATION_MARKER,
+  findUnvalidatedSections,
+  normaliseDescription,
+  stripAttribution,
+} from "./authoring/normaliseDescription.js";
+export {
   describeLoadFailure,
   loadIssueIntoDraft,
   readLoadResult,

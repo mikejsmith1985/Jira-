@@ -1456,3 +1456,57 @@
 .authoring__review {
   margin-top: var(--gap-5);
 }
+
+/* ── The assistant round trip ────────────────────────────── */
+
+.authoring__assistant {
+  margin-top: var(--layout-grid-gap, var(--gap-4));
+  padding: var(--gap-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-card-bg);
+  box-shadow: var(--shadow-surface), inset 0 1px 0 var(--color-surface-highlight);
+  backdrop-filter: blur(14px) saturate(135%);
+}
+
+.authoring__parts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-3);
+  margin: var(--gap-4) 0;
+}
+
+.authoring__part {
+  padding: var(--gap-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  box-shadow: var(--elevation-raised);
+}
+
+.authoring__part-head {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-3);
+  flex-wrap: wrap;
+}
+
+/* The prompt is shown rather than hidden behind the copy button, because
+   clipboard access can be refused outright and selecting it by hand has to
+   remain possible. Bounded, so it does not push the reply box off screen. */
+.authoring__part-text {
+  margin: var(--gap-3) 0 0;
+  padding: var(--gap-3);
+  max-height: 240px;
+  overflow: auto;
+  border-radius: var(--radius-sm);
+  background: var(--surface-recessed);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  white-space: pre-wrap;
+  color: var(--color-text-secondary);
+}
+
+.authoring__proposal {
+  margin-top: var(--gap-4);
+}
