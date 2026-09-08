@@ -81,6 +81,13 @@ export interface CapabilityProbe {
   readonly unresolved: readonly string[];
 }
 
+/** One issue type a project offers. Defined here so the adapter can name it. */
+export interface IssueTypeChoice {
+  readonly issueTypeId: string;
+  readonly name: string;
+  readonly isSubtask: boolean;
+}
+
 /** What a response looked like, whether or not it succeeded. */
 export interface JiraResponse<TBody> {
   readonly statusCode: number;
@@ -112,6 +119,24 @@ export interface JiraAdapter {
     options: { doesIncludeChangelog: boolean },
   ): Promise<JiraResponse<Record<string, unknown>>>;
   fetchFieldCatalogue(): Promise<JiraResponse<readonly JiraFieldDescriptor[]>>;
+  /** The issue types a project offers, from the instance rather than a list. */
+  fetchIssueTypesForProject(
+    projectKey: string,
+  ): Promise<JiraResponse<readonly IssueTypeChoice[]>>;
+  /**
+   * Creates one issue and returns its key.
+   *
+   * The only route in this product that brings an issue into existence, so the
+   * one place a duplicate could ever originate.
+   */
+  createIssue(
+    body: Readonly<Record<string, unknown>>,
+  ): Promise<JiraResponse<{ readonly key: string }>>;
+  /** What one issue type's create screen offers, keyed by the instance's field id. */
+  fetchCreateScreenFields(
+    projectKey: string,
+    issueTypeId: string,
+  ): Promise<JiraResponse<Readonly<Record<string, unknown>>>>;
   fetchTransitions(issueKey: string): Promise<JiraResponse<readonly TransitionDescriptor[]>>;
   probeCapabilities(): Promise<CapabilityProbe>;
 

@@ -15,6 +15,7 @@
 //    does not need history does not pay for it.
 
 import type {
+  IssueTypeChoice,
   BoardConfigurationResponse,
   BoardSummary,
   CapabilityProbe,
@@ -141,6 +142,82 @@ export function createDataCenterAdapter(transport: JiraTransport): JiraAdapter {
     return {
       ...response,
       body: Array.isArray(response.body) ? response.body.map(normaliseFieldDescriptor) : null,
+    };
+  }
+
+  /**
+   * The issue types this project actually offers.
+   *
+   * The paged Data Center form, not the deprecated single-call one: that
+   * returns every type's every field at once, which on a project with many
+   * types is large and slow for no benefit, since the operator has chosen one
+   * by the time the fields matter.
+   */
+  async function fetchIssueTypesForProject(
+    projectKey: string,
+  ): Promise<JiraResponse<readonly IssueTypeChoice[]>> {
+    const response = await transport.get<{ values?: readonly Record<string, unknown>[] }>(
+      `/rest/api/2/issue/createmeta/${encodeURIComponent(projectKey)}/issuetypes?maxResults=200`,
+    );
+
+    const rawTypes = response.body?.values;
+    return {
+      ...response,
+      body: Array.isArray(rawTypes)
+        ? rawTypes.map((rawType) => ({
+            issueTypeId: String(rawType.id ?? ""),
+            name: typeof rawType.name === "string" ? rawType.name : String(rawType.id ?? ""),
+            isSubtask: rawType.subtask === true,
+          }))
+        : null,
+    };
+  }
+
+  /**
+   * What one issue type's create screen offers.
+   *
+   * This is the only source of what fields a draft may hold. Nothing in this
+   * product writes down a field id, which is what stops the predecessor's
+   * defect - a hardcoded id bound to the wrong field, reporting clean zeros for
+   * months - from recurring here.
+   */
+  async function fetchCreateScreenFields(
+    projectKey: string,
+    issueTypeId: string,
+  ): Promise<JiraResponse<Readonly<Record<string, unknown>>>> {
+    const response = await transport.get<{ values?: readonly Record<string, unknown>[] }>(
+      `/rest/api/2/issue/createmeta/${encodeURIComponent(projectKey)}` +
+        `/issuetypes/${encodeURIComponent(issueTypeId)}?maxResults=200`,
+    );
+
+    const rawFields = response.body?.values;
+    if (!Array.isArray(rawFields)) return { ...response, body: null };
+
+    // The paged form returns a LIST carrying fieldId on each entry, where the
+    // older form returned an object keyed by field id. Rekeying here means the
+    // shape builder sees one shape whichever form a future Jira returns.
+    const byFieldId: Record<string, unknown> = {};
+    for (const rawField of rawFields) {
+      const fieldId = typeof rawField.fieldId === "string" ? rawField.fieldId : null;
+      if (fieldId !== null) byFieldId[fieldId] = rawField;
+    }
+
+    return { ...response, body: byFieldId };
+  }
+
+  /**
+   * Creates one issue.
+   *
+   * Goes through the same transport as everything else, so it works with a token
+   * or through the browser relay, and the write journal cannot be bypassed.
+   */
+  async function createIssue(
+    body: Readonly<Record<string, unknown>>,
+  ): Promise<JiraResponse<{ readonly key: string }>> {
+    const response = await transport.post<{ key?: string }>("/rest/api/2/issue", body);
+    return {
+      ...response,
+      body: typeof response.body?.key === "string" ? { key: response.body.key } : null,
     };
   }
 
@@ -283,6 +360,9 @@ export function createDataCenterAdapter(transport: JiraTransport): JiraAdapter {
     searchIssuesByJql,
     fetchIssueDetail,
     fetchFieldCatalogue,
+    fetchIssueTypesForProject,
+    fetchCreateScreenFields,
+    createIssue,
     fetchTransitions,
     probeCapabilities,
     fetchBoardConfiguration,

@@ -1362,3 +1362,97 @@
 .setup__steps .button {
   cursor: grab;
 }
+
+/* ── Authoring ───────────────────────────────────────────── */
+
+/* Two columns, so the material and the draft are visible at the same time.
+   That is the whole point: the predecessor put them on different wizard steps
+   and the gathering stopped helping. */
+.authoring {
+  display: grid;
+  grid-template-columns: minmax(300px, 2fr) minmax(320px, 3fr);
+  gap: var(--layout-grid-gap, var(--gap-4));
+  margin-top: var(--gap-5);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .authoring {
+    grid-template-columns: 1fr;
+  }
+}
+
+.authoring__sources,
+.authoring__draft,
+.authoring__target {
+  padding: var(--gap-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-card-bg);
+  box-shadow: var(--shadow-surface), inset 0 1px 0 var(--color-surface-highlight);
+  backdrop-filter: blur(14px) saturate(135%);
+}
+
+.authoring__right {
+  display: flex;
+  flex-direction: column;
+  gap: var(--layout-grid-gap, var(--gap-4));
+  min-width: 0;
+}
+
+.authoring__panel-title {
+  margin: 0 0 var(--gap-2);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+}
+
+.authoring__source-list {
+  list-style: none;
+  margin: var(--gap-4) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-3);
+}
+
+/* A gathered source is an object you can pick up and put down, so it gets the
+   raised treatment rather than sitting flat on the panel behind it. */
+.authoring__source {
+  padding: var(--gap-3);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  box-shadow: var(--elevation-raised);
+}
+
+.authoring__source-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap-3);
+}
+
+/* Bounded and scrollable: a pasted brief can be very long, and a source that
+   pushes the draft off screen defeats having both visible. */
+.authoring__source-text {
+  margin: var(--gap-2) 0 0;
+  max-height: 160px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.authoring__required-list {
+  list-style: none;
+  margin: var(--gap-2) 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-2);
+}
+
+.authoring__review {
+  margin-top: var(--gap-5);
+}

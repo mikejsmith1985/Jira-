@@ -12,6 +12,7 @@ import compression from 'compression';
 import express from 'express';
 
 import { isJiraConfigured } from './config/loader.js';
+import { createAuthoringDraftRouter } from './routes/authoringDraft.js';
 import { createConnectionRouter } from './routes/connection.js';
 import { createJiraProxyRouter } from './routes/jiraProxy.js';
 import { createRelayBridgeRouter, isRelayConnected } from './routes/relayBridge.js';
@@ -103,6 +104,7 @@ function createApp(config) {
   app.use(createConnectionRouter(config));
   app.use(createJiraProxyRouter(config));
   app.use(createWorkspaceRouter());
+  app.use(createAuthoringDraftRouter());
   // Checking for a newer version needs no credential and reaches GitHub, not
   // Jira, so it works on an installation that was never configured.
   app.use(createUpdatesRouter(readInstalledVersion()));

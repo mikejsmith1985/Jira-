@@ -22,8 +22,8 @@ npm workspaces. Engine in `packages/core/src/`, server in `packages/server/`, su
 
 ## Phase 1: Setup
 
-- [ ] T001 Create `packages/core/src/authoring/` and export its public surface from `packages/core/src/index.ts`
-- [ ] T002 [P] Add the section template to the workspace document's shape in `packages/core/src/workspace/workspaceConfig.ts`, seeded with the nine sections (FR-019, FR-020)
+- [X] T001 Create `packages/core/src/authoring/` and export its public surface from `packages/core/src/index.ts`
+- [X] T002 [P] Add the section template to the workspace document's shape in `packages/core/src/workspace/workspaceConfig.ts`, seeded with the nine sections (FR-019, FR-020)
 - [ ] T003 [P] Assert in `packages/core/test/fingerprint.test.ts` that editing the section template does **not** change the workspace fingerprint. The fingerprint exists so two people disputing a number compare eight characters; a reworded section heading changes no number, and folding it in would invalidate comparison of unrelated figures
 
 ---
@@ -32,13 +32,13 @@ npm workspaces. Engine in `packages/core/src/`, server in `packages/server/`, su
 
 **These carry the guarantees the rest of the feature rests on. Nothing else starts until they pass.**
 
-- [ ] T004 Write failing tests for the draft shape in `packages/core/test/authoringDraft.test.ts`: a draft with an existing issue key is a different kind of thing from one without, and the operator's narrative has no field id to be written to (FR-007, FR-010)
-- [ ] T005 Implement the draft in `packages/core/src/authoring/draft.ts` — including `loadedFieldValues`, which exists solely so a save can tell a genuine change from an untouched field
-- [ ] T006 [P] Write failing tests for the create screen shape in `packages/core/test/createScreenShape.test.ts`: an empty field list and a failed read are **different states** and must not render alike
-- [ ] T007 Implement `packages/core/src/authoring/createScreenShape.ts` — required flags and allowed values preserved; failure returns unavailable with a reason, never an empty list
-- [ ] T008 [P] Write failing tests for the section template in `packages/core/test/sectionTemplate.test.ts`: an empty template is valid and means no imposed structure (FR-022)
-- [ ] T009 Implement `packages/core/src/authoring/sectionTemplate.ts` — reads the configured list; no section list exists anywhere in source (FR-019)
-- [ ] T010 Add the two createmeta routes (FR-016, FR-017) to `packages/core/src/jira/dataCenterAdapter.ts`
+- [X] T004 Write failing tests for the draft shape in `packages/core/test/authoringDraft.test.ts`: a draft with an existing issue key is a different kind of thing from one without, and the operator's narrative has no field id to be written to (FR-007, FR-010)
+- [X] T005 Implement the draft in `packages/core/src/authoring/draft.ts` — including `loadedFieldValues`, which exists solely so a save can tell a genuine change from an untouched field
+- [X] T006 [P] Write failing tests for the create screen shape in `packages/core/test/createScreenShape.test.ts`: an empty field list and a failed read are **different states** and must not render alike
+- [X] T007 Implement `packages/core/src/authoring/createScreenShape.ts` — required flags and allowed values preserved; failure returns unavailable with a reason, never an empty list
+- [X] T008 [P] Write failing tests for the section template in `packages/core/test/sectionTemplate.test.ts`: an empty template is valid and means no imposed structure (FR-022)
+- [X] T009 Implement `packages/core/src/authoring/sectionTemplate.ts` — reads the configured list; no section list exists anywhere in source (FR-019)
+- [X] T010 Add the two createmeta routes (FR-016, FR-017) to `packages/core/src/jira/dataCenterAdapter.ts`
 - [ ] T011 Write failing tests for those routes in `packages/core/test/dataCenterAdapter.test.ts`, using recorded fixtures per the Article V amendment
 
 **Checkpoint**: the engine can describe what a create screen offers, and hold a draft.
@@ -54,28 +54,36 @@ one correctly-typed issue in Jira (SC-001).
 
 ### Tests
 
-- [ ] T012 [P] [US1] Failing tests for sources in `packages/core/test/authoringDraft.test.ts`: a source has no field id and cannot produce a change (FR-005)
-- [ ] T013 [P] [US1] Failing tests for the change set in `packages/core/test/buildAuthoringChangeSet.test.ts`: a draft with no issue key yields exactly one create carrying every non-empty field
-- [ ] T014 [P] [US1] Failing tests for the five blockers in the same file — any one makes the whole set unappliable, so a partial write cannot happen (FR-035)
-- [ ] T015 [P] [US1] Failing test asserting the narrative never appears in a change set (invariant 6)
-- [ ] T016 [P] [US1] Failing server tests in `packages/server/test/authoringDraft.test.js`: a stored draft survives, an absent one is a normal first state rather than an error (FR-008, SC-006)
+- [X] T012 [P] [US1] Failing tests for sources in `packages/core/test/authoringDraft.test.ts`: a source has no field id and cannot produce a change (FR-005)
+- [X] T013 [P] [US1] Failing tests for the change set in `packages/core/test/buildAuthoringChangeSet.test.ts`: a draft with no issue key yields exactly one create carrying every non-empty field
+- [X] T014 [P] [US1] Failing tests for the five blockers in the same file — any one makes the whole set unappliable, so a partial write cannot happen (FR-035)
+- [X] T015 [P] [US1] Failing test asserting the narrative never appears in a change set (invariant 6)
+- [X] T016 [P] [US1] Failing server tests in `packages/server/test/authoringDraft.test.js`: a stored draft survives, an absent one is a normal first state rather than an error (FR-008, SC-006)
 
 ### Implementation
 
-- [ ] T017 [US1] Implement `packages/core/src/authoring/buildAuthoringChangeSet.ts`, reusing the shipped `ChangeSet` so the existing diff renders it unchanged
-- [ ] T018 [US1] Implement `packages/server/services/draftStore.js` — the profile directory, beside the workspace document
-- [ ] T019 [US1] Implement `packages/server/routes/authoringDraft.js` — GET, PUT, DELETE
-- [ ] T020 [US1] Register the route in `packages/server/app.js`
-- [ ] T021 [P] [US1] Build `packages/client/src/components/authoring/SourcesPanel.tsx` — paste with a label (FR-001), one text file (FR-002), each shown with its label and content (FR-003), remove (FR-004); nothing here can cause a write (FR-005)
-- [ ] T022 [P] [US1] Build `packages/client/src/components/authoring/DraftPanel.tsx` — summary, description, criteria, own words (FR-006)
-- [ ] T023 [US1] Build `packages/client/src/components/authoring/CreateTargetPanel.tsx` — project and type from the instance, required fields marked (FR-015 – FR-018)
-- [ ] T024 [US1] Build `packages/client/src/views/AuthorView.tsx` — two columns, no wizard
-- [ ] T025 [US1] Add the Author surface to the shell in `packages/client/src/App.tsx`, with its own icon in `packages/client/src/components/SurfaceIcons.tsx`
-- [ ] T026 [US1] Wire create through the existing apply pipeline, so the was-to-will-be diff appears before any request (FR-037)
-- [ ] T027 [P] [US1] Component tests in `packages/client/test/AuthorView.test.tsx`: the screen states which action it will take, in plain words, at all times (FR-011, SC-007)
+- [X] T017 [US1] Implement `packages/core/src/authoring/buildAuthoringChangeSet.ts`, reusing the shipped `ChangeSet` so the existing diff renders it unchanged
+- [X] T018 [US1] Implement `packages/server/services/draftStore.js` — the profile directory, beside the workspace document
+- [X] T019 [US1] Implement `packages/server/routes/authoringDraft.js` — GET, PUT, DELETE
+- [X] T020 [US1] Register the route in `packages/server/app.js`
+- [X] T021 [P] [US1] Build `packages/client/src/components/authoring/SourcesPanel.tsx` — paste with a label (FR-001), one text file (FR-002), each shown with its label and content (FR-003), remove (FR-004); nothing here can cause a write (FR-005)
+- [X] T022 [P] [US1] Build `packages/client/src/components/authoring/DraftPanel.tsx` — summary, description, criteria, own words (FR-006)
+- [X] T023 [US1] Build `packages/client/src/components/authoring/CreateTargetPanel.tsx` — project and type from the instance, required fields marked (FR-015 – FR-018)
+- [X] T024 [US1] Build `packages/client/src/views/AuthorView.tsx` — two columns, no wizard
+- [X] T025 [US1] Add the Author surface to the shell in `packages/client/src/App.tsx`, with its own icon in `packages/client/src/components/SurfaceIcons.tsx`
+- [X] T026 [US1] Wire create through the existing apply pipeline, so the was-to-will-be diff appears before any request (FR-037)
+- [X] T027 [P] [US1] Component tests in `packages/client/test/AuthorView.test.tsx`: the screen states which action it will take, in plain words, at all times (FR-011, SC-007)
 
-**Checkpoint** — slice 3 of the plan. A real issue, created from a hand-written draft, diff first.
-**This is the first thing worth demonstrating.**
+**Checkpoint** — slice 3 of the plan. **BUILT.** A real issue, created from a hand-written draft,
+diff first. 522 tests green.
+
+Two tasks in phases 1–2 remain open and are not blocking:
+
+- **T003** — the fingerprint assertion. The fingerprint enumerates its inputs explicitly, so the
+  section template is already excluded by construction; the test that pins it there is still to
+  write.
+- **T011** — recorded fixtures for the two createmeta routes. They need a recording from the live
+  instance, which is the same credential T062 needs.
 
 ---
 
