@@ -37,7 +37,10 @@ const STORED = {
 
 /** Answers the draft route, recording every call. */
 function stubServer(stored: unknown) {
-  const fetchSpy = vi.fn(async () => ({ ok: true, json: async () => ({ draft: stored }) }) as Response);
+  const fetchSpy = vi.fn(
+    async (unusedUrl?: string, unusedInit?: RequestInit) =>
+      ({ ok: true, json: async () => ({ draft: stored }) }) as Response,
+  );
   vi.stubGlobal("fetch", fetchSpy);
   return fetchSpy;
 }
@@ -64,7 +67,12 @@ describe("what was already written", () => {
   it("starts empty rather than blank-screening when the server cannot be reached", async () => {
     // An unreachable server leaves the same state as never having written a
     // draft, which is strictly better than an error somebody cannot act on.
-    vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("offline"); }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new Error("offline");
+      }),
+    );
 
     const { result } = renderHook(() => useAuthoringDraft());
 
@@ -85,11 +93,11 @@ describe("keeping it", () => {
     act(() => result.current.update({ summary: "Sh" }));
     act(() => result.current.update({ summary: "Sho" }));
 
-    const before = fetchSpy.mock.calls.filter(([, init]) => (init as RequestInit)?.method === "PUT").length;
+    const before = fetchSpy.mock.calls.filter(([, init]) => init?.method === "PUT").length;
     await act(async () => {
       vi.advanceTimersByTime(1000);
     });
-    const after = fetchSpy.mock.calls.filter(([, init]) => (init as RequestInit)?.method === "PUT").length;
+    const after = fetchSpy.mock.calls.filter(([, init]) => init?.method === "PUT").length;
 
     expect(before).toBe(0);
     expect(after).toBe(1);
@@ -121,7 +129,7 @@ describe("discarding", () => {
 
     expect(result.current.draft.summary).toBe("");
     expect(
-      fetchSpy.mock.calls.some(([, init]) => (init as RequestInit)?.method === "DELETE"),
+      fetchSpy.mock.calls.some(([, init]) => init?.method === "DELETE"),
     ).toBe(true);
   });
 });

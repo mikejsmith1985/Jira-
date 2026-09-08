@@ -229,6 +229,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Feature 001 now passes Article V as written, with no outstanding deviation.
 
 ### Fixed
+- **The authoring tests now typecheck, not just pass.** Three assertions indexed arrays TypeScript
+  cannot prove are non-empty, and a fetch spy typed from its own zero-argument implementation made
+  reading the recorded arguments an error. The suite ran green either way &mdash; the test runner does
+  not typecheck &mdash; but the client build does, and a release cannot be cut from a tree that will
+  not compile.
 - **Jira+ listens on this machine only.** `app.listen(port)` with no host binds *every* interface,
   and that one omission caused two problems. Windows Firewall prompted &mdash; *"do you want to allow
   public and private networks to access this app?"* &mdash; on a program with no business on a

@@ -28,8 +28,8 @@ describe("gathering", () => {
     await userEvent.click(screen.getByRole("button", { name: /add it/i }));
 
     const [next] = onChange.mock.calls[0] as [{ sources: { label: string; text: string }[] }];
-    expect(next.sources[0].label).toBe("the brief");
-    expect(next.sources[0].text).toBe("Members cannot see it.");
+    expect(next.sources.at(0)?.label).toBe("the brief");
+    expect(next.sources.at(0)?.text).toBe("Members cannot see it.");
   });
 
   it("changes no issue field when a source is added", async () => {
@@ -53,7 +53,7 @@ describe("gathering", () => {
     await userEvent.click(screen.getByRole("button", { name: /add it/i }));
 
     const [next] = onChange.mock.calls[0] as [{ sources: { label: string }[] }];
-    expect(next.sources[0].label).toBe("Untitled");
+    expect(next.sources.at(0)?.label).toBe("Untitled");
   });
 
   it("refuses to add an empty source", async () => {
