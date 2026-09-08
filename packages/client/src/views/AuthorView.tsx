@@ -17,9 +17,13 @@ import {
   buildAuthoringChangeSet,
   buildCreateScreenShape,
   createDataCenterAdapter,
+  describeLoadFailure,
   describeUnavailableShape,
   isEnrichingExistingIssue,
+  loadIssueIntoDraft,
   readDraftFieldValues,
+  readLoadResult,
+  runApplyPlan,
 } from "@jira-plus/core";
 import type {
   ApplyOutcome,
@@ -54,8 +58,10 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
   const [shape, setShape] = useState<CreateScreenShape | null>(null);
   const [changeSet, setChangeSet] = useState<ChangeSet | null>(null);
   const [createdKey, setCreatedKey] = useState<string | null>(null);
+  const [savedKey, setSavedKey] = useState<string | null>(null);
   const [outcome, setOutcome] = useState<ApplyOutcome | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
+  const [isLoadingIssue, setIsLoadingIssue] = useState(false);
 
   const isEnriching = isEnrichingExistingIssue(draft);
 
@@ -64,6 +70,52 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
     configuration?.fieldMap.acceptanceCriteria.state === "resolved"
       ? configuration.fieldMap.acceptanceCriteria.fieldId
       : null;
+
+  /**
+   * Brings an existing issue in.
+   *
+   * Deliberately not automatic on typing: half a key is not a key, and asking
+   * Jira about ENCUC-11 while somebody is on their way to ENCUC-1142 produces a
+   * confident wrong answer about an issue they did not mean.
+   */
+  async function loadIssue(): Promise<void> {
+    const issueKey = (draft.existingIssueKey ?? "").trim();
+    if (issueKey.length === 0) return;
+
+    setIsLoadingIssue(true);
+    setProblem(null);
+    setChangeSet(null);
+    try {
+      const adapter = createDataCenterAdapter(createBrowserJiraTransport());
+      const response = await adapter.fetchIssueDetail(issueKey, { doesIncludeChangelog: false });
+      const result = readLoadResult({
+        issueKey,
+        statusCode: response.statusCode,
+        rawIssue: (response.body as Record<string, unknown> | null) ?? null,
+        jiraMessages: response.jiraMessages,
+      });
+
+      if (result.status === "failed") {
+        // Stays in create mode rather than offering to update nothing.
+        setProblem(describeLoadFailure(result.failure));
+        update({ existingIssueKey: null });
+        return;
+      }
+
+      replace(
+        loadIssueIntoDraft({
+          draft,
+          issue: result.issue,
+          summaryFieldId: SUMMARY_FIELD_ID,
+          descriptionFieldId: DESCRIPTION_FIELD_ID,
+          acceptanceCriteriaFieldId,
+          nowIso: new Date().toISOString(),
+        }),
+      );
+    } finally {
+      setIsLoadingIssue(false);
+    }
+  }
 
   /** Asks the instance which issue types this project offers. */
   useEffect(() => {
@@ -115,6 +167,7 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
   function review(): void {
     setOutcome(null);
     setCreatedKey(null);
+    setSavedKey(null);
     setProblem(null);
     setChangeSet(
       buildAuthoringChangeSet({
@@ -126,16 +179,32 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
   }
 
   /**
-   * Creates the issue.
+   * Writes the draft: creates a new issue, or saves changes to the loaded one.
    *
-   * Reached only through the diff, so every field that will be written has been
-   * seen. The draft is discarded ONLY on full success — a create that failed
-   * must not also take the work with it.
+   * Which of the two happens is decided by the same single field the change set
+   * reads, so the button and the behaviour cannot disagree. Reached only through
+   * the diff, so every field has been seen. The draft is discarded ONLY on full
+   * success — a write that failed must not also take the work with it.
    */
-  async function create(accepted: readonly PlannedChange[]): Promise<void> {
+  async function write(accepted: readonly PlannedChange[]): Promise<void> {
     setProblem(null);
-    const adapter = createDataCenterAdapter(createBrowserJiraTransport());
 
+    if (isEnriching) {
+      // Per-field writes through the shipped pipeline: each succeeds or fails
+      // independently, reports Jira's own words, and reaches the journal.
+      const applied = await runApplyPlan(
+        { plannedChanges: accepted, blockers: [], unchangedCount: 0 },
+        createBrowserJiraTransport(),
+      );
+      setOutcome(applied);
+      if (applied.failedCount === 0 && applied.refusedReason === null) {
+        setSavedKey(draft.existingIssueKey);
+        await discard();
+      }
+      return;
+    }
+
+    const adapter = createDataCenterAdapter(createBrowserJiraTransport());
     const response = await adapter.createIssue({
       fields: {
         project: { key: draft.projectKey },
@@ -198,6 +267,16 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
           )}
         </p>
       )}
+      {savedKey === null ? null : (
+        <p className="notice notice--pass">
+          <strong>Saved to {savedKey}.</strong> No second issue was created.{" "}
+          {jiraBaseUrl === "" ? null : (
+            <a href={`${jiraBaseUrl}/browse/${savedKey}`} target="_blank" rel="noreferrer">
+              Open it in Jira
+            </a>
+          )}
+        </p>
+      )}
       {problem === null ? null : <p className="notice notice--error">{problem}</p>}
 
       <div className="authoring">
@@ -219,6 +298,16 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
         <button type="button" className="button" onClick={review}>
           Show me what will change
         </button>
+        {isEnriching ? (
+          <button
+            type="button"
+            className="button"
+            disabled={isLoadingIssue}
+            onClick={() => void loadIssue()}
+          >
+            {isLoadingIssue ? "Loading…" : `Load ${draft.existingIssueKey}`}
+          </button>
+        ) : null}
         <button type="button" className="button" onClick={() => void discard()}>
           Discard this draft
         </button>
@@ -239,21 +328,15 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
             </div>
           ) : null}
 
-          {isEnriching ? (
-            <p className="notice notice--attn">
-              Saving to an existing issue is not built yet. Clear the key above to write a new one.
-            </p>
-          ) : (
-            <ChangeDiffTable
-              changeSet={changeSet}
-              outcome={outcome}
-              onApply={create}
-              onDismiss={() => {
-                setChangeSet(null);
-                setOutcome(null);
-              }}
-            />
-          )}
+          <ChangeDiffTable
+            changeSet={changeSet}
+            outcome={outcome}
+            onApply={write}
+            onDismiss={() => {
+              setChangeSet(null);
+              setOutcome(null);
+            }}
+          />
         </div>
       )}
 

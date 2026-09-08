@@ -299,6 +299,16 @@ export {
 } from "./authoring/sectionTemplate.js";
 export type { DescriptionSection } from "./authoring/sectionTemplate.js";
 export {
+  describeLoadFailure,
+  loadIssueIntoDraft,
+  readLoadResult,
+} from "./authoring/loadIssueIntoDraft.js";
+export type {
+  LoadFailure,
+  LoadResult,
+  LoadedIssue,
+} from "./authoring/loadIssueIntoDraft.js";
+export {
   NEW_ISSUE_KEY,
   buildAuthoringChangeSet,
   isCreatingNewIssue,

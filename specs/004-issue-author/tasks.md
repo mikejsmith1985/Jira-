@@ -96,20 +96,21 @@ fields not written.
 
 ### Tests
 
-- [ ] T028 [US2] **The invariant that carries this story**, in `packages/core/test/buildAuthoringChangeSet.test.ts`: a draft with an existing issue key yields **no create, for every input** (FR-014, SC-002). Property-style over generated drafts, not one example (invariant 1)
-- [ ] T029 [P] [US2] Failing test: a change set contains no field whose proposed value equals its loaded value (FR-013, invariant 2)
-- [ ] T030 [P] [US2] Failing test: a description the operator never edited produces no change **even after the reply normaliser has run over it** — this is the failure with no symptom
-- [ ] T031 [P] [US2] Failing test: "nothing has changed" is a blocker, not a silent no-op
+- [X] T028 [US2] **The invariant that carries this story**, in `packages/core/test/buildAuthoringChangeSet.test.ts`: a draft with an existing issue key yields **no create, for every input** (FR-014, SC-002). Property-style over generated drafts, not one example (invariant 1)
+- [X] T029 [P] [US2] Failing test: a change set contains no field whose proposed value equals its loaded value (FR-013, invariant 2)
+- [X] T030 [P] [US2] Failing test: a description the operator never edited produces no change **even after the reply normaliser has run over it** — this is the failure with no symptom
+- [X] T031 [P] [US2] Failing test: "nothing has changed" is a blocker, not a silent no-op
 
 ### Implementation
 
-- [ ] T032 [US2] Extend `buildAuthoringChangeSet.ts` for the update path — one planned change per genuinely differing field
-- [ ] T033 [US2] Load an existing issue into the draft, capturing `loadedFieldValues` once and never again (FR-012)
-- [ ] T033a [US2] Read the create screen shape for the **loaded issue's own project and type**, not a chosen one (FR-017). Moving an issue between projects or types is not this feature, and leaving this unstated would let two implementations disagree
-- [ ] T034 [US2] Handle a key that does not exist or cannot be seen: say so and stay in create mode, rather than offering to update nothing
-- [ ] T035 [US2] State the action in plain words wherever the key can be edited
+- [X] T032 [US2] Extend `buildAuthoringChangeSet.ts` for the update path — one planned change per genuinely differing field
+- [X] T033 [US2] Load an existing issue into the draft, capturing `loadedFieldValues` once and never again (FR-012)
+- [X] T033a [US2] Read the create screen shape for the **loaded issue's own project and type**, not a chosen one (FR-017). Moving an issue between projects or types is not this feature, and leaving this unstated would let two implementations disagree
+- [X] T034 [US2] Handle a key that does not exist or cannot be seen: say so and stay in create mode, rather than offering to update nothing
+- [X] T035 [US2] State the action in plain words wherever the key can be edited
 
-**Checkpoint** — slice 4. **The one that must not be wrong.**
+**Checkpoint** — slice 4. **BUILT.** Load a stub, change one field, save. No duplicate, and no
+silent rewrite. 578 tests green.
 
 ---
 
