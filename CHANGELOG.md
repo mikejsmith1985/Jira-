@@ -8,6 +8,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **A readiness assessment on the Author screen, and it cannot become a refusal.** The shipped
+  hygiene checks now run against a draft, read through a projection rather than reimplemented for
+  drafts &mdash; a second implementation of every check is precisely how the predecessor acquired
+  five live divergences between two rule engines, where a check flagged an issue on one screen and
+  passed it on another.
+  A readiness finding is a **different type** from a blocking condition and carries no issue key, so
+  the compiler refuses to let one be used where the other is required. The panel never wears the
+  error tone, never disables anything, and says in words that none of it stops a write; the reasons
+  a write is actually refused stay with the diff, in red. Conflating the two is what makes people
+  ignore both.
+  A check that could not run &mdash; because a concept it needs is unmapped &mdash; is **reported
+  with its reason**, never dropped. A check that silently did not run reads exactly like a check
+  that passed.
+  In the projection, a field the draft has not filled reads as **absent**, not empty, so a check
+  sees what it would see on a real issue that never had one. When enriching, the projection starts
+  from the loaded issue, so changing a summary does not make every other check report on a blank.
 - **The description template is editable in Setup.** Add a section, remove one, reorder them, and
   rewrite the line of guidance that tells the assistant what belongs in each. The next prompt asks
   for exactly what is configured. No restart and no new version of Jira+.

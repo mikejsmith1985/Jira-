@@ -179,3 +179,14 @@ describe("every file explains itself", () => {
     expect(offenders).toEqual([]);
   });
 });
+
+describe("the authoring surface names no field id either", () => {
+  it("keeps every customfield literal out of the authoring area", () => {
+    // Authoring reads what fields exist from the instance's own create screen,
+    // so it has no reason to name one - and a literal here would be the same
+    // defect as the predecessor's, arriving through a different door.
+    for (const filePath of listFilesUnder("authoring")) {
+      expect(readCode(filePath)).not.toMatch(/customfield_\d+/);
+    }
+  });
+});

@@ -11,9 +11,10 @@
 
 import type { JSX } from "react";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
+  assessDraftReadiness,
   buildAuthoringChangeSet,
   buildCreateScreenShape,
   createDataCenterAdapter,
@@ -37,6 +38,7 @@ import type {
 
 import { ChangeDiffTable } from "../components/ChangeDiffTable.js";
 import { AssistantPanel } from "../components/authoring/AssistantPanel.js";
+import { ReadinessPanel } from "../components/authoring/ReadinessPanel.js";
 import { CreateTargetPanel } from "../components/authoring/CreateTargetPanel.js";
 import { DraftPanel } from "../components/authoring/DraftPanel.js";
 import { SourcesPanel } from "../components/authoring/SourcesPanel.js";
@@ -164,6 +166,23 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
       readDraftFieldValues(draft, SUMMARY_FIELD_ID, DESCRIPTION_FIELD_ID, acceptanceCriteriaFieldId),
     [draft, acceptanceCriteriaFieldId],
   );
+
+  /**
+   * The advisory assessment of the draft.
+   *
+   * Recomputed as the draft changes, and never allowed to block anything: its
+   * type is not a blocker, so no code path could make it one.
+   */
+  const readiness = useMemo(() => {
+    if (configuration === null) return null;
+    return assessDraftReadiness({
+      draft,
+      configuration,
+      acceptanceCriteriaFieldId,
+      issueTypeName: issueTypes.find((type) => type.issueTypeId === draft.issueTypeId)?.name ?? "",
+      nowIso: new Date().toISOString(),
+    });
+  }, [draft, configuration, acceptanceCriteriaFieldId, issueTypes]);
 
   /** Works out what would change, and shows it. Sends nothing. */
   function review(): void {
@@ -312,6 +331,8 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
           <DraftPanel draft={draft} onChange={update} />
         </div>
       </div>
+
+      {readiness === null ? null : <ReadinessPanel assessment={readiness} />}
 
       <AssistantPanel
         draft={draft}
