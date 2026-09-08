@@ -38,7 +38,7 @@ const STORED = {
 /** Answers the draft route, recording every call. */
 function stubServer(stored: unknown) {
   const fetchSpy = vi.fn(
-    async (unusedUrl?: string, unusedInit?: RequestInit) =>
+    async (_url?: string, _init?: RequestInit) =>
       ({ ok: true, json: async () => ({ draft: stored }) }) as Response,
   );
   vi.stubGlobal("fetch", fetchSpy);

@@ -62,6 +62,12 @@ export function CreateTargetPanel({
             })
           }
         />
+        {isEnriching ? (
+          <p className="chart__note">
+            Load it to fill this draft from the issue's own values. Saving then writes only the
+            fields you actually changed — anything you leave alone is left alone.
+          </p>
+        ) : null}
 
         {isEnriching ? null : (
           <>

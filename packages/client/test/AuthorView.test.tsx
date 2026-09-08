@@ -145,3 +145,40 @@ describe("gathering material", () => {
     expect((await screen.findAllByText(/never written to jira/i)).length).toBeGreaterThan(0);
   });
 });
+
+describe("enriching an existing issue", () => {
+  it("offers to load the issue once a key is present", async () => {
+    // Loading is deliberate rather than automatic: half a key is not a key, and
+    // asking Jira about ENCUC-11 on the way to ENCUC-1142 answers confidently
+    // about an issue nobody meant.
+    stubServer(buildStoredDraft({ existingIssueKey: "ENCUC-1142" }));
+    render(<AuthorView configuration={null} jiraBaseUrl="" />);
+
+    expect(await screen.findByRole("button", { name: /load ENCUC-1142/i })).toBeTruthy();
+  });
+
+  it("does not offer to load when no key names an issue", async () => {
+    stubServer(buildStoredDraft());
+    render(<AuthorView configuration={null} jiraBaseUrl="" />);
+
+    await screen.findByText(/writing a new issue/i);
+
+    expect(screen.queryByRole("button", { name: /^load /i })).toBeNull();
+  });
+
+  it("no longer refuses to save, now that enriching is built", async () => {
+    stubServer(buildStoredDraft({ existingIssueKey: "ENCUC-1142" }));
+    render(<AuthorView configuration={null} jiraBaseUrl="" />);
+
+    await userEvent.click(await screen.findByRole("button", { name: /what will change/i }));
+
+    expect(screen.queryByText(/not built yet/i)).toBeNull();
+  });
+
+  it("says what saving will and will not do", async () => {
+    stubServer(buildStoredDraft({ existingIssueKey: "ENCUC-1142" }));
+    render(<AuthorView configuration={null} jiraBaseUrl="" />);
+
+    expect(await screen.findByText(/anything you leave alone is left alone/i)).toBeTruthy();
+  });
+});

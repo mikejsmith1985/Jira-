@@ -8,6 +8,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Author can now enrich an existing issue.** Put a key in, load it, add what the issue was
+  missing, and save. **Only the fields you actually changed are written** &mdash; a save compares
+  against what the issue held when it was loaded, never against a normalised or default form, so a
+  description you never touched is left byte-identical. That failure has no symptom: the predecessor
+  turned headings in untouched rich descriptions into "1. 1." lists on save and nothing reported it.
+  The project and issue type come from the **loaded issue's own**, not from a choice. Moving an issue
+  between projects or types is not this feature, and leaving that unstated would let two
+  implementations disagree about which fields exist.
+  Loading is deliberate rather than automatic on typing: half a key is not a key, and asking Jira
+  about `ENCUC-11` on the way to `ENCUC-1142` answers confidently about an issue nobody meant. A key
+  that does not exist, and one your account cannot see, are reported as different things &mdash; one
+  is a typo, the other is a permission to request &mdash; and either way the screen stays set to
+  create rather than offering to update nothing.
+  Each field is written independently through the pipeline the hygiene fixes already use, so one
+  rejection reports Jira's own words without stopping the others, and every write reaches the
+  journal.
 - **Write a Jira issue with the material in front of you.** A new **Author** surface: gather what you
   are writing from on the left, write the issue on the right, see exactly what will change, create
   it. Two columns and no wizard &mdash; the predecessor spent 2,880 lines on a six-step one in which
