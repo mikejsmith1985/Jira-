@@ -51,11 +51,16 @@ function stubServer(connection: Record<string, unknown>) {
 beforeEach(() => vi.unstubAllGlobals());
 
 describe("before anything is configured", () => {
-  it("says nothing else can load, rather than leaving a blank screen", async () => {
+  it("presents itself as the alternative to the relay, not the only way in", async () => {
+    // This panel used to say nothing else could load without it. That stopped
+    // being true when the relay arrived: an installation with a relaying tab
+    // needs no token at all, and telling somebody otherwise sends them to
+    // create a credential they do not need.
     stubServer(buildConnection());
     render(<ConnectionPanel />);
 
-    expect(await screen.findByText(/not configured yet/i)).toBeTruthy();
+    expect(await screen.findByText(/no token stored/i)).toBeTruthy();
+    expect(screen.getByText(/that is fine if the relay above is connected/i)).toBeTruthy();
   });
 
   it("offers a field for the address and a field for the token", async () => {

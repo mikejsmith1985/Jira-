@@ -1337,3 +1337,28 @@
 .sublane__keys a {
   color: var(--accent);
 }
+
+/* ── The relay's three steps ─────────────────────────────── */
+
+/* Numbered because they are genuinely a sequence: the bookmark has to exist
+   before it can be clicked, and it has to be clicked ON Jira. Numbering
+   something that is not a sequence is decoration; this one earns it. */
+.setup__steps {
+  margin: var(--gap-4) 0 0;
+  padding-left: var(--gap-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-3);
+  color: var(--color-text-primary);
+}
+
+.setup__steps li::marker {
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+/* A bookmarklet is dragged, not clicked, so it should look like something you
+   can pick up rather than something that will do anything where it sits. */
+.setup__steps .button {
+  cursor: grab;
+}

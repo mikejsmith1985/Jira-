@@ -14,6 +14,7 @@ import express from 'express';
 import { isJiraConfigured } from './config/loader.js';
 import { createConnectionRouter } from './routes/connection.js';
 import { createJiraProxyRouter } from './routes/jiraProxy.js';
+import { createRelayBridgeRouter, isRelayConnected } from './routes/relayBridge.js';
 import { createUpdatesRouter } from './routes/updates.js';
 import { describeInstance, scheduleStop } from './services/instanceService.js';
 import { resolveInstalledVersion } from './services/versionService.js';
@@ -96,6 +97,9 @@ function createApp(config) {
   // write journal impossible to bypass.
   // Setting the one credential. Registered before the proxy so an
   // unconfigured installation can still be configured.
+  // The no-token path: a bookmarklet on a Jira tab executes requests in the
+  // browser's own authenticated session, so nothing here holds a credential.
+  app.use(createRelayBridgeRouter(config));
   app.use(createConnectionRouter(config));
   app.use(createJiraProxyRouter(config));
   app.use(createWorkspaceRouter());
@@ -123,7 +127,12 @@ function createApp(config) {
   app.get('/api/health', (req, res) => {
     res.json({
       isRunning: true,
-      isJiraConfigured: isJiraConfigured(config),
+      // A relaying browser tab reaches Jira perfectly well without a token, so
+      // an installation with one is configured whether or not a credential was
+      // ever entered.
+      isJiraConfigured: isJiraConfigured(config) || isRelayConnected(),
+      isRelayConnected: isRelayConnected(),
+      isTokenConfigured: isJiraConfigured(config),
       jiraBaseUrl: config.baseUrl,
       isSslVerified: config.isSslVerified,
       // Reported so a blank page has an explanation rather than a mystery.

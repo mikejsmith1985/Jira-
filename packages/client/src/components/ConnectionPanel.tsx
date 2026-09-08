@@ -128,15 +128,16 @@ export function ConnectionPanel(): JSX.Element {
 
   return (
     <section className="setup__connection">
-      <h2 className="view__title">Which Jira</h2>
+      <h2 className="view__title">Or connect with a token</h2>
       <p className="view__lede">
-        One address and one token. Jira+ asks for no other credential, and talks to nothing else.
+        Only needed if you would rather not use the relay above, or want Jira+ to work without a
+        Jira tab open. One address and one token; Jira+ asks for no other credential.
       </p>
 
       <p className={`notice notice--${isConfigured ? "pass" : "attn"}`}>
         {isConfigured
           ? `Configured for ${connection?.baseUrl}.`
-          : "Not configured yet — nothing on any other screen can load until this is set."}
+          : "No token stored. That is fine if the relay above is connected."}
       </p>
 
       <div className="console__form">
