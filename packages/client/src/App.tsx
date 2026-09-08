@@ -9,6 +9,7 @@ import type { JSX } from "react";
 
 import { useEffect, useState } from "react";
 
+import { AuthorView } from "./views/AuthorView.js";
 import { BoardView } from "./views/BoardView.js";
 import { ChangeLogView } from "./views/ChangeLogView.js";
 import { FlowView } from "./views/FlowView.js";
@@ -16,6 +17,7 @@ import { HygieneView } from "./views/HygieneView.js";
 import { QueryConsoleView } from "./views/QueryConsoleView.js";
 import { SetupView } from "./views/SetupView.js";
 import {
+  AuthorIcon,
   BoardIcon,
   ChangesIcon,
   FlowIcon,
@@ -36,6 +38,7 @@ const SURFACES = [
   { id: "board", label: "Board", Icon: BoardIcon },
   { id: "flow", label: "Flow", Icon: FlowIcon },
   { id: "hygiene", label: "Hygiene", Icon: HygieneIcon },
+  { id: "author", label: "Author", Icon: AuthorIcon },
   { id: "changes", label: "Changes", Icon: ChangesIcon },
   { id: "setup", label: "Setup", Icon: SetupIcon },
 ] as const;
@@ -164,6 +167,9 @@ export function App(): JSX.Element {
             configuration={workspace.configuration}
             jiraBaseUrl={jiraBaseUrl}
           />
+        ) : null}
+        {activeSurface === "author" ? (
+          <AuthorView configuration={workspace.configuration} jiraBaseUrl={jiraBaseUrl} />
         ) : null}
         {activeSurface === "changes" ? <ChangeLogView /> : null}
         {activeSurface === "setup" ? <SetupView workspace={workspace} /> : null}

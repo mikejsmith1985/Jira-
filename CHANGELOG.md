@@ -8,6 +8,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Write a Jira issue with the material in front of you.** A new **Author** surface: gather what you
+  are writing from on the left, write the issue on the right, see exactly what will change, create
+  it. Two columns and no wizard &mdash; the predecessor spent 2,880 lines on a six-step one in which
+  the gathered material was never visible at the same time as the draft, which is the single thing
+  that would have helped.
+  **One field decides everything.** An existing issue key means that issue will be updated; blank
+  means a new one will be created. There is no mode flag and no second path, so the create branch is
+  unreachable while a key is set. The test walks generated drafts rather than one example, because
+  one example proves only that one path was thought of &mdash; and the failure it prevents, a
+  duplicate Feature raised while improving a stub, looks exactly like success until a colleague finds
+  two.
+  **No field id is written down.** Which fields exist, which the instance requires, and which values
+  a select will accept all come from Jira's own createmeta for the chosen project and type. An empty
+  field list and a failed read are kept distinct: one means the type has no fields, the other means
+  we do not know, and showing them alike would let somebody conclude their issue type is simple while
+  Jira was unreachable.
+  Gathered material has no field id, so a pasted email cannot become an issue nobody wrote. "Your own
+  words" is kept with the draft to steer the assistant and is never written to Jira.
+  The draft lives on the server, so it survives a reload, a restart, and the relay bookmarklet
+  navigating you away and back. It is discarded only on a create that fully succeeded.
+  Writing goes through the existing diff and apply pipeline: nothing reaches Jira without every field
+  appearing first with its old value beside its new one, and every write lands in the journal.
+  Enriching an existing issue is deliberately refused for now rather than half-built &mdash; the
+  screen says so and points at clearing the key.
 - **Jira+ needs no token at all.** Every release so far opened by demanding a personal access token,
   and setup has been the worst part of using it. That demand is now removed rather than made easier.
   A bookmarklet, dragged to the bookmarks bar once and clicked on a Jira tab, executes each request
@@ -205,6 +229,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Feature 001 now passes Article V as written, with no outstanding deviation.
 
 ### Fixed
+- **The authoring tests now typecheck, not just pass.** Three assertions indexed arrays TypeScript
+  cannot prove are non-empty, and a fetch spy typed from its own zero-argument implementation made
+  reading the recorded arguments an error. The suite ran green either way &mdash; the test runner does
+  not typecheck &mdash; but the client build does, and a release cannot be cut from a tree that will
+  not compile.
 - **Jira+ listens on this machine only.** `app.listen(port)` with no host binds *every* interface,
   and that one omission caused two problems. Windows Firewall prompted &mdash; *"do you want to allow
   public and private networks to access this app?"* &mdash; on a program with no business on a

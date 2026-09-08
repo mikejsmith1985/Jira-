@@ -268,3 +268,38 @@ export {
   describeFamilyProgress,
   toCoarseState,
 } from "./family/familyProgress.js";
+
+// ── Authoring ────────────────────────────────────────────────────────────────
+// Writing an issue rather than measuring one. The single field that decides
+// create versus update lives in draft.ts, and nothing else decides it.
+export {
+  addSource,
+  buildEmptyDraft,
+  isEnrichingExistingIssue,
+  readDraftFieldValues,
+  removeSource,
+} from "./authoring/draft.js";
+export type { AuthoringDraft, AuthoringSource } from "./authoring/draft.js";
+export {
+  buildCreateScreenShape,
+  describeUnavailableShape,
+  findField,
+  isAllowedValue,
+  readRequiredFields,
+} from "./authoring/createScreenShape.js";
+export type {
+  CreateScreenField,
+  CreateScreenShape,
+  IssueTypeChoice,
+} from "./authoring/createScreenShape.js";
+export {
+  SEED_DESCRIPTION_SECTIONS,
+  hasImposedStructure,
+  readSectionTemplate,
+} from "./authoring/sectionTemplate.js";
+export type { DescriptionSection } from "./authoring/sectionTemplate.js";
+export {
+  NEW_ISSUE_KEY,
+  buildAuthoringChangeSet,
+  isCreatingNewIssue,
+} from "./authoring/buildAuthoringChangeSet.js";
