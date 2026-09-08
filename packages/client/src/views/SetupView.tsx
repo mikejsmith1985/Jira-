@@ -32,6 +32,7 @@ import type {
 
 import { ConnectionPanel } from "../components/ConnectionPanel.js";
 import { InstancePanel } from "../components/InstancePanel.js";
+import { RelayPanel } from "../components/RelayPanel.js";
 import { UpdatePanel } from "../components/UpdatePanel.js";
 import { createBrowserJiraTransport } from "../state/jiraTransport.js";
 import type { WorkspaceState } from "../state/useWorkspace.js";
@@ -168,7 +169,9 @@ export function SetupView({ workspace }: SetupViewProps): JSX.Element {
   if (isLoading) {
     return (
       <section>
-        <ConnectionPanel />
+        <RelayPanel />
+
+      <ConnectionPanel />
         <p>Reading the configuration…</p>
       </section>
     );
@@ -176,7 +179,9 @@ export function SetupView({ workspace }: SetupViewProps): JSX.Element {
   if (configuration === null) {
     return (
       <section>
-        <ConnectionPanel />
+        <RelayPanel />
+
+      <ConnectionPanel />
         <p className="notice notice--error">The configuration could not be read.</p>
       </section>
     );
@@ -187,6 +192,8 @@ export function SetupView({ workspace }: SetupViewProps): JSX.Element {
       <InstancePanel />
 
       <UpdatePanel />
+
+      <RelayPanel />
 
       <ConnectionPanel />
 

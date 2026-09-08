@@ -11,6 +11,8 @@
 import http from 'node:http';
 import https from 'node:https';
 
+import { isRelayConnected, submitRelayRequest } from '../routes/relayBridge.js';
+
 /** How long to wait for Jira before giving up on a single request. */
 const REQUEST_TIMEOUT_MS = 60_000;
 
@@ -34,7 +36,33 @@ const FORWARDED_RESPONSE_HEADERS = [
  * @param {{baseUrl: string, personalAccessToken: string, isSslVerified: boolean}} config
  * @param {string} downstreamPath Path plus query string, already stripped of our prefix.
  */
-function forwardToJira(req, res, config, downstreamPath) {
+async function forwardToJira(req, res, config, downstreamPath) {
+  // The no-token path. A browser tab relaying for us can reach Jira with the
+  // session cookie it already holds, so an installation with no credential at
+  // all is fully working rather than blocked.
+  //
+  // Checked BEFORE the address, because the relay does not need one: the
+  // bookmarklet builds every URL from the origin of the tab it was clicked in,
+  // which is by definition the right Jira.
+  if (config.personalAccessToken.length === 0 && isRelayConnected()) {
+    const relayed = await submitRelayRequest({
+      method: req.method,
+      path: downstreamPath,
+      body: req.method === 'GET' || req.method === 'HEAD' ? null : req.body,
+    });
+
+    res.status(relayed.status || 502);
+    res.type('application/json');
+    res.send(
+      relayed.data ??
+        JSON.stringify({
+          errorMessages: [relayed.error ?? 'The relaying Jira tab did not answer.'],
+          jiraPlusFailureKind: 'transport',
+        }),
+    );
+    return;
+  }
+
   if (config.baseUrl.length === 0) {
     // Marked as Jira+'s own refusal. Jira cannot set this field, which is what
     // lets the interface tell an unfinished setup apart from a Jira outage that
@@ -42,7 +70,10 @@ function forwardToJira(req, res, config, downstreamPath) {
     // with 503" about a request Jira never received.
     res.status(503).json({
       error: 'Jira is not configured',
-      errorMessages: ['Jira+ has no Jira address yet. Open Setup and save your connection.'],
+      errorMessages: [
+        'Jira+ has no way to reach Jira yet. Either click the Jira+ bookmarklet on a Jira tab, ' +
+          'or open Setup and save an address and token.',
+      ],
       jiraPlusFailureKind: 'not-configured',
       message: 'Set the Jira base URL and personal access token before making requests.',
     });
