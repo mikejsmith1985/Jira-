@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Every write reached Jira with an empty body.** This is the cause of the *"Jira answered with
+  status 400"* that no amount of better error reporting could explain: Jira was refusing a create
+  with no fields in it, and it was right to. The request body is parsed on the way in, which consumes
+  the stream, so piping that stream onward forwarded **nothing** &mdash; and a proxy that quietly
+  drops what it is carrying has no symptom on this side of the wire. The parsed body is now what gets
+  sent, with its length stated. The proxy's own tests recorded the method, the path and the
+  credential of every forwarded request and **never the body**, which is exactly how this passed a
+  full suite; they record it now.
+- **A refusal Jira did not explain is no longer reported as just a number.** The reply is read as
+  text first, so a refusal that is not JSON still has its words, and a single-sentence `message` is
+  read alongside `errorMessages` and `errors`. The raw text is a last resort used only when the body
+  could not be read at all &mdash; echoing back a JSON object that simply held no reason would be
+  noise, not an explanation &mdash; and it is trimmed, because a page of HTML on screen is not a
+  message either.
+
 ### Changed
 - **An update restarts Jira+ by itself.** Installing a new version wrote it to disk, moved the
   pointer, and then asked you to go and launch Jira+ again &mdash; which is the manual step the whole

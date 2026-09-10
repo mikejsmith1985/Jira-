@@ -14,7 +14,8 @@ import { describe, expect, it, vi } from "vitest";
 import { createBrowserJiraTransport } from "../src/state/jiraTransport.js";
 
 /** Answers one request with the given status and body. */
-function stubFetch(status: number, body: unknown) {
+function stubFetch(status: number, body: unknown, contentType = "application/json") {
+  const text = typeof body === "string" ? body : JSON.stringify(body);
   vi.stubGlobal(
     "fetch",
     vi.fn(
@@ -22,8 +23,8 @@ function stubFetch(status: number, body: unknown) {
         ({
           ok: status >= 200 && status < 300,
           status,
-          headers: { get: () => null },
-          json: async () => body,
+          headers: { get: (name: string) => (name === "content-type" ? contentType : null) },
+          text: async () => text,
         }) as unknown as Response,
     ),
   );
@@ -80,5 +81,44 @@ describe("when Jira refuses a create", () => {
     const response = await createBrowserJiraTransport().post("/rest/api/2/issue", {});
 
     expect(response.jiraMessages).toHaveLength(0);
+  });
+});
+
+describe("when Jira refuses in a shape we cannot read", () => {
+  // The residue of the empty-body bug. Jira's answer to a request that malformed
+  // carried no errorMessages at all, so the screen said "Jira answered with
+  // status 400" and stopped - which is the message this product exists to
+  // remove, produced by the product.
+  it("shows what came back rather than only the status", async () => {
+    stubFetch(400, "Missing the fields the create needs.", "text/plain");
+
+    const response = await createBrowserJiraTransport().post("/rest/api/2/issue", {});
+
+    expect(response.jiraMessages.join(" ")).toContain("Missing the fields the create needs.");
+  });
+
+  it("does not invent a message when the refusal came with nothing at all", async () => {
+    stubFetch(400, "", "text/plain");
+
+    const response = await createBrowserJiraTransport().post("/rest/api/2/issue", {});
+
+    expect(response.jiraMessages).toEqual([]);
+  });
+
+  it("says nothing extra when Jira DID explain itself", async () => {
+    // The raw body would only repeat what was already read out of it.
+    stubFetch(400, JSON.stringify({ errors: { summary: "is required" } }), "application/json");
+
+    const response = await createBrowserJiraTransport().post("/rest/api/2/issue", {});
+
+    expect(response.jiraMessages).toEqual(["summary: is required"]);
+  });
+
+  it("cuts a page of HTML down rather than pasting it onto the screen", async () => {
+    stubFetch(400, `<html>${"x".repeat(2000)}</html>`, "text/html");
+
+    const response = await createBrowserJiraTransport().post("/rest/api/2/issue", {});
+
+    expect(response.jiraMessages[0]!.length).toBeLessThan(400);
   });
 });
