@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **An update restarts Jira+ by itself.** Installing a new version wrote it to disk, moved the
+  pointer, and then asked you to go and launch Jira+ again &mdash; which is the manual step the whole
+  update mechanism exists to remove, reappearing at the last moment. Jira+ now hands over to the new
+  version on its own and reloads the page when it comes back.
+  The handover is done by a small script that outlives both copies, because the process that has to
+  wait for the port is the same one that has to release it. It matters that it waits: Jira+ treats a
+  port already in use as *"the copy you wanted is already running"* and bows out quietly &mdash;
+  right when somebody double-clicks twice, and **silent** here. A new version started too early would
+  exit without a word, leaving the machine on the old version with nothing on screen to say so.
+  The page waits for the **version** to change, not for the port to answer, because the old copy
+  answers right up until it exits. If the handover cannot be done at all &mdash; running from source,
+  or no Windows scripting host &mdash; it says so and asks for the restart rather than pretending.
+  Nothing stops until a successor is arranged: exiting without one is the only outcome worse than not
+  restarting.
+
 ### Fixed
 - **Jira's own explanation of a refusal is no longer thrown away.** A failed write reported
   *"Jira answered with status 400"* &mdash; the exact uninformative message this product exists to
