@@ -31,6 +31,7 @@ import { useBoard } from "./state/useBoard.js";
 import { useIssueSet } from "./state/useIssueSet.js";
 import { SurfaceBoundary } from "./components/SurfaceBoundary.js";
 import { UpdatePanel } from "./components/UpdatePanel.js";
+import { VersionChip } from "./components/VersionChip.js";
 import { useTheme } from "./state/useTheme.js";
 import { useWorkspace } from "./state/useWorkspace.js";
 
@@ -103,6 +104,12 @@ export function App(): JSX.Element {
         </nav>
 
         <div className="app__meta">
+          {/* Always present. An empty space where an update notice might be
+              is indistinguishable from a feature that does not work. */}
+          <SurfaceBoundary name="version">
+            <VersionChip />
+          </SurfaceBoundary>
+
           {/* Shown always, so two people can compare eight characters before
               they compare a number. */}
           <span

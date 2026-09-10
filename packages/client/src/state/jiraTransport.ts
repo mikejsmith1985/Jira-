@@ -13,17 +13,37 @@ import type { JiraResponse, JiraTransport } from "@jira-plus/core";
 /** The path prefix the local server forwards to Jira. */
 const PROXY_PREFIX = "/jira-proxy";
 
-/** Pulls Jira's own error text out of whatever shape came back. */
+/**
+ * Pulls Jira's own error text out of whatever shape came back.
+ *
+ * BOTH places are read, and this is not defensive tidiness. A create Jira
+ * refuses answers with the reason in `errors`, keyed by field, and
+ * `errorMessages` as an EMPTY ARRAY. An earlier version checked
+ * `Array.isArray(errorMessages)` first, found the empty array, and returned it —
+ * so the reason sat one property away while the screen said "Jira answered with
+ * status 400" and nothing else.
+ *
+ * That is the exact useless message this product exists to remove, produced by
+ * the product itself.
+ */
 function readJiraMessages(body: unknown): readonly string[] {
   if (body === null || typeof body !== "object") return [];
+
+  const collected: string[] = [];
+
   const messages = (body as { errorMessages?: unknown }).errorMessages;
-  if (Array.isArray(messages)) return messages.map(String);
+  if (Array.isArray(messages)) collected.push(...messages.map(String));
 
   const errors = (body as { errors?: Record<string, unknown> }).errors;
   if (errors !== undefined && errors !== null && typeof errors === "object") {
-    return Object.entries(errors).map(([field, message]) => `${field}: ${String(message)}`);
+    // Named by field, because "cannot be set" tells somebody nothing about
+    // WHICH field they have to go and look at.
+    collected.push(
+      ...Object.entries(errors).map(([field, message]) => `${field}: ${String(message)}`),
+    );
   }
-  return [];
+
+  return collected;
 }
 
 /**

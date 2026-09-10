@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Jira's own explanation of a refusal is no longer thrown away.** A failed write reported
+  *"Jira answered with status 400"* &mdash; the exact uninformative message this product exists to
+  eliminate &mdash; because the reader stopped at Jira's `errorMessages` list and never read the
+  `errors` object, which is where Jira actually puts *"Issue type is not valid for this project"*.
+  Both are read now, and the field each complaint is about is named.
+- **The Stories in a batch are created as Stories.** Every item in *A Feature with Stories* was
+  created with the one issue type the draft had chosen, so asking for a Feature with three Stories
+  created **four Features** &mdash; and on an instance that forbids that shape, Jira refused the
+  whole write. The type the issues beneath the Feature are is now asked for, and the batch **refuses
+  to write until it has been told** rather than guessing: a wrong guess is only discovered by someone
+  opening the board. The assistant is asked for the real type names too, so the prompt describes what
+  will actually be created.
+- **Pressing the create button visibly does something.** The outcome &mdash; and any refusal
+  &mdash; rendered at the top of the page while the button that caused it was at the bottom, so a
+  write that had worked looked like nothing had happened. The natural next move is then to press the
+  button again, which for a write is the worst possible response to that impression. The outcome now
+  sits beside the button and is scrolled into view.
+- **The running version is always on screen.** The update notice showed nothing at all when there
+  was nothing to install &mdash; correct behaviour that is indistinguishable from a feature that does
+  not work, so somebody on the newest version had no way to tell the mechanism was alive and kept
+  downloading zips by hand. A small chip in the header now always shows the running version, says
+  *offline* when the check could not be made, and becomes the install button when there is something
+  newer.
+
 ### Added
 - **Write several issues from one pile of material.** A toggle on the Author screen: **Just
   Features** turns your material into separate independent issues, or **A Feature with Stories**

@@ -36,12 +36,23 @@ function buildHierarchy(): AuthoringBatch {
   });
 }
 
+/** The types this project offers. */
+const ISSUE_TYPES = [
+  { issueTypeId: "10001", name: "Feature", isSubtask: false },
+  { issueTypeId: "10002", name: "Story", isSubtask: false },
+];
+
 /** Renders the panel over a batch. */
-function renderPanel(batch: AuthoringBatch, overrides: Record<string, unknown> = {}) {
+function renderPanel(
+  batch: AuthoringBatch,
+  overrides: Record<string, unknown> = {},
+  parentIssueTypeId = "10001",
+) {
   const handlers = {
     onShapeChange: vi.fn(),
     onRemove: vi.fn(),
     onWrite: vi.fn(),
+    onChildIssueTypeChange: vi.fn(),
     ...overrides,
   };
   render(
@@ -49,12 +60,20 @@ function renderPanel(batch: AuthoringBatch, overrides: Record<string, unknown> =
       batch={batch}
       isWriting={false}
       jiraBaseUrl=""
+      issueTypes={ISSUE_TYPES}
+      parentIssueTypeId={parentIssueTypeId}
       onShapeChange={handlers.onShapeChange as never}
       onRemove={handlers.onRemove as never}
       onWrite={handlers.onWrite as never}
+      onChildIssueTypeChange={handlers.onChildIssueTypeChange as never}
     />,
   );
   return handlers;
+}
+
+/** A hierarchy whose Stories have been told what type to be. */
+function buildTypedHierarchy(): AuthoringBatch {
+  return { ...buildHierarchy(), childIssueTypeId: "10002" };
 }
 
 describe("choosing the shape", () => {
@@ -90,7 +109,7 @@ describe("the list", () => {
   });
 
   it("offers to write everything when none of it exists yet", () => {
-    renderPanel(buildHierarchy());
+    renderPanel(buildTypedHierarchy());
 
     expect(screen.getByRole("button", { name: /create 3 in jira/i })).toBeTruthy();
   });
@@ -105,7 +124,7 @@ describe("the list", () => {
 describe("a batch that failed halfway", () => {
   /** A hierarchy in which the Feature was created and the Stories were not. */
   function buildHalfWritten(): AuthoringBatch {
-    const batch = buildHierarchy();
+    const batch = buildTypedHierarchy();
     return recordCreatedKey(batch, batch.items[0]!.itemId, "DENP-2001", {});
   }
 
@@ -147,5 +166,51 @@ describe("when everything exists", () => {
 
     const button = screen.getByRole("button", { name: /all of these exist/i }) as HTMLButtonElement;
     expect(button.disabled).toBe(true);
+  });
+});
+
+describe("what type the Stories are created as", () => {
+  // The 400 nobody could explain. Every item was created with the draft's own
+  // type, so asking for a Feature with three Stories created four Features.
+  it("asks, rather than assuming they are Features too", () => {
+    renderPanel(buildHierarchy());
+
+    expect(screen.getByLabelText(/type.*beneath|beneath.*type/i)).toBeTruthy();
+  });
+
+  it("does not ask in a flat batch, where nothing is beneath anything", () => {
+    renderPanel(buildBatch({ shape: "flat", drafts: [buildDraft("One")], nowIso: NOW }));
+
+    expect(screen.queryByLabelText(/beneath/i)).toBeNull();
+  });
+
+  it("reports the choice rather than making it", async () => {
+    const handlers = renderPanel(buildHierarchy());
+
+    await userEvent.selectOptions(screen.getByLabelText(/beneath/i), "10002");
+
+    expect(handlers.onChildIssueTypeChange).toHaveBeenCalledWith("10002");
+  });
+
+  it("will not write until it has been told", () => {
+    // Refusing here costs a click. Guessing costs somebody a board full of
+    // Features that should have been Stories.
+    renderPanel(buildHierarchy());
+
+    const button = screen.getByRole("button", { name: /create 3 in jira/i }) as HTMLButtonElement;
+    expect(button.disabled).toBe(true);
+  });
+
+  it("says why it will not, instead of a button that does nothing", () => {
+    renderPanel(buildHierarchy());
+
+    expect(screen.getByText(/not created as Features too/i)).toBeTruthy();
+  });
+
+  it("writes once it has been told", () => {
+    renderPanel(buildTypedHierarchy());
+
+    const button = screen.getByRole("button", { name: /create 3 in jira/i }) as HTMLButtonElement;
+    expect(button.disabled).toBe(false);
   });
 });

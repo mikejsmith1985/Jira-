@@ -309,12 +309,15 @@ export {
   addBatchItem,
   buildBatch,
   buildEmptyBatch,
+  findBatchBlocker,
   findParentItem,
   findUncreatedItems,
   isPartlyWritten,
+  readItemIssueTypeId,
   readWriteOrder,
   recordCreatedKey,
   removeBatchItem,
+  setChildIssueTypeId,
   updateBatchItem,
 } from "./authoring/authoringBatch.js";
 export type { AuthoringBatch, BatchItem, BatchShape } from "./authoring/authoringBatch.js";
