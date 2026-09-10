@@ -29,6 +29,8 @@ import {
 } from "./components/SurfaceIcons.js";
 import { useBoard } from "./state/useBoard.js";
 import { useIssueSet } from "./state/useIssueSet.js";
+import { SurfaceBoundary } from "./components/SurfaceBoundary.js";
+import { UpdatePanel } from "./components/UpdatePanel.js";
 import { useTheme } from "./state/useTheme.js";
 import { useWorkspace } from "./state/useWorkspace.js";
 
@@ -132,6 +134,13 @@ export function App(): JSX.Element {
           </div>
         </div>
       </header>
+
+      {/* On every screen, not buried in Setup. An update nobody sees is an
+          update nobody installs - which is why this was still being done by
+          downloading zips by hand. */}
+      <SurfaceBoundary name="updates">
+        <UpdatePanel isQuietWhenCurrent />
+      </SurfaceBoundary>
 
       {workspace.reviewMessage === null ? null : (
         <div className="app__notice" role="alert">

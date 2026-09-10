@@ -133,3 +133,56 @@ describe("when it is already current", () => {
     expect(screen.queryByRole("button")).toBeNull();
   });
 });
+
+describe("in the header, where it is seen on every screen", () => {
+  it("says nothing at all when there is nothing to install", async () => {
+    // A permanent "you are up to date" on every screen is noise, and noise in
+    // the one place the important message will eventually appear trains people
+    // to stop reading it.
+    stubCheck({
+      installedVersion: "0.8.1",
+      isCheckPossible: true,
+      isUpdateAvailable: false,
+      latestVersion: "0.8.1",
+      releaseUrl: null,
+      reason: null,
+    });
+
+    const { container } = render(<UpdatePanel isQuietWhenCurrent />);
+
+    await waitFor(() => expect(container.firstChild).toBeNull());
+  });
+
+  it("still speaks up when there IS something to install", async () => {
+    // The whole reason it moved out of Setup: an update nobody sees is an update
+    // nobody installs, and Setup is a screen somebody may not open for a week.
+    stubCheck({
+      installedVersion: "0.8.1",
+      isCheckPossible: true,
+      isUpdateAvailable: true,
+      latestVersion: "0.9.0",
+      releaseUrl: null,
+      reason: null,
+    });
+
+    render(<UpdatePanel isQuietWhenCurrent />);
+
+    expect(await screen.findByText(/0\.9\.0 is available/i)).toBeTruthy();
+  });
+
+  it("stays quiet when it could not check, rather than nagging on every screen", async () => {
+    // Setup still says so, which is where somebody goes to find out.
+    stubCheck({
+      installedVersion: "0.8.1",
+      isCheckPossible: false,
+      isUpdateAvailable: false,
+      latestVersion: null,
+      releaseUrl: null,
+      reason: "GitHub could not be reached.",
+    });
+
+    const { container } = render(<UpdatePanel isQuietWhenCurrent />);
+
+    await waitFor(() => expect(container.firstChild).toBeNull());
+  });
+});

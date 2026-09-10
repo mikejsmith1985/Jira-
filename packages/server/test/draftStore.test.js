@@ -10,8 +10,15 @@
 // is the normal first state, and a corrupt file holds nothing worth recovering
 // that could not be retyped faster than it could be explained.
 
-import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
+
+// Set BEFORE the store is imported, because the path is resolved at module load.
+// Without this the two draft suites share one file and race each other, which
+// showed up as a suite that passed alone and failed in the full run.
+process.env.JIRAPLUS_DRAFT_PATH = path.join(os.tmpdir(), 'jiraplus-test-draft-store.json');
+
+import fs from 'node:fs';
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 

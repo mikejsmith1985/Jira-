@@ -55,11 +55,11 @@ function renderPanel(onAccept = vi.fn()) {
   return onAccept;
 }
 
-/** Pastes a reply and reads it. */
+/** Pastes a reply and puts it in the draft. */
 async function pasteReply(replyText: string) {
   await userEvent.click(screen.getByLabelText(/paste the reply here/i));
   await userEvent.paste(replyText);
-  await userEvent.click(screen.getByRole("button", { name: /read the reply/i }));
+  await userEvent.click(screen.getByRole("button", { name: /put it in my draft/i }));
 }
 
 describe("building the prompt", () => {
@@ -91,31 +91,36 @@ describe("building the prompt", () => {
 });
 
 describe("reading a reply", () => {
-  it("says nothing has changed until it is accepted", async () => {
+  it("puts it in the draft in ONE step, not two", async () => {
+    // The earlier version parsed, said "read it", and waited for a second click.
+    // The draft is not Jira: every proposal in it is still editable and still
+    // gated by the diff, so the second click confirmed nothing and cost a step
+    // on every round trip.
+    const onAccept = renderPanel();
+
+    await pasteReply(JSON.stringify({ packId: AUTHORING_PACK_ID, issue: { summary: "S" } }));
+
+    expect(onAccept).toHaveBeenCalledOnce();
+  });
+
+  it("says where it went, and what still stands between it and Jira", async () => {
     renderPanel();
 
     await pasteReply(
       JSON.stringify({ packId: AUTHORING_PACK_ID, issue: { summary: "Show enrolment status" } }),
     );
 
-    expect(screen.getByText(/nothing has changed yet/i)).toBeTruthy();
+    expect(screen.getByText(/in your draft/i)).toBeTruthy();
+    expect(screen.getByText(/nothing reaches Jira until you press create or save/i)).toBeTruthy();
   });
 
-  it("does not touch the draft until it is accepted", async () => {
+  it("applies nothing at all when the reply was refused whole", async () => {
+    // The case the confirmation step was really there for.
     const onAccept = renderPanel();
 
-    await pasteReply(JSON.stringify({ packId: AUTHORING_PACK_ID, issue: { summary: "S" } }));
+    await pasteReply(JSON.stringify({ packId: "somethingElse", issue: { summary: "S" } }));
 
     expect(onAccept).not.toHaveBeenCalled();
-  });
-
-  it("puts the proposal into the draft when it is accepted", async () => {
-    const onAccept = renderPanel();
-
-    await pasteReply(JSON.stringify({ packId: AUTHORING_PACK_ID, issue: { summary: "S" } }));
-    await userEvent.click(screen.getByRole("button", { name: /put these in my draft/i }));
-
-    expect(onAccept).toHaveBeenCalledOnce();
   });
 
   it("rejects a reply from another prompt, whole, and says so", async () => {
