@@ -17,9 +17,17 @@ import type { JSX } from "react";
 
 import { useState } from "react";
 
-import { buildAuthoringPromptHead, chunkAuthoringPrompt, parseAuthoringReply } from "@jira-plus/core";
+import {
+  buildAuthoringPromptHead,
+  buildBatchPromptHead,
+  chunkAuthoringPrompt,
+  parseAuthoringReply,
+  parseBatchReply,
+} from "@jira-plus/core";
 import type {
   AuthoringDraft,
+  BatchProposal,
+  BatchShape,
   AuthoringPromptPart,
   AuthoringProposal,
   CreateScreenShape,
@@ -33,6 +41,9 @@ export interface AssistantPanelProps {
   readonly sections: readonly DescriptionSection[];
   readonly budgetCharacters: number;
   readonly onAccept: (proposal: AuthoringProposal) => void;
+  /** Set when the operator is writing several issues rather than one. */
+  readonly batchShape?: BatchShape | null;
+  readonly onAcceptBatch?: (proposal: BatchProposal) => void;
 }
 
 /** The round-trip surface. */
@@ -42,21 +53,35 @@ export function AssistantPanel({
   sections,
   budgetCharacters,
   onAccept,
+  batchShape = null,
+  onAcceptBatch,
 }: AssistantPanelProps): JSX.Element {
   const [parts, setParts] = useState<readonly AuthoringPromptPart[]>([]);
   const [copiedParts, setCopiedParts] = useState<ReadonlySet<number>>(new Set());
   const [replyText, setReplyText] = useState("");
   const [proposal, setProposal] = useState<AuthoringProposal | null>(null);
+  const [batchProposal, setBatchProposal] = useState<BatchProposal | null>(null);
 
   /** Builds the prompt from the draft, the sources and the create screen. */
   function buildPrompt(): void {
     setProposal(null);
     setCopiedParts(new Set());
-    const head = buildAuthoringPromptHead({
-      draft,
-      shape: shape ?? { status: "unavailable", reason: "No issue type has been chosen yet." },
-      sections,
-    });
+    setBatchProposal(null);
+    const resolvedShape = shape ?? {
+      status: "unavailable" as const,
+      reason: "No issue type has been chosen yet.",
+    };
+    const head =
+      batchShape === null
+        ? buildAuthoringPromptHead({ draft, shape: resolvedShape, sections })
+        : buildBatchPromptHead({
+            draft,
+            shape: resolvedShape,
+            sections,
+            isHierarchy: batchShape === "feature-with-stories",
+            parentTypeName: "Feature",
+            childTypeName: "Story",
+          });
     setParts(chunkAuthoringPrompt({ head, sources: draft.sources, budgetCharacters }));
   }
 
@@ -84,12 +109,19 @@ export function AssistantPanel({
    * confirmation was really there for.
    */
   function readReply(): void {
-    const parsed = parseAuthoringReply({
-      replyText,
-      shape: shape ?? { status: "unavailable", reason: "No issue type has been chosen yet." },
-      sections,
-    });
+    const resolvedShape = shape ?? {
+      status: "unavailable" as const,
+      reason: "No issue type has been chosen yet.",
+    };
 
+    if (batchShape !== null && onAcceptBatch !== undefined) {
+      const parsed = parseBatchReply({ replyText, shape: resolvedShape, sections });
+      setBatchProposal(parsed);
+      if (parsed.refusedReason === null) onAcceptBatch(parsed);
+      return;
+    }
+
+    const parsed = parseAuthoringReply({ replyText, shape: resolvedShape, sections });
     setProposal(parsed);
     if (parsed.refusedReason === null) onAccept(parsed);
   }
@@ -162,6 +194,27 @@ export function AssistantPanel({
           </button>
         </div>
       </div>
+
+      {batchProposal === null ? null : batchProposal.refusedReason !== null ? (
+        <p className="notice notice--error">{batchProposal.refusedReason}</p>
+      ) : (
+        <div className="authoring__proposal">
+          <p className="notice notice--pass">
+            <strong>
+              {batchProposal.issues.length} issue
+              {batchProposal.issues.length === 1 ? "" : "s"} in your list.
+            </strong>{" "}
+            Read them, change anything you disagree with, then create them. Nothing reaches Jira
+            until you do.
+          </p>
+          {batchProposal.discardedCount === 0 ? null : (
+            <p className="notice notice--attn">
+              The reply proposed {batchProposal.discardedCount} more than were kept. A list nobody
+              reads is a list nobody checked, so the extras were dropped rather than accepted.
+            </p>
+          )}
+        </div>
+      )}
 
       {proposal === null ? null : proposal.refusedReason !== null ? (
         <p className="notice notice--error">{proposal.refusedReason}</p>

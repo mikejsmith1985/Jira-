@@ -1,6 +1,6 @@
 {
   "name": "jira-plus",
-  "version": "0.8.2",
+  "version": "0.9.0",
   "private": true,
   "description": "A minimally invasive layer over Jira where every number shows its work",
   "license": "MIT",

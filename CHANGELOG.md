@@ -8,6 +8,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Write several issues from one pile of material.** A toggle on the Author screen: **Just
+  Features** turns your material into separate independent issues, or **A Feature with Stories**
+  turns it into one parent and the work beneath it, linked. One round trip, however many issues come
+  out of it.
+  The shape is **your** choice, not the assistant's. A pile of material that could be read either way
+  would otherwise come back differently every time it was asked, and nobody would know which reading
+  they were getting.
+  **A batch that fails halfway does not duplicate on retry.** Six issues is six chances to fail on
+  the fifth, and a retry that created the Feature again would leave two Features and three orphaned
+  Stories &mdash; invisible until a colleague found the second one. Each created key is recorded on
+  its own item as it arrives, and every item carries the **same single switch** a lone draft does: a
+  key means update, blank means create. Retrying finishes the batch instead of repeating the half
+  that worked. That is the single-issue guarantee applied per item, not a second mechanism that could
+  disagree with it.
+  In a hierarchy the parent is written first, because a Story cannot be linked to a Feature that does
+  not exist yet, and children are linked through the mapped concept rather than a field id written
+  down anywhere. Every issue in a reply is validated by the **same function** a lone reply uses, so a
+  batch cannot accept a field id or a value a single issue would refuse. A reply proposing more than
+  twelve is cut and counted: a list nobody reads is a list nobody checked.
 - **A readiness assessment on the Author screen, and it cannot become a refusal.** The shipped
   hygiene checks now run against a draft, read through a projection rather than reimplemented for
   drafts &mdash; a second implementation of every check is precisely how the predecessor acquired

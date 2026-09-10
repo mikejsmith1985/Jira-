@@ -16,18 +16,26 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   assessDraftReadiness,
   buildAuthoringChangeSet,
+  buildBatch,
+  buildEmptyBatch,
   buildCreateScreenShape,
   createDataCenterAdapter,
   describeLoadFailure,
   describeUnavailableShape,
+  findUncreatedItems,
   isEnrichingExistingIssue,
   loadIssueIntoDraft,
+  readWriteOrder,
+  recordCreatedKey,
+  removeBatchItem,
   readDraftFieldValues,
   readLoadResult,
   runApplyPlan,
 } from "@jira-plus/core";
 import type {
   ApplyOutcome,
+  AuthoringBatch,
+  BatchProposal,
   AuthoringProposal,
   ChangeSet,
   PlannedChange,
@@ -38,6 +46,7 @@ import type {
 
 import { ChangeDiffTable } from "../components/ChangeDiffTable.js";
 import { AssistantPanel } from "../components/authoring/AssistantPanel.js";
+import { BatchPanel } from "../components/authoring/BatchPanel.js";
 import { ReadinessPanel } from "../components/authoring/ReadinessPanel.js";
 import { CreateTargetPanel } from "../components/authoring/CreateTargetPanel.js";
 import { DraftPanel } from "../components/authoring/DraftPanel.js";
@@ -66,6 +75,10 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
   const [outcome, setOutcome] = useState<ApplyOutcome | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
   const [isLoadingIssue, setIsLoadingIssue] = useState(false);
+  const [isBatchMode, setIsBatchMode] = useState(false);
+  const [batch, setBatch] = useState<AuthoringBatch>(() => buildEmptyBatch("flat"));
+  const [isWritingBatch, setIsWritingBatch] = useState(false);
+  const [batchOutcome, setBatchOutcome] = useState<string | null>(null);
 
   const isEnriching = isEnrichingExistingIssue(draft);
 
@@ -285,6 +298,105 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
     setChangeSet(null);
   }
 
+  /** Turns a batch reply into a list of drafts, keeping the operator's material. */
+  function acceptBatch(proposal: BatchProposal): void {
+    setBatch(
+      buildBatch({
+        shape: batch.shape,
+        drafts: proposal.issues.map((issue) => ({
+          ...draft,
+          summary: issue.summary ?? "",
+          description: issue.description ?? "",
+          acceptanceCriteria: issue.acceptanceCriteria ?? "",
+          fieldValues: issue.fieldValues,
+          // Each is a NEW issue, whatever the draft it was built from held.
+          existingIssueKey: null,
+          loadedFieldValues: null,
+        })),
+        nowIso: new Date().toISOString(),
+      }),
+    );
+    setBatchOutcome(null);
+  }
+
+  /**
+   * Writes every item that does not exist yet.
+   *
+   * The parent goes first, because a Story cannot be linked to a Feature that
+   * does not exist. Each created key is recorded on its own item as it arrives,
+   * so a run that fails on the fifth issue leaves the first four unrepeatable —
+   * retrying finishes the batch instead of creating a second Feature and
+   * orphaning its Stories.
+   */
+  async function writeBatch(): Promise<void> {
+    setIsWritingBatch(true);
+    setProblem(null);
+    setBatchOutcome(null);
+
+    const adapter = createDataCenterAdapter(createBrowserJiraTransport());
+    let working = batch;
+    let parentKey: string | null = null;
+    let createdCount = 0;
+    let failedReason: string | null = null;
+
+    for (const item of readWriteOrder(working)) {
+      const current = working.items.find((candidate) => candidate.itemId === item.itemId);
+      if (current === undefined || isEnrichingExistingIssue(current.draft)) {
+        if (current?.isParent === true) parentKey = current.draft.existingIssueKey;
+        continue;
+      }
+
+      const values = readDraftFieldValues(
+        current.draft,
+        SUMMARY_FIELD_ID,
+        DESCRIPTION_FIELD_ID,
+        acceptanceCriteriaFieldId,
+      );
+
+      // A child is linked to the parent through the mapped concept, never a
+      // field id written down here.
+      const linkFieldId =
+        configuration?.fieldMap.parentFeature.state === "resolved"
+          ? configuration.fieldMap.parentFeature.fieldId
+          : null;
+      const linked =
+        !current.isParent && parentKey !== null && linkFieldId !== null
+          ? { ...values, [linkFieldId]: parentKey }
+          : values;
+
+      const response = await adapter.createIssue({
+        fields: {
+          project: { key: draft.projectKey },
+          issuetype: { id: draft.issueTypeId },
+          ...linked,
+        },
+      });
+
+      if (response.body === null) {
+        failedReason =
+          response.jiraMessages.join(" ") || `Jira answered with status ${response.statusCode}.`;
+        break;
+      }
+
+      if (current.isParent) parentKey = response.body.key;
+      working = recordCreatedKey(working, current.itemId, response.body.key, linked);
+      setBatch(working);
+      createdCount += 1;
+    }
+
+    setIsWritingBatch(false);
+
+    const stillMissing = findUncreatedItems(working).length;
+    if (failedReason !== null) {
+      setProblem(
+        `${createdCount} created, then Jira refused: ${failedReason} ` +
+          `The ${stillMissing} still missing can be written again — nothing already created will be repeated.`,
+      );
+      return;
+    }
+    setBatchOutcome(`${createdCount} issue${createdCount === 1 ? "" : "s"} created.`);
+  }
+
   if (isLoading) return <p>Reading your draft…</p>;
 
   return (
@@ -317,6 +429,31 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
       )}
       {problem === null ? null : <p className="notice notice--error">{problem}</p>}
 
+      {batchOutcome === null ? null : (
+        <p className="notice notice--pass">
+          <strong>{batchOutcome}</strong> They are listed below with their keys.
+        </p>
+      )}
+
+      <div className="segmented" role="group" aria-label="How many issues">
+        <button
+          type="button"
+          className="segmented__button"
+          aria-pressed={!isBatchMode}
+          onClick={() => setIsBatchMode(false)}
+        >
+          One issue
+        </button>
+        <button
+          type="button"
+          className="segmented__button"
+          aria-pressed={isBatchMode}
+          onClick={() => setIsBatchMode(true)}
+        >
+          Several at once
+        </button>
+      </div>
+
       <div className="authoring">
         <SourcesPanel draft={draft} onChange={replace} />
 
@@ -340,8 +477,22 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
         sections={configuration?.descriptionSections ?? []}
         budgetCharacters={configuration?.transferBudgetCharacters ?? 18000}
         onAccept={acceptProposal}
+        batchShape={isBatchMode ? batch.shape : null}
+        onAcceptBatch={acceptBatch}
       />
 
+      {isBatchMode ? (
+        <BatchPanel
+          batch={batch}
+          isWriting={isWritingBatch}
+          jiraBaseUrl={jiraBaseUrl}
+          onShapeChange={(shape) => setBatch({ ...batch, shape })}
+          onRemove={(itemId) => setBatch(removeBatchItem(batch, itemId))}
+          onWrite={() => void writeBatch()}
+        />
+      ) : null}
+
+      {isBatchMode ? null : (
       <div className="console__actions">
         <button type="button" className="button" onClick={review}>
           Show me what will change
@@ -360,6 +511,7 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
           Discard this draft
         </button>
       </div>
+      )}
 
       {changeSet === null ? null : (
         <div className="authoring__review">
