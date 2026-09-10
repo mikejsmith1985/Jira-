@@ -18,9 +18,11 @@ import { describe, expect, it } from "vitest";
 import {
   addBatchItem,
   buildBatch,
+  findBatchBlocker,
   findParentItem,
   findUncreatedItems,
   isPartlyWritten,
+  readItemIssueTypeId,
   readWriteOrder,
   recordCreatedKey,
   removeBatchItem,
@@ -163,5 +165,54 @@ describe("a batch that failed halfway", () => {
     const created = buildHalfWritten().items.at(0)!;
 
     expect(created.draft.loadedFieldValues).toEqual({ summary: "The Feature" });
+  });
+});
+
+describe("what type each item is created as", () => {
+  // The 400 nobody could explain. Every item in a hierarchy was created with the
+  // draft's own issue type, so asking for a Feature with three Stories created
+  // four Features - and where the instance forbids that, Jira refused with a
+  // message the screen then threw away.
+  it("creates the Feature as the type the draft chose", () => {
+    const batch = { ...buildHierarchy(), childIssueTypeId: "10002" };
+
+    expect(readItemIssueTypeId(batch, batch.items.at(0)!, "10001")).toBe("10001");
+  });
+
+  it("creates a Story as the STORY type, not as another Feature", () => {
+    const batch = { ...buildHierarchy(), childIssueTypeId: "10002" };
+
+    expect(readItemIssueTypeId(batch, batch.items.at(1)!, "10001")).toBe("10002");
+  });
+
+  it("creates every item of a flat batch as the one chosen type", () => {
+    const batch = { ...buildFlat(), childIssueTypeId: "10002" };
+
+    // Nothing is beneath anything, so the child type is not consulted at all.
+    expect(batch.items.map((item) => readItemIssueTypeId(batch, item, "10001"))).toEqual([
+      "10001",
+      "10001",
+      "10001",
+    ]);
+  });
+});
+
+describe("before writing a hierarchy", () => {
+  it("refuses while no Story type has been chosen, rather than guessing", () => {
+    // Guessing means creating Stories as Features. Refusing means saying so
+    // before a single issue exists in Jira.
+    expect(findBatchBlocker(buildHierarchy(), "10001")).toMatch(/type/i);
+  });
+
+  it("is happy once one has", () => {
+    expect(findBatchBlocker({ ...buildHierarchy(), childIssueTypeId: "10002" }, "10001")).toBeNull();
+  });
+
+  it("never blocks a flat batch on a child type it will not use", () => {
+    expect(findBatchBlocker(buildFlat(), "10001")).toBeNull();
+  });
+
+  it("refuses while no type has been chosen at all", () => {
+    expect(findBatchBlocker(buildFlat(), "")).toMatch(/type/i);
   });
 });

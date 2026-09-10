@@ -11,7 +11,7 @@
 
 import type { JSX } from "react";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   assessDraftReadiness,
@@ -25,9 +25,11 @@ import {
   findUncreatedItems,
   isEnrichingExistingIssue,
   loadIssueIntoDraft,
+  readItemIssueTypeId,
   readWriteOrder,
   recordCreatedKey,
   removeBatchItem,
+  setChildIssueTypeId,
   readDraftFieldValues,
   readLoadResult,
   runApplyPlan,
@@ -58,6 +60,14 @@ import { useAuthoringDraft } from "../state/useAuthoringDraft.js";
 const SUMMARY_FIELD_ID = "summary";
 const DESCRIPTION_FIELD_ID = "description";
 
+/** Jira's own name for a type, so the prompt asks for what will be created. */
+function readTypeName(
+  issueTypes: readonly IssueTypeChoice[],
+  issueTypeId: string,
+): string | undefined {
+  return issueTypes.find((issueType) => issueType.issueTypeId === issueTypeId)?.name;
+}
+
 /** What the surface needs. */
 export interface AuthorViewProps {
   readonly configuration: WorkspaceConfiguration | null;
@@ -79,6 +89,7 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
   const [batch, setBatch] = useState<AuthoringBatch>(() => buildEmptyBatch("flat"));
   const [isWritingBatch, setIsWritingBatch] = useState(false);
   const [batchOutcome, setBatchOutcome] = useState<string | null>(null);
+  const outcomeRef = useRef<HTMLDivElement | null>(null);
 
   const isEnriching = isEnrichingExistingIssue(draft);
 
@@ -367,7 +378,9 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
       const response = await adapter.createIssue({
         fields: {
           project: { key: draft.projectKey },
-          issuetype: { id: draft.issueTypeId },
+          // Each item's OWN type: a Story is created as a Story, not as a
+          // second Feature - which is what every item sharing one type did.
+          issuetype: { id: readItemIssueTypeId(working, current, draft.issueTypeId) },
           ...linked,
         },
       });
@@ -385,6 +398,12 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
     }
 
     setIsWritingBatch(false);
+
+    // Brought into view. The outcome used to render at the top of the page while
+    // the button that caused it was at the bottom, so pressing it looked like
+    // nothing had happened - and the natural next move is to press it again,
+    // which for a write is the worst possible response to that impression.
+    outcomeRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
 
     const stillMissing = findUncreatedItems(working).length;
     if (failedReason !== null) {
@@ -427,14 +446,6 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
           )}
         </p>
       )}
-      {problem === null ? null : <p className="notice notice--error">{problem}</p>}
-
-      {batchOutcome === null ? null : (
-        <p className="notice notice--pass">
-          <strong>{batchOutcome}</strong> They are listed below with their keys.
-        </p>
-      )}
-
       <div className="segmented" role="group" aria-label="How many issues">
         <button
           type="button"
@@ -478,8 +489,20 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
         budgetCharacters={configuration?.transferBudgetCharacters ?? 18000}
         onAccept={acceptProposal}
         batchShape={isBatchMode ? batch.shape : null}
+        parentTypeName={readTypeName(issueTypes, draft.issueTypeId)}
+        childTypeName={readTypeName(issueTypes, batch.childIssueTypeId)}
         onAcceptBatch={acceptBatch}
       />
+
+      {/* Beside the button that produced it, not at the top of the page. */}
+      <div ref={outcomeRef}>
+        {batchOutcome === null ? null : (
+          <p className="notice notice--pass">
+            <strong>{batchOutcome}</strong> Their keys are in the list above.
+          </p>
+        )}
+        {problem === null ? null : <p className="notice notice--error">{problem}</p>}
+      </div>
 
       {isBatchMode ? (
         <BatchPanel
@@ -488,7 +511,12 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
           jiraBaseUrl={jiraBaseUrl}
           onShapeChange={(shape) => setBatch({ ...batch, shape })}
           onRemove={(itemId) => setBatch(removeBatchItem(batch, itemId))}
+          issueTypes={issueTypes}
+          parentIssueTypeId={draft.issueTypeId}
           onWrite={() => void writeBatch()}
+          onChildIssueTypeChange={(issueTypeId) =>
+            setBatch((current) => setChildIssueTypeId(current, issueTypeId))
+          }
         />
       ) : null}
 

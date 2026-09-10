@@ -43,6 +43,10 @@ export interface AssistantPanelProps {
   readonly onAccept: (proposal: AuthoringProposal) => void;
   /** Set when the operator is writing several issues rather than one. */
   readonly batchShape?: BatchShape | null;
+  /** Jira's own names for the two types, so the prompt asks for what will
+   *  actually be created rather than for a Story the instance may not have. */
+  readonly parentTypeName?: string;
+  readonly childTypeName?: string;
   readonly onAcceptBatch?: (proposal: BatchProposal) => void;
 }
 
@@ -54,6 +58,8 @@ export function AssistantPanel({
   budgetCharacters,
   onAccept,
   batchShape = null,
+  parentTypeName = "Feature",
+  childTypeName = "Story",
   onAcceptBatch,
 }: AssistantPanelProps): JSX.Element {
   const [parts, setParts] = useState<readonly AuthoringPromptPart[]>([]);
@@ -79,8 +85,8 @@ export function AssistantPanel({
             shape: resolvedShape,
             sections,
             isHierarchy: batchShape === "feature-with-stories",
-            parentTypeName: "Feature",
-            childTypeName: "Story",
+            parentTypeName,
+            childTypeName,
           });
     setParts(chunkAuthoringPrompt({ head, sources: draft.sources, budgetCharacters }));
   }

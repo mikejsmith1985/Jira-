@@ -16,17 +16,65 @@
 
 import type { JSX } from "react";
 
-import { findUncreatedItems, isEnrichingExistingIssue, isPartlyWritten } from "@jira-plus/core";
-import type { AuthoringBatch, BatchShape } from "@jira-plus/core";
+import {
+  findBatchBlocker,
+  findUncreatedItems,
+  isEnrichingExistingIssue,
+  isPartlyWritten,
+} from "@jira-plus/core";
+import type { AuthoringBatch, BatchShape, IssueTypeChoice } from "@jira-plus/core";
 
 /** What the panel needs. */
 export interface BatchPanelProps {
   readonly batch: AuthoringBatch;
   readonly isWriting: boolean;
   readonly jiraBaseUrl: string;
+  readonly issueTypes: readonly IssueTypeChoice[];
+  /** What the draft chose: the type the Feature itself is created as. */
+  readonly parentIssueTypeId: string;
   readonly onShapeChange: (shape: BatchShape) => void;
   readonly onRemove: (itemId: string) => void;
   readonly onWrite: () => void;
+  readonly onChildIssueTypeChange: (issueTypeId: string) => void;
+}
+
+/**
+ * Which type the issues beneath the Feature are created as.
+ *
+ * Asked rather than assumed: every item used to be created with the draft's own
+ * type, so a Feature with three Stories quietly became four Features.
+ */
+function ChildTypePicker({
+  issueTypes,
+  chosenIssueTypeId,
+  onChange,
+}: {
+  readonly issueTypes: readonly IssueTypeChoice[];
+  readonly chosenIssueTypeId: string;
+  readonly onChange: (issueTypeId: string) => void;
+}): JSX.Element {
+  return (
+    <div className="console__field">
+      <label className="console__label" htmlFor="batch-child-type">
+        What type the issues beneath the Feature are
+      </label>
+      <select
+        id="batch-child-type"
+        className="console__jql"
+        value={chosenIssueTypeId}
+        onChange={(event) => onChange(event.target.value)}
+      >
+        <option value="">Choose one…</option>
+        {issueTypes
+          .filter((issueType) => !issueType.isSubtask)
+          .map((issueType) => (
+            <option key={issueType.issueTypeId} value={issueType.issueTypeId}>
+              {issueType.name}
+            </option>
+          ))}
+      </select>
+    </div>
+  );
 }
 
 /** The batch surface. */
@@ -34,12 +82,16 @@ export function BatchPanel({
   batch,
   isWriting,
   jiraBaseUrl,
+  issueTypes,
+  parentIssueTypeId,
   onShapeChange,
   onRemove,
   onWrite,
+  onChildIssueTypeChange,
 }: BatchPanelProps): JSX.Element {
   const remaining = findUncreatedItems(batch);
   const isHalfWritten = isPartlyWritten(batch);
+  const blocker = findBatchBlocker(batch, parentIssueTypeId);
 
   return (
     <section className="authoring__batch">
@@ -69,6 +121,14 @@ export function BatchPanel({
           ? "Your material becomes several separate Features, none of them beneath another."
           : "Your material becomes one Feature and the Stories beneath it. The Feature is created first, because a Story cannot be linked to something that does not exist yet."}
       </p>
+
+      {batch.shape === "feature-with-stories" ? (
+        <ChildTypePicker
+          issueTypes={issueTypes}
+          chosenIssueTypeId={batch.childIssueTypeId}
+          onChange={onChildIssueTypeChange}
+        />
+      ) : null}
 
       {batch.items.length === 0 ? (
         <p className="chart__note">
@@ -120,12 +180,14 @@ export function BatchPanel({
         </p>
       ) : null}
 
+      {blocker === null ? null : <p className="notice notice--attn">{blocker}</p>}
+
       {batch.items.length === 0 ? null : (
         <div className="console__actions">
           <button
             type="button"
             className="button button--primary"
-            disabled={isWriting || remaining.length === 0}
+            disabled={isWriting || remaining.length === 0 || blocker !== null}
             onClick={onWrite}
           >
             {isWriting
