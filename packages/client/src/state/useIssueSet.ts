@@ -28,6 +28,12 @@ const BASE_FIELD_IDS: readonly string[] = [
   "issuelinks",
   "subtasks",
   "description",
+  "updated",
+  // The largest thing the assistant was missing. Asked which issues were in the
+  // wrong status, it answered null for issue after issue - correctly, because a
+  // status argument is settled in the comments far more often than in the
+  // description, and the comments were never fetched.
+  "comment",
 ];
 
 /** How far a retrieval has got, so a long one can show progress honestly. */

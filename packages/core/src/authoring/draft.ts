@@ -108,6 +108,9 @@ export function removeSource(
  * The narrative is absent by construction rather than by being filtered out
  * here — it has no field id, so it cannot appear.
  */
+/** Fields whose value is the create target's to decide, never a draft's. */
+const IDENTITY_FIELD_IDS: readonly string[] = ["project", "issuetype", "issueType"];
+
 export function readDraftFieldValues(
   draft: AuthoringDraft,
   summaryFieldId: string,
@@ -115,6 +118,19 @@ export function readDraftFieldValues(
   acceptanceCriteriaFieldId: string | null,
 ): Readonly<Record<string, unknown>> {
   const values: Record<string, unknown> = { ...draft.fieldValues };
+
+  // Which project and which type an issue is created in is decided by the create
+  // target and by nothing else. Jira's create screen lists both among its
+  // fields, so they arrive here as plain strings - and spread over the identity
+  // the create target had chosen, which produced exactly this from Jira:
+  //
+  //   issuetype: Cannot construct instance of ResourceRef ... from String
+  //              value ('Feature')
+  //   project:   project is required
+  //
+  // The guard is narrow on purpose: dropping anything else would silently lose
+  // somebody's work.
+  for (const identityFieldId of IDENTITY_FIELD_IDS) delete values[identityFieldId];
 
   if (draft.summary.trim().length > 0) values[summaryFieldId] = draft.summary;
   if (draft.description.trim().length > 0) values[descriptionFieldId] = draft.description;

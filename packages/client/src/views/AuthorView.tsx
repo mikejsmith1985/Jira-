@@ -260,9 +260,11 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
     const adapter = createDataCenterAdapter(createBrowserJiraTransport());
     const response = await adapter.createIssue({
       fields: {
+        ...readValues(),
+        // Last, for the same reason as the batch: identity is the create
+        // target's to decide, and a field value cannot outrank it.
         project: { key: draft.projectKey },
         issuetype: { id: draft.issueTypeId },
-        ...readValues(),
       },
     });
 
@@ -387,11 +389,15 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
 
       const response = await adapter.createIssue({
         fields: {
+          ...linked,
+          // LAST, so no field value can outrank them. Jira's create screen lists
+          // project and issue type among its fields, and spreading a draft over
+          // them replaced the project with nothing and the type with the word
+          // "Feature" - which Jira rejected, correctly, as not an issue type.
           project: { key: draft.projectKey },
           // Each item's OWN type: a Story is created as a Story, not as a
           // second Feature - which is what every item sharing one type did.
           issuetype: { id: readItemIssueTypeId(working, current, draft.issueTypeId) },
-          ...linked,
         },
       });
 

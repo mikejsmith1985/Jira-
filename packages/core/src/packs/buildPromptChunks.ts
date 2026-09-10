@@ -37,12 +37,134 @@ export interface PromptChunkSet {
   readonly budgetCharacters: number;
 }
 
-/** Renders one issue for the prompt. */
-function renderIssue(issue: DetailedIssue, pack: PromptPack, context: PackContext): string {
+/** How many comments travel with an issue. The recent ones carry the argument. */
+const MAXIMUM_COMMENTS = 6;
+
+/** How much of one comment travels. Enough to carry a decision, not a thread. */
+const MAXIMUM_COMMENT_LENGTH = 600;
+
+/** How many status moves travel. Enough to show the shape of a churn. */
+const MAXIMUM_STATUS_MOVES = 8;
+
+/** A date without a time, which is the resolution these questions are asked at. */
+function readDay(isoText: unknown): string {
+  const text = String(isoText ?? "");
+  return text.length >= 10 ? text.slice(0, 10) : "";
+}
+
+/** Reads a person's name out of whichever shape Jira used. */
+function readPersonName(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  const person = value as { displayName?: unknown; name?: unknown };
+  return String(person.displayName ?? person.name ?? "");
+}
+
+/**
+ * The one-line facts about an issue.
+ *
+ * Every one of these was already being retrieved and thrown away when the
+ * prompt was built. An assistant asked whether a status is right, and given
+ * only the status, has nothing to answer with.
+ */
+function renderFacts(issue: DetailedIssue): readonly string[] {
+  const facts: string[] = [];
+  const assignee = readPersonName(issue.fields.get("assignee"));
+  facts.push(`Assignee: ${assignee.length > 0 ? assignee : "(unassigned)"}`);
+
+  const updated = readDay(issue.fields.get("updated"));
+  facts.push(
+    `Created ${readDay(issue.createdIso)}` +
+      (updated.length > 0 ? `, last changed ${updated}` : "") +
+      (issue.resolutionDateIso === null ? "" : `, resolved ${readDay(issue.resolutionDateIso)}`),
+  );
+
+  const parent = issue.fields.get("parent") as { key?: unknown } | undefined;
+  if (parent?.key !== undefined) facts.push(`Parent: ${String(parent.key)}`);
+
+  const fixVersions = issue.fields.get("fixVersions");
+  if (Array.isArray(fixVersions) && fixVersions.length > 0) {
+    facts.push(`Fix version: ${fixVersions.map((one) => String(one?.name ?? one)).join(", ")}`);
+  }
+
+  const labels = issue.fields.get("labels");
+  if (Array.isArray(labels) && labels.length > 0) facts.push(`Labels: ${labels.join(", ")}`);
+
+  return facts;
+}
+
+/**
+ * The comments, most recent first.
+ *
+ * The largest single omission. A disagreement about whether an issue is in the
+ * right status is settled in its comments far more often than in its
+ * description — and the description was all that was being sent.
+ *
+ * Absent and not-retrieved are kept apart on purpose: they support opposite
+ * conclusions, and an assistant that cannot tell them apart fills the gap in.
+ */
+function renderComments(issue: DetailedIssue): readonly string[] {
+  const container = issue.fields.get("comment") as { comments?: unknown } | undefined;
+  if (container === undefined || container === null) {
+    return ["Comments: not retrieved — do not read this as an issue with no discussion."];
+  }
+
+  const all = Array.isArray(container.comments) ? container.comments : [];
+  if (all.length === 0) return ["Comments: (none in Jira)"];
+
+  const recent = all.slice(-MAXIMUM_COMMENTS).reverse();
+  const lines = [`Comments (${all.length}, most recent first):`];
+  for (const comment of recent) {
+    const one = comment as { author?: unknown; created?: unknown; body?: unknown };
+    const body = String(one.body ?? "").trim().slice(0, MAXIMUM_COMMENT_LENGTH);
+    lines.push(`  [${readDay(one.created)} ${readPersonName(one.author)}] ${body}`);
+  }
+  if (all.length > MAXIMUM_COMMENTS) {
+    lines.push(`  (${all.length - MAXIMUM_COMMENTS} earlier comments not shown)`);
+  }
+  return lines;
+}
+
+/**
+ * How the issue reached the status it is in.
+ *
+ * "Is this in the right status" cannot be answered from the status. It is
+ * answered from how long it has been there and what it moved back from.
+ */
+function renderStatusHistory(issue: DetailedIssue): readonly string[] {
+  if (issue.changelog === null) {
+    return ["Status history was not retrieved — do not read this as an issue that never moved."];
+  }
+
+  const moves = issue.changelog
+    .flatMap((entry) =>
+      entry.items
+        .filter((item) => item.field === "status")
+        .map((item) => `  ${readDay(entry.atIso)}: ${item.fromString ?? "?"} → ${item.toString ?? "?"}`),
+    )
+    .slice(-MAXIMUM_STATUS_MOVES);
+
+  if (moves.length === 0) return ["Status history: never moved from its first status."];
+  return ["Status history:", ...moves];
+}
+
+/**
+ * Renders one issue for the prompt.
+ *
+ * Exported because what an assistant is given decides what it can answer, and
+ * that deserves assertions of its own. Asked which issues were in the wrong
+ * status, it returned null for issue after issue — correctly, because the
+ * evidence had been left behind.
+ */
+export function renderIssueForPrompt(
+  issue: DetailedIssue,
+  pack: PromptPack,
+  context: PackContext,
+): string {
   const summary = String(issue.fields.get("summary") ?? "");
   const lines = [
     `--- ${issue.key} (${issue.issueTypeName}, ${issue.statusName}) ---`,
     `Summary: ${summary.length > 0 ? summary : "(none in Jira)"}`,
+    ...renderFacts(issue),
   ];
 
   for (const conceptId of pack.promptConcepts) {
@@ -59,6 +181,8 @@ function renderIssue(issue: DetailedIssue, pack: PromptPack, context: PackContex
 
   const description = String(issue.fields.get("description") ?? "").trim();
   lines.push(`Description: ${description.length > 0 ? description : "(none in Jira)"}`);
+  lines.push(...renderStatusHistory(issue));
+  lines.push(...renderComments(issue));
 
   return lines.join("\n");
 }
@@ -118,7 +242,7 @@ export function buildPromptChunks(
 
   const rendered = eligible.map((issue) => ({
     issue,
-    text: renderIssue(issue, pack, context),
+    text: renderIssueForPrompt(issue, pack, context),
   }));
 
   // A header is repeated in every part, so the room left for issues is the
