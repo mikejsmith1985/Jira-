@@ -28,7 +28,11 @@ import {
   removeBatchItem,
   updateBatchItem,
 } from "../src/authoring/authoringBatch.js";
-import { buildEmptyDraft, isEnrichingExistingIssue } from "../src/authoring/draft.js";
+import {
+  buildEmptyDraft,
+  isEnrichingExistingIssue,
+  readDraftFieldValues,
+} from "../src/authoring/draft.js";
 import type { AuthoringDraft } from "../src/authoring/draft.js";
 
 const NOW = "2026-09-10T09:14:00.000Z";
@@ -214,5 +218,56 @@ describe("before writing a hierarchy", () => {
 
   it("refuses while no type has been chosen at all", () => {
     expect(findBatchBlocker(buildFlat(), "")).toMatch(/type/i);
+  });
+});
+
+describe("the fields that decide WHICH issue this is", () => {
+  // Jira's own words, once they could finally be read:
+  //
+  //   issuetype: Cannot construct instance of ResourceRef ... from String
+  //              value ('Feature')
+  //   project:   project is required
+  //
+  // Both were being sent correctly and then overwritten. Jira's create screen
+  // lists project and issue type among its fields, so they arrive in the draft's
+  // field values as plain strings - and the draft's values were spread OVER the
+  // identity the create target had chosen. The issue type became the word
+  // "Feature" and the project vanished.
+  //
+  // Which project and which type an issue is created in is decided by the create
+  // target and by nothing else. A field value cannot outrank it.
+  it("never lets a field value decide the issue type", () => {
+    const values = readDraftFieldValues(
+      { ...buildEmptyDraft(NOW), fieldValues: { issuetype: "Feature", summary: "x" } },
+      "summary",
+      "description",
+      null,
+    );
+
+    expect(values.issuetype).toBeUndefined();
+  });
+
+  it("never lets a field value decide the project", () => {
+    const values = readDraftFieldValues(
+      { ...buildEmptyDraft(NOW), fieldValues: { project: "DENP" } },
+      "summary",
+      "description",
+      null,
+    );
+
+    expect(values.project).toBeUndefined();
+  });
+
+  it("leaves every other field alone", () => {
+    // The guard is narrow on purpose. Dropping anything else would silently
+    // lose somebody's work.
+    const values = readDraftFieldValues(
+      { ...buildEmptyDraft(NOW), fieldValues: { customfield_10001: "kept", priority: { id: "3" } } },
+      "summary",
+      "description",
+      null,
+    );
+
+    expect(values).toEqual({ customfield_10001: "kept", priority: { id: "3" } });
   });
 });

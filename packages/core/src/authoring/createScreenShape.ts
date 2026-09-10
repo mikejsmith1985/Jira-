@@ -33,6 +33,9 @@ export type CreateScreenShape =
     }
   | { readonly status: "unavailable"; readonly reason: string };
 
+/** Fields Jira lists on every create screen that are not the draft's to set. */
+const IDENTITY_FIELD_IDS: readonly string[] = ["project", "issuetype", "issueType"];
+
 /** One issue type a project offers. */
 export interface IssueTypeChoice {
   readonly issueTypeId: string;
@@ -75,6 +78,11 @@ export function buildCreateScreenShape(input: {
 
   for (const [fieldId, rawValue] of Object.entries(input.rawFields)) {
     if (rawValue === null || typeof rawValue !== "object") continue;
+    // Not fields to fill in: they are what decided WHICH create screen this is.
+    // Offered as ordinary fields, the assistant filled the issue type in with
+    // the word "Feature", and Jira refused the write - correctly, since a word
+    // is not an issue type.
+    if (IDENTITY_FIELD_IDS.includes(fieldId)) continue;
     const rawField = rawValue as Record<string, unknown>;
 
     fields.push({

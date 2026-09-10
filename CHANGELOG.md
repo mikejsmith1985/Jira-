@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **A batch could not be created at all, and Jira had been saying why.** With the refusal finally
+  readable, Jira's own words were: *"issuetype: Cannot construct instance of ResourceRef ... from
+  String value ('Feature')"* and *"project: project is required"*. Jira's create screen lists
+  **project** and **issue type** among its fields, so both were offered as ordinary fields to fill
+  in; the assistant duly filled the issue type in with the word `Feature`, and the draft's values
+  were then spread **over** the identity the create target had chosen. The project vanished and the
+  type became a word. Neither is a field to fill in &mdash; they are what decided which create screen
+  this is. They are no longer offered, no longer readable from a draft's values, and are written last
+  so nothing can outrank them.
+
+### Changed
+- **The assistant is given the material an answer needs.** Asked which issues might be in the wrong
+  status, it returned `null` for issue after issue &mdash; correctly, because the prompt carried the
+  key, type, status, summary and description and **nothing else**. A status argument is settled in
+  the comments far more often than in the description, and comments were never even retrieved.
+  Each issue now carries its **comments** (the six most recent, trimmed, with the earlier count
+  stated), its **status history**, and the assignee, dates, parent, fix version and labels that were
+  already being fetched and thrown away when the prompt was built.
+  Where something was not sent, the prompt **says so** &mdash; "not retrieved" and "none in Jira"
+  support opposite conclusions, and an assistant that cannot tell them apart fills the gap in. The
+  Ask screen now requests status history by default, because every question asked there is a question
+  about how an issue got where it is.
+
 ### Added
 - **A refusal you can act on.** *"Can't you produce an error that would actually help us fix this?"*
   &mdash; and no, it could not, because the two halves that explain a refusal were being discarded

@@ -66,6 +66,10 @@ export function QueryConsoleView({
 }: QueryConsoleViewProps): JSX.Element {
   const [draftJql, setDraftJql] = useState("");
   const [doesRequestAllFields, setDoesRequestAllFields] = useState(false);
+  // On by default HERE and nowhere else. "Is this in the right status" cannot be
+  // answered from the status - only from how long it has been there and what it
+  // moved back from. Every question asked on this screen is that shape.
+  const [doesRequestHistory, setDoesRequestHistory] = useState(true);
   const { issueSet, isRetrieving, progress, run } = issueSetState;
 
   return (
@@ -80,7 +84,10 @@ export function QueryConsoleView({
         className="console__form"
         onSubmit={(event) => {
           event.preventDefault();
-          if (draftJql.trim().length > 0) void run(draftJql.trim(), { doesRequestAllFields });
+          if (draftJql.trim().length > 0) void run(draftJql.trim(), {
+              doesRequestAllFields,
+              doesRequireChangelog: doesRequestHistory,
+            });
         }}
       >
         <label className="console__label" htmlFor="jql">
@@ -104,6 +111,14 @@ export function QueryConsoleView({
               onChange={(event) => setDoesRequestAllFields(event.target.checked)}
             />{" "}
             Fetch every field (slower, and much larger)
+          </label>
+          <label className="console__toggle">
+            <input
+              type="checkbox"
+              checked={doesRequestHistory}
+              onChange={(event) => setDoesRequestHistory(event.target.checked)}
+            />{" "}
+            Include status history (how each issue reached where it is)
           </label>
 
           <button type="submit" className="button" disabled={isRetrieving || draftJql.trim().length === 0}>

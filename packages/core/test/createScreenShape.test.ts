@@ -123,3 +123,44 @@ describe("when we could not ask", () => {
     expect(findField(describeUnavailableShape("nope"), "summary")).toBeUndefined();
   });
 });
+
+describe("the fields that decide WHICH issue this is", () => {
+  // Jira's createmeta lists project and issue type among the create screen's
+  // fields, and both were offered as ordinary editable fields. The assistant
+  // duly filled the issue type in with the word "Feature", the draft's values
+  // were spread over the identity the create target had chosen, and Jira
+  // refused the whole write:
+  //
+  //   issuetype: Cannot construct instance of ResourceRef ... from String
+  //              value ('Feature')
+  //   project:   project is required
+  //
+  // They are not fields to fill in. They are the thing that decided which
+  // create screen this is.
+  it("does not offer the issue type as a field to fill in", () => {
+    const shape = buildCreateScreenShape({
+      projectKey: "DENP",
+      issueTypeId: "10001",
+      rawFields: {
+        issuetype: { name: "Issue Type", required: true },
+        summary: { name: "Summary", required: true },
+      },
+    });
+
+    expect(shape.status === "known" && shape.fields.map((field) => field.fieldId)).toEqual([
+      "summary",
+    ]);
+  });
+
+  it("does not offer the project either", () => {
+    const shape = buildCreateScreenShape({
+      projectKey: "DENP",
+      issueTypeId: "10001",
+      rawFields: { project: { name: "Project", required: true }, summary: { name: "S" } },
+    });
+
+    expect(shape.status === "known" && shape.fields.some((f) => f.fieldId === "project")).toBe(
+      false,
+    );
+  });
+});
