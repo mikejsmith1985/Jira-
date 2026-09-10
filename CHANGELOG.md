@@ -292,6 +292,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Feature 001 now passes Article V as written, with no outstanding deviation.
 
 ### Fixed
+- **The agent context stopped describing the product.** `CLAUDE.md` still recorded
+  `004-issue-author` as *"PLANNED, not built"* after it had shipped across five releases, and the
+  relay &mdash; the reason no personal access token is needed &mdash; was not in it at all. That file
+  opens by warning that *"the predecessor's ledger drifted badly enough to mislead a later feature's
+  research"*, and it had drifted the same way. Both entries now say what is true, and both sit inside
+  the managed block rather than after it.
 - **The authoring tests now typecheck, not just pass.** Three assertions indexed arrays TypeScript
   cannot prove are non-empty, and a fetch spy typed from its own zero-argument implementation made
   reading the recorded arguments an error. The suite ran green either way &mdash; the test runner does
