@@ -221,3 +221,47 @@ describe("what the fingerprint deliberately excludes", () => {
     );
   });
 });
+
+describe("a document written before a field existed", () => {
+  it("comes back with the new field, rather than without it", () => {
+    // A stored workspace.json saved before the description template existed has
+    // no descriptionSections at all. Handing that straight to a screen that maps
+    // over it renders NOTHING - the whole Setup page went blank, and the only
+    // symptom was a blank page.
+    //
+    // The schema version does not catch this, because adding an optional field
+    // did not change it. Backfilling on read is what does.
+    const stored = { ...buildDefaultWorkspaceConfiguration() } as Record<string, unknown>;
+    delete stored.descriptionSections;
+
+    const review = reviewStoredWorkspace(stored);
+
+    expect(review.status).toBe("current");
+    if (review.status !== "current") return;
+    expect(Array.isArray(review.configuration.descriptionSections)).toBe(true);
+  });
+
+  it("keeps a template somebody actually configured", () => {
+    // Backfilling must not overwrite a real answer with a default.
+    const stored = {
+      ...buildDefaultWorkspaceConfiguration(),
+      descriptionSections: [{ heading: "Only This", guidance: "" }],
+    };
+
+    const review = reviewStoredWorkspace(stored);
+
+    if (review.status !== "current") throw new Error("expected a current document");
+    expect(review.configuration.descriptionSections).toHaveLength(1);
+  });
+
+  it("keeps an empty template, because empty is a choice and not an absence", () => {
+    // The distinction that makes backfilling delicate: [] means "free-form, on
+    // purpose"; absent means "this version had no such idea".
+    const stored = { ...buildDefaultWorkspaceConfiguration(), descriptionSections: [] };
+
+    const review = reviewStoredWorkspace(stored);
+
+    if (review.status !== "current") throw new Error("expected a current document");
+    expect(review.configuration.descriptionSections).toHaveLength(0);
+  });
+});

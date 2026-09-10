@@ -292,6 +292,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Feature 001 now passes Article V as written, with no outstanding deviation.
 
 ### Fixed
+- **The Setup screen rendered nothing at all.** A `workspace.json` written before the description
+  template existed has no `descriptionSections`, the new panel mapped over the absence, and React
+  unmounted the **entire screen**. The only symptom was a blank page: no message, nothing to act on,
+  and no way to reach the connection settings that would have fixed it.
+  The schema version did not catch it, because adding a field did not change the version. A document
+  is now backfilled on read for any field it predates &mdash; and only where the field is **absent**,
+  never where it is empty, because an empty template means *free-form, deliberately* while an absent
+  one means *written by a version that had no such idea*.
+  Each Setup panel now also renders inside its own boundary, so the next failure of this kind costs
+  a panel rather than a screen, and the message names **which** panel and carries the actual reason.
+  "Something went wrong" is not something anybody can act on.
 - **The agent context stopped describing the product.** `CLAUDE.md` still recorded
   `004-issue-author` as *"PLANNED, not built"* after it had shipped across five releases, and the
   relay &mdash; the reason no personal access token is needed &mdash; was not in it at all. That file

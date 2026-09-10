@@ -46,8 +46,12 @@ export function SectionTemplatePanel({
   configuration,
   onSave,
 }: SectionTemplatePanelProps): JSX.Element {
+  // Defaulted, not assumed. A document written before this field existed has
+  // no list at all, and mapping over the absence rendered nothing — the whole
+  // Setup page went blank, with a blank page as its only symptom. The backfill
+  // in the engine is the real fix; this is so no future field can do it again.
   const [sections, setSections] = useState<readonly DescriptionSection[]>(
-    configuration.descriptionSections,
+    configuration.descriptionSections ?? [],
   );
   const [wasSaved, setWasSaved] = useState(false);
 

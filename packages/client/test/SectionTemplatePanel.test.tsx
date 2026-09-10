@@ -146,3 +146,36 @@ describe("what it says about the fingerprint", () => {
     expect(screen.getByText(/does not change any number/i)).toBeTruthy();
   });
 });
+
+describe("a configuration written before this field existed", () => {
+  it("renders rather than blanking the screen", () => {
+    // What actually happened: a stored workspace.json predating the template had
+    // no list, the panel mapped over the absence, and React unmounted the whole
+    // Setup screen. A blank page was the only symptom.
+    const configuration = buildDefaultWorkspaceConfiguration() as unknown as Record<string, unknown>;
+    delete configuration.descriptionSections;
+
+    render(
+      <SectionTemplatePanel
+        configuration={configuration as unknown as WorkspaceConfiguration}
+        onSave={vi.fn(async () => undefined)}
+      />,
+    );
+
+    expect(screen.getByText(/how a description is structured/i)).toBeTruthy();
+  });
+
+  it("treats the absence as no sections, which the screen already explains", () => {
+    const configuration = buildDefaultWorkspaceConfiguration() as unknown as Record<string, unknown>;
+    delete configuration.descriptionSections;
+
+    render(
+      <SectionTemplatePanel
+        configuration={configuration as unknown as WorkspaceConfiguration}
+        onSave={vi.fn(async () => undefined)}
+      />,
+    );
+
+    expect(screen.getByText(/that is a valid choice/i)).toBeTruthy();
+  });
+});

@@ -33,6 +33,7 @@ import type {
 import { ConnectionPanel } from "../components/ConnectionPanel.js";
 import { InstancePanel } from "../components/InstancePanel.js";
 import { RelayPanel } from "../components/RelayPanel.js";
+import { SurfaceBoundary } from "../components/SurfaceBoundary.js";
 import { SectionTemplatePanel } from "../components/authoring/SectionTemplatePanel.js";
 import { UpdatePanel } from "../components/UpdatePanel.js";
 import { createBrowserJiraTransport } from "../state/jiraTransport.js";
@@ -170,9 +171,9 @@ export function SetupView({ workspace }: SetupViewProps): JSX.Element {
   if (isLoading) {
     return (
       <section>
-        <RelayPanel />
+        <SurfaceBoundary name="relay"><RelayPanel /></SurfaceBoundary>
 
-      <ConnectionPanel />
+      <SurfaceBoundary name="connection"><ConnectionPanel /></SurfaceBoundary>
         <p>Reading the configuration…</p>
       </section>
     );
@@ -180,9 +181,9 @@ export function SetupView({ workspace }: SetupViewProps): JSX.Element {
   if (configuration === null) {
     return (
       <section>
-        <RelayPanel />
+        <SurfaceBoundary name="relay"><RelayPanel /></SurfaceBoundary>
 
-      <ConnectionPanel />
+      <SurfaceBoundary name="connection"><ConnectionPanel /></SurfaceBoundary>
         <p className="notice notice--error">The configuration could not be read.</p>
       </section>
     );
@@ -190,13 +191,13 @@ export function SetupView({ workspace }: SetupViewProps): JSX.Element {
 
   return (
     <section>
-      <InstancePanel />
+      <SurfaceBoundary name="running copy"><InstancePanel /></SurfaceBoundary>
 
-      <UpdatePanel />
+      <SurfaceBoundary name="updates"><UpdatePanel /></SurfaceBoundary>
 
-      <RelayPanel />
+      <SurfaceBoundary name="relay"><RelayPanel /></SurfaceBoundary>
 
-      <ConnectionPanel />
+      <SurfaceBoundary name="connection"><ConnectionPanel /></SurfaceBoundary>
 
       <h2 className="view__title">What this app is reading</h2>
 
@@ -275,7 +276,9 @@ export function SetupView({ workspace }: SetupViewProps): JSX.Element {
         </p>
       ) : null}
 
-      <SectionTemplatePanel configuration={configuration} onSave={save} />
+      <SurfaceBoundary name="description template">
+        <SectionTemplatePanel configuration={configuration} onSave={save} />
+      </SurfaceBoundary>
 
       <ul className="setup__list">
         {(resolution?.status === "resolved" ? resolution.proposals : []).map(
