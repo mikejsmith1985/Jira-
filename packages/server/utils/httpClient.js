@@ -45,21 +45,33 @@ async function forwardToJira(req, res, config, downstreamPath) {
   // bookmarklet builds every URL from the origin of the tab it was clicked in,
   // which is by definition the right Jira.
   if (config.personalAccessToken.length === 0 && isRelayConnected()) {
+    const relayBody = req.method === 'GET' || req.method === 'HEAD' ? null : req.body;
     const relayed = await submitRelayRequest({
       method: req.method,
       path: downstreamPath,
-      body: req.method === 'GET' || req.method === 'HEAD' ? null : req.body,
+      body: relayBody,
     });
 
-    res.status(relayed.status || 502);
+    const relayStatus = relayed.status || 502;
+    const relaySent = describeSentRequest(req.method, downstreamPath, relayBody, 'relay');
+    res.status(relayStatus);
     res.type('application/json');
-    res.send(
-      relayed.data ??
-        JSON.stringify({
-          errorMessages: [relayed.error ?? 'The relaying Jira tab did not answer.'],
-          jiraPlusFailureKind: 'transport',
-        }),
-    );
+    if (relayStatus >= FIRST_FAILURE_STATUS) {
+      // The relay is the path with no token, and it is the one somebody is most
+      // likely to be on when a write is refused. It gets the same diagnosis.
+      res.send(
+        buildDiagnosedFailure(
+          relayed.data ??
+            JSON.stringify({
+              errorMessages: [relayed.error ?? 'The relaying Jira tab did not answer.'],
+              jiraPlusFailureKind: 'transport',
+            }),
+          relaySent,
+        ),
+      );
+      return;
+    }
+    res.send(relayed.data ?? '{}');
     return;
   }
 
@@ -94,7 +106,8 @@ async function forwardToJira(req, res, config, downstreamPath) {
       rejectUnauthorized: config.isSslVerified,
       timeout: REQUEST_TIMEOUT_MS,
     },
-    (upstreamResponse) => relayResponse(upstreamResponse, res),
+    (upstreamResponse) =>
+      relayResponse(upstreamResponse, res, describeSentRequest(req.method, downstreamPath, payload, 'token')),
   );
 
   upstream.on('timeout', () => {
@@ -145,14 +158,86 @@ function buildUpstreamHeaders(req, config, payload) {
   return headers;
 }
 
-/** Copies the status and the headers a client reasons about, then streams the body. */
-function relayResponse(upstreamResponse, res) {
+/** The first status that means Jira refused rather than answered. */
+const FIRST_FAILURE_STATUS = 400;
+
+/**
+ * Describes what Jira+ actually sent, so a refusal can be read rather than
+ * guessed at.
+ *
+ * A status code on its own cannot be diagnosed: the two halves that would
+ * explain it are what went out and what came back, and both were being
+ * discarded. Three separate fixes were aimed at plausible causes of one 400
+ * before this existed.
+ *
+ * The credential is deliberately absent. This is the request's content, which is
+ * the operator's own issue data on the operator's own machine, and nothing else.
+ */
+function describeSentRequest(method, downstreamPath, payload, via) {
+  // The token path holds the body as the serialised bytes it sent; the relay
+  // path holds the parsed object it handed to the tab. Either is reported as
+  // the object, because that is the thing somebody needs to read.
+  let body = payload;
+  if (typeof payload === 'string') {
+    try {
+      body = JSON.parse(payload);
+    } catch {
+      body = payload;
+    }
+  }
+  // Which door it went through. The two paths differ in what carries the
+  // credential, so a refusal on one and not the other is the first thing
+  // worth knowing and the hardest thing to guess.
+  return { method, path: downstreamPath, via, body: body ?? null };
+}
+
+/**
+ * Rebuilds a refused reply with the diagnosis attached.
+ *
+ * A reply that is not JSON is kept verbatim rather than dropped, because "Jira
+ * answered with status 400" and nothing else is the message this product exists
+ * to remove.
+ */
+function buildDiagnosedFailure(rawText, sentRequest) {
+  let parsed = null;
+  try {
+    parsed = JSON.parse(rawText);
+  } catch {
+    // Kept below as text. Not every refusal is JSON, and the words still count.
+  }
+  const base =
+    parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)
+      ? parsed
+      : { jiraRawReply: rawText };
+  return JSON.stringify({ ...base, jiraPlusSent: sentRequest });
+}
+
+/**
+ * Copies the status and the headers a client reasons about, then the body.
+ *
+ * A successful reply is streamed straight through and left exactly as Jira sent
+ * it — adding a field of ours to data that worked would put Jira+ in the middle
+ * of something it has no business in. Only a refusal is collected, and only so
+ * the diagnosis can be attached to it.
+ */
+function relayResponse(upstreamResponse, res, sentRequest) {
   res.status(upstreamResponse.statusCode || 502);
   for (const headerName of FORWARDED_RESPONSE_HEADERS) {
     const headerValue = upstreamResponse.headers[headerName];
     if (headerValue !== undefined) res.setHeader(headerName, headerValue);
   }
-  upstreamResponse.pipe(res);
+
+  if ((upstreamResponse.statusCode || 502) < FIRST_FAILURE_STATUS) {
+    upstreamResponse.pipe(res);
+    return;
+  }
+
+  const chunks = [];
+  upstreamResponse.on('data', (chunk) => chunks.push(chunk));
+  upstreamResponse.on('end', () => {
+    res.type('application/json');
+    res.send(buildDiagnosedFailure(Buffer.concat(chunks).toString('utf8'), sentRequest));
+  });
 }
 
 /**

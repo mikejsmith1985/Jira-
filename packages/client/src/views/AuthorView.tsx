@@ -40,6 +40,7 @@ import type {
   BatchProposal,
   AuthoringProposal,
   ChangeSet,
+  FailureDiagnosis,
   PlannedChange,
   CreateScreenShape,
   IssueTypeChoice,
@@ -47,6 +48,7 @@ import type {
 } from "@jira-plus/core";
 
 import { ChangeDiffTable } from "../components/ChangeDiffTable.js";
+import { FailureDetail } from "../components/FailureDetail.js";
 import { AssistantPanel } from "../components/authoring/AssistantPanel.js";
 import { BatchPanel } from "../components/authoring/BatchPanel.js";
 import { ReadinessPanel } from "../components/authoring/ReadinessPanel.js";
@@ -84,6 +86,9 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
   const [savedKey, setSavedKey] = useState<string | null>(null);
   const [outcome, setOutcome] = useState<ApplyOutcome | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
+  // Kept beside the message, because the message alone is a status code and a
+  // status code cannot be diagnosed.
+  const [diagnosis, setDiagnosis] = useState<FailureDiagnosis | null>(null);
   const [isLoadingIssue, setIsLoadingIssue] = useState(false);
   const [isBatchMode, setIsBatchMode] = useState(false);
   const [batch, setBatch] = useState<AuthoringBatch>(() => buildEmptyBatch("flat"));
@@ -112,6 +117,7 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
 
     setIsLoadingIssue(true);
     setProblem(null);
+    setDiagnosis(null);
     setChangeSet(null);
     try {
       const adapter = createDataCenterAdapter(createBrowserJiraTransport());
@@ -214,6 +220,7 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
     setCreatedKey(null);
     setSavedKey(null);
     setProblem(null);
+    setDiagnosis(null);
     setChangeSet(
       buildAuthoringChangeSet({
         draft,
@@ -233,6 +240,7 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
    */
   async function write(accepted: readonly PlannedChange[]): Promise<void> {
     setProblem(null);
+    setDiagnosis(null);
 
     if (isEnriching) {
       // Per-field writes through the shipped pipeline: each succeeds or fails
@@ -259,6 +267,7 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
     });
 
     if (response.body === null) {
+      setDiagnosis(response.failureDiagnosis ?? null);
       const reason =
         response.jiraMessages.join(" ") || `Jira answered with status ${response.statusCode}.`;
       setOutcome({
@@ -342,6 +351,7 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
   async function writeBatch(): Promise<void> {
     setIsWritingBatch(true);
     setProblem(null);
+    setDiagnosis(null);
     setBatchOutcome(null);
 
     const adapter = createDataCenterAdapter(createBrowserJiraTransport());
@@ -386,6 +396,7 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
       });
 
       if (response.body === null) {
+        setDiagnosis(response.failureDiagnosis ?? null);
         failedReason =
           response.jiraMessages.join(" ") || `Jira answered with status ${response.statusCode}.`;
         break;
@@ -502,6 +513,7 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
           </p>
         )}
         {problem === null ? null : <p className="notice notice--error">{problem}</p>}
+        <FailureDetail diagnosis={diagnosis} />
       </div>
 
       {isBatchMode ? (

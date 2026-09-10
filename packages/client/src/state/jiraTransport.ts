@@ -8,7 +8,7 @@
 // failures depend on seeing the status and Jira's own words, and an exception
 // would discard both.
 
-import type { JiraResponse, JiraTransport } from "@jira-plus/core";
+import type { FailureDiagnosis, JiraResponse, JiraTransport } from "@jira-plus/core";
 
 /** The path prefix the local server forwards to Jira. */
 const PROXY_PREFIX = "/jira-proxy";
@@ -88,6 +88,30 @@ function readRawReason(rawText: string): readonly string[] {
   return [trimmed.slice(0, RAW_REASON_LIMIT)];
 }
 
+/**
+ * The two halves of a refusal, as the proxy attached them.
+ *
+ * The request is echoed by our own server, which is the only place that knows
+ * what actually left the machine. Reconstructing it here would be a guess about
+ * the very thing in question.
+ */
+function readFailureDiagnosis(body: unknown, rawText: string): FailureDiagnosis | null {
+  if (body === null || typeof body !== "object") {
+    return rawText.length === 0
+      ? null
+      : { sentMethod: "", sentPath: "", sentVia: "", sentBody: null, rawReply: rawText };
+  }
+  const sent = (body as { jiraPlusSent?: Record<string, unknown> }).jiraPlusSent;
+  if (sent === undefined || sent === null) return null;
+  return {
+    sentMethod: String(sent.method ?? ""),
+    sentPath: String(sent.path ?? ""),
+    sentVia: String(sent.via ?? ""),
+    sentBody: sent.body ?? null,
+    rawReply: rawText,
+  };
+}
+
 /** Turns one fetch into the engine's response shape. */
 async function toJiraResponse<TBody>(response: Response): Promise<JiraResponse<TBody>> {
   // Read as text FIRST, so a refusal that is not JSON still has its words.
@@ -111,6 +135,7 @@ async function toJiraResponse<TBody>(response: Response): Promise<JiraResponse<T
     jiraMessages: messages.length === 0 && isUnreadable ? readRawReason(rawText) : messages,
     retryAfterSeconds: readRetryAfterSeconds(response),
     jiraPlusFailureKind: readJiraPlusFailureKind(body),
+    failureDiagnosis: response.ok ? null : readFailureDiagnosis(body, rawText),
   };
 }
 

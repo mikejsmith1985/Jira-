@@ -102,6 +102,24 @@ export interface JiraResponse<TBody> {
    * a genuine outage that happens to share a status code.
    */
   readonly jiraPlusFailureKind?: string | null;
+  /**
+   * What Jira+ sent and what came back, when Jira refused.
+   *
+   * A status code alone cannot be diagnosed: the two halves that explain it are
+   * the request and the reply, and both used to be discarded. Present only on a
+   * refusal — a reply that worked is left exactly as Jira sent it.
+   */
+  readonly failureDiagnosis?: FailureDiagnosis | null;
+}
+
+/** The two halves of a refusal, kept so somebody can read it. */
+export interface FailureDiagnosis {
+  readonly sentMethod: string;
+  readonly sentPath: string;
+  /** Which door it went through: the relaying tab, or a configured token. */
+  readonly sentVia: string;
+  readonly sentBody: unknown;
+  readonly rawReply: string;
 }
 
 /** The transport, so the engine never constructs a URL or holds a credential. */

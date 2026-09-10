@@ -54,6 +54,10 @@ beforeAll(async () => {
       res.status(400).json({ errorMessages: ["Field 'cf[99999]' does not exist"] });
       return;
     }
+    if (req.url.includes('prose')) {
+      res.status(400).type('text/plain').send('Not a JSON refusal at all.');
+      return;
+    }
     res.json({ issues: [], total: 0 });
   });
 
@@ -177,5 +181,45 @@ describe('what a write actually carries', () => {
     await request(createApp(config)).get('/jira-proxy/rest/api/2/myself');
 
     expect(receivedRequests[0].body).toEqual({});
+  });
+});
+
+describe('when Jira refuses, and will not say why', () => {
+  // Asked for directly, after three fixes aimed at plausible causes: "can't you
+  // produce an error that would actually help us fix this?"
+  //
+  // A status code alone cannot be diagnosed, because the two halves that would
+  // explain it - what Jira+ sent, and what Jira said back - are exactly what the
+  // proxy was discarding. Both now come back with the refusal.
+  it('says what it sent, so a refusal can be read rather than guessed at', async () => {
+    const fields = { fields: { summary: 'A summary' } };
+
+    const response = await request(createApp(config))
+      .post('/jira-proxy/rest/api/2/issue?boom')
+      .send(fields);
+
+    expect(response.body.jiraPlusSent.body).toEqual(fields);
+    expect(response.body.jiraPlusSent.method).toBe('POST');
+    expect(response.body.jiraPlusSent.path).toContain('/rest/api/2/issue');
+  });
+
+  it("keeps Jira's own words alongside it", async () => {
+    const response = await request(createApp(config)).get('/jira-proxy/rest/api/2/search?jql=boom');
+
+    expect(response.body.errorMessages[0]).toContain('does not exist');
+  });
+
+  it('keeps the reply verbatim when it was not JSON at all', async () => {
+    const response = await request(createApp(config)).get('/jira-proxy/rest/api/2/search?jql=prose');
+
+    expect(response.body.jiraRawReply).toContain('Not a JSON refusal');
+  });
+
+  it('leaves a SUCCESSFUL reply exactly as Jira sent it', async () => {
+    // The echo is for diagnosing a refusal. Adding a field of ours to a reply
+    // that worked would put Jira+ in the middle of data it has no business in.
+    const response = await request(createApp(config)).get('/jira-proxy/rest/api/2/search?jql=fine');
+
+    expect(response.body).toEqual({ issues: [], total: 0 });
   });
 });

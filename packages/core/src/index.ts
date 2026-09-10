@@ -60,6 +60,7 @@ export type {
   FieldSelection,
   JiraAdapter,
   JiraFieldDescriptor,
+  FailureDiagnosis,
   JiraResponse,
   JiraSearchPage,
   JiraTransport,
