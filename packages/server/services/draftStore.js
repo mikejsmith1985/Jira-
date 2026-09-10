@@ -19,12 +19,16 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-/** Beside the workspace document, in the operator's own profile. */
-const DRAFT_FILE_PATH = path.join(
-  process.env.APPDATA || os.homedir(),
-  'JiraPlus',
-  'authoring-draft.json',
-);
+/**
+ * Beside the workspace document, in the operator's own profile.
+ *
+ * Overridable by JIRAPLUS_DRAFT_PATH so two test suites do not race each other
+ * over one file - which they did, producing a suite that passed alone and failed
+ * in the full run. A flake nobody can reproduce is worse than a failure.
+ */
+const DRAFT_FILE_PATH =
+  process.env.JIRAPLUS_DRAFT_PATH ||
+  path.join(process.env.APPDATA || os.homedir(), 'JiraPlus', 'authoring-draft.json');
 
 /**
  * Reads the stored draft.

@@ -292,6 +292,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Feature 001 now passes Article V as written, with no outstanding deviation.
 
 ### Fixed
+- **The update notice was on a screen nobody had open.** It lived on Setup &mdash; which had also been
+  rendering blank &mdash; so updating meant going to GitHub and unzipping by hand, which is exactly
+  what the feature existed to stop. An update nobody sees is an update nobody installs. It now
+  appears at the top of **every** screen when there is something to install, and says nothing at all
+  when there is not: a permanent "you are up to date" in the one place the important message will
+  eventually appear trains people to stop reading it. Setup keeps its fuller version, where
+  confirming the running version is the reason somebody looked.
+- **Pasting a reply took two clicks where one would do.** *Read the reply* announced it had been read
+  and waited for *Put these in my draft*. But the draft is not Jira: every proposal in it is still
+  editable, and the was-to-will-be diff still stands between it and any write. The second click
+  confirmed nothing and cost a step on every round trip. One button now reads the reply and puts it
+  in the draft; a reply that is refused whole still applies nothing, which is the case the
+  confirmation was really there for.
+- **Two test suites raced over one draft file**, so one passed alone and failed in the full run. The
+  draft path is overridable now and each suite has its own. A flake nobody can reproduce is worse
+  than a failure.
 - **The Setup screen rendered nothing at all.** A `workspace.json` written before the description
   template existed has no `descriptionSections`, the new panel mapped over the absence, and React
   unmounted the **entire screen**. The only symptom was a blank page: no message, nothing to act on,

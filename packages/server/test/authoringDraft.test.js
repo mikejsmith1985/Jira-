@@ -11,6 +11,14 @@
 // write that fully succeeded, because a partly-failed create that also deleted
 // the draft loses work at the exact moment somebody most needs it back.
 
+import os from 'node:os';
+import path from 'node:path';
+
+// Set BEFORE the store is imported, because the path is resolved at module load.
+// Without this the two draft suites share one file and race each other, which
+// showed up as a suite that passed alone and failed in the full run.
+process.env.JIRAPLUS_DRAFT_PATH = path.join(os.tmpdir(), 'jiraplus-test-draft-route.json');
+
 import fs from 'node:fs';
 
 import request from 'supertest';

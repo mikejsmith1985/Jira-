@@ -26,8 +26,21 @@ interface UpdateState {
   readonly reason: string | null;
 }
 
+/** What the panel needs. */
+export interface UpdatePanelProps {
+  /**
+   * Say nothing at all when there is nothing to install.
+   *
+   * True in the header, where a permanent "you are up to date" would be noise on
+   * every screen and would train somebody to stop reading the one place the
+   * important message eventually appears. False in Setup, where confirming the
+   * running version is the reason somebody looked.
+   */
+  readonly isQuietWhenCurrent?: boolean;
+}
+
 /** The update surface. */
-export function UpdatePanel(): JSX.Element | null {
+export function UpdatePanel({ isQuietWhenCurrent = false }: UpdatePanelProps): JSX.Element | null {
   const [state, setState] = useState<UpdateState | null>(null);
   const [isInstalling, setIsInstalling] = useState(false);
   const [installedVersion, setInstalledVersion] = useState<string | null>(null);
@@ -100,6 +113,8 @@ export function UpdatePanel(): JSX.Element | null {
       </div>
     );
   }
+
+  if (isQuietWhenCurrent) return null;
 
   // Silent when up to date. Only the case worth acting on is worth a panel — and
   // "could not check" IS worth acting on, because otherwise somebody assumes

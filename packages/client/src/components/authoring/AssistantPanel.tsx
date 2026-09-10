@@ -71,15 +71,27 @@ export function AssistantPanel({
     }
   }
 
-  /** Reads a pasted reply. Writes nothing. */
+  /**
+   * Reads a pasted reply and puts it in the draft.
+   *
+   * One step, not two. The earlier version parsed, said "read it", and waited
+   * for a second click to apply — but the draft is not Jira, and every proposal
+   * in it is still editable and still gated by the diff before anything is
+   * written. The second click confirmed nothing and cost a step on every single
+   * round trip.
+   *
+   * A reply that was refused whole applies nothing, which is the case the
+   * confirmation was really there for.
+   */
   function readReply(): void {
-    setProposal(
-      parseAuthoringReply({
-        replyText,
-        shape: shape ?? { status: "unavailable", reason: "No issue type has been chosen yet." },
-        sections,
-      }),
-    );
+    const parsed = parseAuthoringReply({
+      replyText,
+      shape: shape ?? { status: "unavailable", reason: "No issue type has been chosen yet." },
+      sections,
+    });
+
+    setProposal(parsed);
+    if (parsed.refusedReason === null) onAccept(parsed);
   }
 
   return (
@@ -142,11 +154,11 @@ export function AssistantPanel({
         <div className="console__actions">
           <button
             type="button"
-            className="button"
+            className="button button--primary"
             disabled={replyText.trim().length === 0}
             onClick={readReply}
           >
-            Read the reply
+            Put it in my draft
           </button>
         </div>
       </div>
@@ -156,7 +168,8 @@ export function AssistantPanel({
       ) : (
         <div className="authoring__proposal">
           <p className="notice notice--pass">
-            Read it. Nothing has changed yet — accept it to put these into your draft.
+            <strong>In your draft.</strong> Change anything you disagree with — nothing reaches Jira
+            until you press create or save, and you will see every field first.
           </p>
 
           {proposal.rejectedFieldIds.length === 0 ? null : (
@@ -181,15 +194,6 @@ export function AssistantPanel({
             </p>
           )}
 
-          <div className="console__actions">
-            <button
-              type="button"
-              className="button button--primary"
-              onClick={() => onAccept(proposal)}
-            >
-              Put these in my draft
-            </button>
-          </div>
         </div>
       )}
     </section>
