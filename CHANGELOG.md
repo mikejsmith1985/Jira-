@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **A refusal you can act on.** *"Can't you produce an error that would actually help us fix this?"*
+  &mdash; and no, it could not, because the two halves that explain a refusal were being discarded
+  before anybody saw them. Three fixes were aimed at plausible causes of one 400 before this existed.
+  A failed write now carries **what Jira+ sent** and **what Jira said back, verbatim**, under a panel
+  that stays closed until it is asked for &mdash; somebody whose summary is too long needs the
+  sentence saying so, not a JSON body. One button copies the whole thing in a shape that can be
+  pasted into a bug report.
+  It also names **which door the request went through**: the relaying Jira tab, or a configured
+  token. The two carry the credential differently, so a refusal on one and not the other is the first
+  thing worth knowing and the hardest thing to guess from outside. A reply that succeeded is left
+  exactly as Jira sent it &mdash; the diagnosis is attached to refusals only.
+
 ### Fixed
 - **Every write reached Jira with an empty body.** This is the cause of the *"Jira answered with
   status 400"* that no amount of better error reporting could explain: Jira was refusing a create

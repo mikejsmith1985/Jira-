@@ -122,3 +122,35 @@ describe("when Jira refuses in a shape we cannot read", () => {
     expect(response.jiraMessages[0]!.length).toBeLessThan(400);
   });
 });
+
+describe("the diagnosis attached to a refusal", () => {
+  // "Can't you produce an error that would actually help us fix this?" A status
+  // code cannot be diagnosed. What went out and what came back can.
+  it("carries what was sent, so the request can be read rather than guessed at", async () => {
+    stubFetch(400, {
+      errorMessages: [],
+      jiraPlusSent: { method: "POST", path: "/rest/api/2/issue", body: { fields: { a: 1 } } },
+    });
+
+    const response = await createBrowserJiraTransport().post("/rest/api/2/issue", {});
+
+    expect(response.failureDiagnosis?.sentBody).toEqual({ fields: { a: 1 } });
+    expect(response.failureDiagnosis?.sentPath).toBe("/rest/api/2/issue");
+  });
+
+  it("carries Jira's reply verbatim, including the parts nothing knows how to read", async () => {
+    stubFetch(400, { errorMessages: ["No."], jiraPlusSent: { method: "POST", path: "/x" } });
+
+    const response = await createBrowserJiraTransport().post("/rest/api/2/issue", {});
+
+    expect(response.failureDiagnosis?.rawReply).toContain("No.");
+  });
+
+  it("is absent when the request worked, so a good reply is left alone", async () => {
+    stubFetch(201, { key: "DENP-1" });
+
+    const response = await createBrowserJiraTransport().post("/rest/api/2/issue", {});
+
+    expect(response.failureDiagnosis ?? null).toBeNull();
+  });
+});
