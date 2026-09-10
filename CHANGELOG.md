@@ -8,6 +8,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **Every select was sent to Jira as a bare word, and Jira refused all of them.** A select is chosen
+  by picking a label off a list, and the label is what a draft holds. Jira will not take a label
+  &mdash; it wants `{ id }` or `{ value }`, and each family of field insists on a different key.
+  That knowledge already existed for **editing** an issue and had never been applied to **creating**
+  one, so a create sent priority, every custom select and every cascading select as plain strings.
+  Values are now shaped against what the instance itself said each field is: the **option's id**
+  wherever createmeta gave one, because two options can share a label and nothing shares an id; a
+  cascading select's child is sent **with the parent it hangs under**, which is precisely what Jira
+  means by *"Could not find valid 'id' or 'value' in the Parent Option object"*; and a priority,
+  version, component or user goes by `name`.
+  What the create screen never mentioned is sent **exactly as written** &mdash; dropping it would
+  silently lose somebody's work, and guessing its shape would be the same mistake in the other
+  direction. An empty value is left out rather than written, because an empty select written over an
+  existing one is a silent deletion.
+- **The kind of each field is no longer thrown away.** createmeta says what every field *is*, and
+  Jira+ read only its name, whether it was required, and its labels. The type, the list item type,
+  and each option's id were discarded &mdash; and they are the half that decides how a value can be
+  sent at all.
+
+### Fixed
 - **The self-restart could report success while doing nothing at all.** `spawn` reports a program it
   cannot start on a **later tick**, as an event &mdash; never by throwing &mdash; so the `try`/`catch`
   around it could not see the failure. The handover said it had started, this copy exited on schedule,

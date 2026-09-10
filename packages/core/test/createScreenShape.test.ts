@@ -164,3 +164,62 @@ describe("the fields that decide WHICH issue this is", () => {
     );
   });
 });
+
+describe("what kind of field each one is", () => {
+  // Thrown away until now, and it is the half that decides how a value is sent.
+  // Without it every select left as a bare string and Jira refused all of them.
+  it("keeps the field's type, so a value can be shaped the way Jira wants it", () => {
+    const shape = buildCreateScreenShape({
+      projectKey: "DENP",
+      issueTypeId: "10001",
+      rawFields: {
+        customfield_10234: { name: "Capability", schema: { type: "option" } },
+        labels: { name: "Labels", schema: { type: "array", items: "string" } },
+      },
+    });
+
+    const fields = shape.status === "known" ? shape.fields : [];
+    expect(fields.find((field) => field.fieldId === "customfield_10234")?.schemaType).toBe("option");
+    expect(fields.find((field) => field.fieldId === "labels")?.schemaItems).toBe("string");
+  });
+
+  it("keeps each option's id, because two options can share a label", () => {
+    const shape = buildCreateScreenShape({
+      projectKey: "DENP",
+      issueTypeId: "10001",
+      rawFields: {
+        customfield_10234: {
+          name: "Capability",
+          schema: { type: "option" },
+          allowedValues: [{ id: "11100", value: "Planned - New Capability" }],
+        },
+      },
+    });
+
+    const field = shape.status === "known" ? shape.fields[0] : undefined;
+    expect(field?.allowedOptions?.[0]).toEqual({
+      optionId: "11100",
+      label: "Planned - New Capability",
+      children: [],
+    });
+  });
+
+  it("keeps a cascading select's second level, which cannot be sent without its parent", () => {
+    const shape = buildCreateScreenShape({
+      projectKey: "DENP",
+      issueTypeId: "10001",
+      rawFields: {
+        customfield_10217: {
+          name: "Area",
+          schema: { type: "option-with-child" },
+          allowedValues: [
+            { id: "12000", value: "Enrollment", children: [{ id: "12001", value: "EAM" }] },
+          ],
+        },
+      },
+    });
+
+    const field = shape.status === "known" ? shape.fields[0] : undefined;
+    expect(field?.allowedOptions?.[0]?.children).toEqual([{ optionId: "12001", label: "EAM" }]);
+  });
+});

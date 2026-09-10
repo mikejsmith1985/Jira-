@@ -11,6 +11,8 @@
 // them would put an empty form on screen and let somebody conclude their issue
 // type is simple, when in fact Jira was unreachable.
 
+import type { AllowedOption } from "../jira/write/shapeFieldValue.js";
+
 /** One field, as the instance describes it. */
 export interface CreateScreenField {
   /** The instance's own identifier. Never written down in this product. */
@@ -21,6 +23,17 @@ export interface CreateScreenField {
   readonly isRequired: boolean;
   /** The permitted values, where the field has a fixed set. */
   readonly allowedValues: readonly string[] | null;
+  /**
+   * What KIND of field this is, in the instance's own words.
+   *
+   * Thrown away until now, and it is the half that decides how a value is sent.
+   * Without it every select left as a bare string and Jira refused all of them.
+   */
+  readonly schemaType: string | null;
+  /** For a list, what the list holds. A list of options is not a list of words. */
+  readonly schemaItems: string | null;
+  /** The choices with their ids, because two options can share a label. */
+  readonly allowedOptions: readonly AllowedOption[] | null;
 }
 
 /** What a project and issue type offer, or why we could not find out. */
@@ -41,6 +54,58 @@ export interface IssueTypeChoice {
   readonly issueTypeId: string;
   readonly name: string;
   readonly isSubtask: boolean;
+}
+
+/** Reads one option's label out of whichever property this field type uses. */
+function readOptionLabel(option: Record<string, unknown>): string | null {
+  // Jira names an option differently by field type: a value, a name, or a key.
+  // Taking the first that is a string keeps this working across all of them
+  // without a table of field types to maintain.
+  for (const property of ["value", "name", "key"]) {
+    if (typeof option[property] === "string") return option[property] as string;
+  }
+  return null;
+}
+
+/**
+ * Reads the choices with their ids and their second level.
+ *
+ * The id matters because two options can share a label and nothing shares an
+ * id. The children matter because a cascading select's child cannot be sent
+ * without the parent it hangs under - which is exactly what Jira means by
+ * "Could not find valid 'id' or 'value' in the Parent Option object".
+ */
+function readAllowedOptions(rawField: Record<string, unknown>): readonly AllowedOption[] | null {
+  const allowed = rawField.allowedValues;
+  if (!Array.isArray(allowed) || allowed.length === 0) return null;
+
+  const options: AllowedOption[] = [];
+  for (const candidate of allowed) {
+    if (typeof candidate === "string") {
+      options.push({ optionId: null, label: candidate, children: [] });
+      continue;
+    }
+    if (candidate === null || typeof candidate !== "object") continue;
+    const option = candidate as Record<string, unknown>;
+    const label = readOptionLabel(option);
+    if (label === null) continue;
+
+    const rawChildren = Array.isArray(option.children) ? option.children : [];
+    options.push({
+      optionId: typeof option.id === "string" ? option.id : null,
+      label,
+      children: rawChildren
+        .map((rawChild) => {
+          const child = rawChild as Record<string, unknown>;
+          const childLabel = readOptionLabel(child);
+          return childLabel === null
+            ? null
+            : { optionId: typeof child.id === "string" ? child.id : null, label: childLabel };
+        })
+        .filter((child): child is { optionId: string | null; label: string } => child !== null),
+    });
+  }
+  return options.length === 0 ? null : options;
 }
 
 /** Reads the allowed values off a field, where it has a fixed set. */
@@ -85,11 +150,15 @@ export function buildCreateScreenShape(input: {
     if (IDENTITY_FIELD_IDS.includes(fieldId)) continue;
     const rawField = rawValue as Record<string, unknown>;
 
+    const schema = (rawField.schema ?? {}) as Record<string, unknown>;
     fields.push({
       fieldId,
       name: typeof rawField.name === "string" ? rawField.name : fieldId,
       isRequired: rawField.required === true,
       allowedValues: readAllowedValues(rawField),
+      schemaType: typeof schema.type === "string" ? schema.type : null,
+      schemaItems: typeof schema.items === "string" ? schema.items : null,
+      allowedOptions: readAllowedOptions(rawField),
     });
   }
 

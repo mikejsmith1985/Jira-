@@ -321,6 +321,8 @@ export {
   setChildIssueTypeId,
   updateBatchItem,
 } from "./authoring/authoringBatch.js";
+export { shapeCreateFields, shapeFieldValueForJira } from "./jira/write/shapeFieldValue.js";
+export type { AllowedOption, FieldValueShapeInput } from "./jira/write/shapeFieldValue.js";
 export type { AuthoringBatch, BatchItem, BatchShape } from "./authoring/authoringBatch.js";
 export {
   AUTHORING_BATCH_PACK_ID,
