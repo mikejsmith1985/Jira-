@@ -27,6 +27,18 @@ import type { DescriptionSection } from "./sectionTemplate.js";
 /** The envelope identifier. A reply carrying any other is rejected whole. */
 export const AUTHORING_PACK_ID = "jiraPlusIssueAuthor";
 
+/** The envelope for a reply carrying several issues. */
+export const AUTHORING_BATCH_PACK_ID = "jiraPlusIssueAuthorBatch";
+
+/**
+ * The most issues one reply may carry.
+ *
+ * Not a technical ceiling. A reply proposing forty issues is a reply nobody will
+ * read, and this feature's whole premise is that somebody reads what is proposed
+ * before it reaches Jira.
+ */
+export const MAXIMUM_BATCH_SIZE = 12;
+
 /** How much of one source is rendered before it is cut and said to be cut. */
 export const SOURCE_EXCERPT_LIMIT = 4000;
 
@@ -112,6 +124,71 @@ function renderItemShape(shape: CreateScreenShape): string {
     fieldLines,
     fieldsNote,
     "  }",
+    "}",
+  ].join("\n");
+}
+
+/**
+ * The head for a prompt asking for SEVERAL issues.
+ *
+ * Two shapes, and which one is asked for is the operator's choice rather than
+ * the assistant's: a pile of material that could be read either way would
+ * otherwise come back differently every time it was asked.
+ */
+export function buildBatchPromptHead(input: {
+  readonly draft: AuthoringDraft;
+  readonly shape: CreateScreenShape;
+  readonly sections: readonly DescriptionSection[];
+  readonly isHierarchy: boolean;
+  readonly parentTypeName: string;
+  readonly childTypeName: string;
+}): string {
+  const { draft } = input;
+
+  const job = input.isHierarchy
+    ? [
+        `Break this material into ONE ${input.parentTypeName} and the ${input.childTypeName} items`,
+        `beneath it. Put the ${input.parentTypeName} FIRST in the list; everything after it is a`,
+        `${input.childTypeName} belonging to it.`,
+        "",
+        `Each ${input.childTypeName} must be independently deliverable and independently testable.`,
+        "If something cannot be delivered on its own, it belongs in another item rather than as one.",
+      ]
+    : [
+        `Break this material into separate ${input.parentTypeName} items, each one a distinct piece`,
+        "of work. Do not invent items the material does not support, and do not split one piece of",
+        "work in two to make the list longer.",
+      ];
+
+  return [
+    "You are helping somebody write Jira issues their team can understand and commit to.",
+    "",
+    ...job,
+    `Return at most ${MAXIMUM_BATCH_SIZE} items. Fewer, well judged, is better than more.`,
+    "",
+    "In their own words:",
+    draft.operatorNarrative.trim().length > 0
+      ? draft.operatorNarrative
+      : "(they have not written this yet — work from the material below)",
+    "",
+    renderSections(input.sections),
+    "",
+    renderFields(input.shape),
+    "",
+    "Lead each description with the problem and who has it, not the solution. Make every acceptance",
+    "criterion something a tester could check without asking a question. Do not invent facts that are",
+    "not in the material or in their own words. Never state or imply that this was written by an",
+    "assistant.",
+    "",
+    "Respond ONLY with valid JSON in exactly this shape:",
+    "{",
+    `  "packId": "${AUTHORING_BATCH_PACK_ID}",`,
+    '  "issues": [',
+    "    {",
+    ...AUTHORING_ITEM_FIELDS.map((field) => `      "${field.name}": "…",   // ${field.description}`),
+    '      "fields": { }',
+    "    }",
+    "  ]",
     "}",
   ].join("\n");
 }
@@ -212,6 +289,82 @@ export function chunkAuthoringPrompt(input: {
       .join("\n"),
     hasTruncatedSource: group.some((source) => source.includes("cut short")),
   }));
+}
+
+/** What a batch reply proposed, after validation. */
+export interface BatchProposal {
+  readonly issues: readonly AuthoringProposal[];
+  /** Items dropped because the reply carried more than anybody would read. */
+  readonly discardedCount: number;
+  readonly refusedReason: string | null;
+}
+
+/**
+ * Validates a reply carrying several issues.
+ *
+ * Every issue is validated exactly as a single one is, by the same function, so
+ * a batch cannot accept something a lone reply would refuse. A reply beyond the
+ * readable ceiling is CUT AND COUNTED rather than accepted whole: a proposal
+ * nobody reads is a proposal nobody checked.
+ */
+export function parseBatchReply(input: {
+  readonly replyText: string;
+  readonly shape: CreateScreenShape;
+  readonly sections: readonly DescriptionSection[];
+}): BatchProposal {
+  let payload: unknown;
+  try {
+    payload = extractJsonPayload(input.replyText);
+  } catch {
+    return {
+      issues: [],
+      discardedCount: 0,
+      refusedReason: "That reply could not be read as JSON. Nothing was taken from it.",
+    };
+  }
+
+  if (payload === null || typeof payload !== "object") {
+    return {
+      issues: [],
+      discardedCount: 0,
+      refusedReason: "That reply was not a JSON object. Nothing was taken from it.",
+    };
+  }
+
+  const envelope = payload as { packId?: unknown; issues?: unknown };
+  if (envelope.packId !== AUTHORING_BATCH_PACK_ID) {
+    return {
+      issues: [],
+      discardedCount: 0,
+      refusedReason:
+        `That reply belongs to "${String(envelope.packId)}", not to this prompt. ` +
+        `The whole reply was rejected rather than partly applied.`,
+    };
+  }
+
+  if (!Array.isArray(envelope.issues) || envelope.issues.length === 0) {
+    return {
+      issues: [],
+      discardedCount: 0,
+      refusedReason: "That reply carried no issues. Nothing was taken from it.",
+    };
+  }
+
+  const kept = envelope.issues.slice(0, MAXIMUM_BATCH_SIZE);
+
+  return {
+    // Each is validated by the SAME function a lone reply uses, so a batch
+    // cannot accept a field id or a value that a single issue would refuse.
+    issues: kept.map((issue) =>
+      parseAuthoringReply({
+        replyText: JSON.stringify({ packId: AUTHORING_PACK_ID, issue }),
+        shape: input.shape,
+        sections: input.sections,
+      }),
+    ),
+    discardedCount: envelope.issues.length - kept.length,
+    refusedReason: null,
+  };
 }
 
 /** Reads a string off a reply, or null when it said nothing usable. */

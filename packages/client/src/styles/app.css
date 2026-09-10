@@ -1607,3 +1607,63 @@
 .readiness__unassessed {
   margin-top: var(--gap-4);
 }
+
+/* ── Several issues at once ──────────────────────────────── */
+
+.authoring__batch {
+  margin-top: var(--layout-grid-gap, var(--gap-4));
+  padding: var(--gap-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-card-bg);
+  box-shadow: var(--shadow-surface), inset 0 1px 0 var(--color-surface-highlight);
+  backdrop-filter: blur(14px) saturate(135%);
+}
+
+/* Numbered because the order is real in a hierarchy: the Feature is written
+   first, since a Story cannot link to something that does not exist yet. */
+.batch__list {
+  margin: var(--gap-4) 0 0;
+  padding-left: var(--gap-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-3);
+}
+
+.batch__list li::marker {
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+.batch__item {
+  padding: var(--gap-3);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  box-shadow: var(--elevation-raised);
+}
+
+.batch__item-head {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-3);
+  flex-wrap: wrap;
+}
+
+/* Bounded: a batch of eight descriptions would otherwise be a page of scrolling
+   before the button that writes them. */
+.batch__item-text {
+  margin: var(--gap-2) 0 0;
+  max-height: 120px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* A created issue is finished business, and looks it. */
+.chip--pass {
+  border-color: color-mix(in srgb, var(--color-success) 45%, transparent);
+  background: var(--color-tone-success-bg);
+}

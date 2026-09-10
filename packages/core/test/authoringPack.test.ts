@@ -13,8 +13,12 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  AUTHORING_BATCH_PACK_ID,
   AUTHORING_PACK_ID,
+  MAXIMUM_BATCH_SIZE,
   buildAuthoringPromptHead,
+  buildBatchPromptHead,
+  parseBatchReply,
   chunkAuthoringPrompt,
   parseAuthoringReply,
 } from "../src/authoring/authoringPack.js";
@@ -263,5 +267,111 @@ describe("reading the reply", () => {
     const proposal = parse(JSON.stringify({ packId: AUTHORING_PACK_ID, issue: { summary: "S" } }));
 
     expect(Object.keys(proposal)).not.toContain("issueKey");
+  });
+});
+
+describe("asking for several issues at once", () => {
+  /** The head for a hierarchy prompt. */
+  function buildBatchHead(isHierarchy: boolean): string {
+    return buildBatchPromptHead({
+      draft: { ...buildEmptyDraft(NOW), operatorNarrative: "Three things came out of the review." },
+      shape: SHAPE,
+      sections: SECTIONS,
+      isHierarchy,
+      parentTypeName: "Feature",
+      childTypeName: "Story",
+    });
+  }
+
+  it("asks for one parent and the work beneath it, in that order", () => {
+    // The order is not cosmetic: a Story cannot be linked to a Feature that does
+    // not exist yet, so the parent has to arrive first to be created first.
+    const head = buildBatchHead(true);
+
+    expect(head).toMatch(/ONE Feature/);
+    expect(head).toMatch(/FIRST in the list/);
+  });
+
+  it("asks for independent items when there is no hierarchy", () => {
+    const head = buildBatchHead(false);
+
+    expect(head).toMatch(/separate Feature items/);
+    expect(head).not.toMatch(/beneath it/);
+  });
+
+  it("says the shape rather than letting the assistant choose it", () => {
+    // A pile of material that could be read either way would otherwise come back
+    // differently every time it was asked.
+    expect(buildBatchHead(true)).not.toBe(buildBatchHead(false));
+  });
+
+  it("caps how many it asks for, because a list nobody reads is unchecked", () => {
+    expect(buildBatchHead(false)).toContain(`at most ${MAXIMUM_BATCH_SIZE}`);
+  });
+});
+
+describe("reading a reply carrying several issues", () => {
+  /** Parses a batch reply against the standard shape and sections. */
+  function parseBatch(replyText: string) {
+    return parseBatchReply({ replyText, shape: SHAPE, sections: SECTIONS });
+  }
+
+  /** A reply carrying the given issues. */
+  function buildBatchReply(issues: readonly unknown[]): string {
+    return JSON.stringify({ packId: AUTHORING_BATCH_PACK_ID, issues });
+  }
+
+  it("takes every issue it proposed", () => {
+    const proposal = parseBatch(
+      buildBatchReply([{ summary: "The Feature" }, { summary: "Story one" }]),
+    );
+
+    expect(proposal.issues.map((issue) => issue.summary)).toEqual(["The Feature", "Story one"]);
+  });
+
+  it("validates each one exactly as a lone reply is validated", () => {
+    // The same function does both, so a batch cannot accept a field id that a
+    // single issue would refuse.
+    const proposal = parseBatch(
+      buildBatchReply([{ summary: "S", fields: { customfield_99999: "x" } }]),
+    );
+
+    expect(proposal.issues.at(0)?.rejectedFieldIds).toEqual(["customfield_99999"]);
+  });
+
+  it("rejects a reply belonging to the single-issue prompt, whole", () => {
+    const proposal = parseBatch(
+      JSON.stringify({ packId: AUTHORING_PACK_ID, issue: { summary: "S" } }),
+    );
+
+    expect(proposal.refusedReason).toMatch(/rejected rather than partly applied/i);
+    expect(proposal.issues).toHaveLength(0);
+  });
+
+  it("refuses a reply carrying no issues rather than producing an empty batch", () => {
+    const proposal = parseBatch(buildBatchReply([]));
+
+    expect(proposal.refusedReason).toMatch(/carried no issues/i);
+  });
+
+  it("cuts a reply past the readable ceiling, and counts what it cut", () => {
+    // A proposal nobody reads is a proposal nobody checked, and this feature's
+    // whole premise is that somebody reads it before it reaches Jira.
+    const tooMany = Array.from({ length: MAXIMUM_BATCH_SIZE + 3 }, (unused, index) => ({
+      summary: `Issue ${index}`,
+    }));
+
+    const proposal = parseBatch(buildBatchReply(tooMany));
+
+    expect(proposal.issues).toHaveLength(MAXIMUM_BATCH_SIZE);
+    expect(proposal.discardedCount).toBe(3);
+  });
+
+  it("completes each description's sections, exactly as it does for one issue", () => {
+    const proposal = parseBatch(
+      buildBatchReply([{ summary: "S", description: "Description:\nMembers cannot see it." }]),
+    );
+
+    expect(proposal.issues.at(0)?.description).toContain("[NEEDS VALIDATION]");
   });
 });

@@ -306,13 +306,34 @@ export type {
 } from "./authoring/assessDraftReadiness.js";
 export { DRAFT_ISSUE_KEY, projectDraftAsIssue } from "./authoring/projectDraftAsIssue.js";
 export {
+  addBatchItem,
+  buildBatch,
+  buildEmptyBatch,
+  findParentItem,
+  findUncreatedItems,
+  isPartlyWritten,
+  readWriteOrder,
+  recordCreatedKey,
+  removeBatchItem,
+  updateBatchItem,
+} from "./authoring/authoringBatch.js";
+export type { AuthoringBatch, BatchItem, BatchShape } from "./authoring/authoringBatch.js";
+export {
+  AUTHORING_BATCH_PACK_ID,
   AUTHORING_PACK_ID,
+  MAXIMUM_BATCH_SIZE,
+  buildBatchPromptHead,
+  parseBatchReply,
   SOURCE_EXCERPT_LIMIT,
   buildAuthoringPromptHead,
   chunkAuthoringPrompt,
   parseAuthoringReply,
 } from "./authoring/authoringPack.js";
-export type { AuthoringPromptPart, AuthoringProposal } from "./authoring/authoringPack.js";
+export type {
+  AuthoringPromptPart,
+  AuthoringProposal,
+  BatchProposal,
+} from "./authoring/authoringPack.js";
 export {
   VALIDATION_MARKER,
   findUnvalidatedSections,
