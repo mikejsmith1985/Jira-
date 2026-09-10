@@ -19,18 +19,35 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-/** Answers the check, and the install if one is asked for. */
-function stubServer(check: unknown, install?: { ok: boolean; body: unknown }): void {
+/** Answers the check, the install, and — once restarting — who is running. */
+function stubServer(
+  check: unknown,
+  install?: { isOk: boolean; body: unknown },
+  instanceVersion?: string,
+): void {
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string) => {
       if (url.includes("install")) {
-        return { ok: install?.ok ?? false, json: async () => install?.body ?? {} };
+        return { ok: install?.isOk ?? false, json: async () => install?.body ?? {} };
+      }
+      if (url.includes("instance")) {
+        if (instanceVersion === undefined) throw new Error("nothing is listening");
+        return { ok: true, json: async () => ({ version: instanceVersion }) };
       }
       return { ok: true, json: async () => check };
     }),
   );
 }
+
+/** A check saying 0.9.2 is there to be had. */
+const UPDATE_WAITING = {
+  installedVersion: "0.9.1",
+  isCheckPossible: true,
+  isUpdateAvailable: true,
+  latestVersion: "0.9.2",
+  reason: null,
+};
 
 describe("when this is the newest version", () => {
   it("says so rather than showing nothing, which reads as a broken feature", async () => {
@@ -90,12 +107,61 @@ describe("when something newer exists", () => {
         latestVersion: "0.9.2",
         reason: null,
       },
-      { ok: true, body: { installedVersion: "0.9.2" } },
+      { isOk: true, body: { installedVersion: "0.9.2" } },
     );
 
     render(<VersionChip />);
     await userEvent.click(await screen.findByRole("button", { name: /update to 0\.9\.2/i }));
 
     await waitFor(() => expect(screen.getByText(/0\.9\.2 ready — restart/i)).toBeTruthy());
+  });
+});
+
+describe("after installing", () => {
+  // "This defeats the purpose of an update if I still have to go launch it
+  // myself." The install worked and then handed back a chore.
+  it("restarts by itself rather than asking somebody to go and launch it", async () => {
+    stubServer(
+      UPDATE_WAITING,
+      { isOk: true, body: { installedVersion: "0.9.2", isRestarting: true } },
+      "0.9.1",
+    );
+
+    render(<VersionChip />);
+    await userEvent.click(await screen.findByRole("button", { name: /update to 0\.9\.2/i }));
+
+    expect(await screen.findByText(/restarting/i)).toBeTruthy();
+  });
+
+  it("reloads the page once the new version is the one answering", async () => {
+    // Not when the port answers - the OLD copy answers right up until it exits,
+    // so reloading on that would put the new interface's expectations against
+    // the old server.
+    const reload = vi.fn();
+    vi.stubGlobal("location", { ...window.location, reload });
+    stubServer(
+      UPDATE_WAITING,
+      { isOk: true, body: { installedVersion: "0.9.2", isRestarting: true } },
+      "0.9.2",
+    );
+
+    render(<VersionChip />);
+    await userEvent.click(await screen.findByRole("button", { name: /update to 0\.9\.2/i }));
+
+    await waitFor(() => expect(reload).toHaveBeenCalled());
+  });
+
+  it("still asks for a restart when it could not do one itself", async () => {
+    // Running from source, or the scripting host missing. Saying nothing would
+    // leave somebody looking at an old version believing it had updated.
+    stubServer(UPDATE_WAITING, {
+      isOk: true,
+      body: { installedVersion: "0.9.2", isRestarting: false },
+    });
+
+    render(<VersionChip />);
+    await userEvent.click(await screen.findByRole("button", { name: /update to 0\.9\.2/i }));
+
+    expect(await screen.findByText(/0\.9\.2 ready — restart/i)).toBeTruthy();
   });
 });

@@ -107,7 +107,7 @@ function createApp(config) {
   app.use(createAuthoringDraftRouter());
   // Checking for a newer version needs no credential and reaches GitHub, not
   // Jira, so it works on an installation that was never configured.
-  app.use(createUpdatesRouter(readInstalledVersion()));
+  app.use(createUpdatesRouter(readInstalledVersion(), config.port));
   app.use(createWriteJournalRouter());
 
   // Reports what is configured — never the credential itself, only whether one

@@ -18,6 +18,12 @@ import { useCallback, useEffect, useState } from "react";
 /** How often to look for a new release. Rarely: releases are not frequent. */
 const CHECK_INTERVAL_MS = 15 * 60 * 1000;
 
+/** How often to ask who is running while the handover is happening. */
+const HANDOVER_POLL_MS = 700;
+
+/** How long to wait for the new version before saying so. */
+const HANDOVER_TIMEOUT_MS = 45 * 1000;
+
 /** What the server found out about updates. */
 interface UpdateState {
   readonly installedVersion: string;
@@ -27,11 +33,57 @@ interface UpdateState {
   readonly reason: string | null;
 }
 
+/**
+ * Waits for the new version to be the one answering, then reloads.
+ *
+ * Waiting for the PORT to answer would be wrong: the old copy answers right up
+ * until it exits, so reloading on that would put a new interface in front of the
+ * old server. The version is the only honest signal that the handover is done.
+ */
+function RestartWatch({ version }: { readonly version: string }): JSX.Element {
+  const [hasTakenTooLong, setHasTakenTooLong] = useState(false);
+
+  useEffect(() => {
+    const startedAt = Date.now();
+    const timer = window.setInterval(async () => {
+      if (Date.now() - startedAt > HANDOVER_TIMEOUT_MS) {
+        setHasTakenTooLong(true);
+        window.clearInterval(timer);
+        return;
+      }
+      try {
+        const response = await fetch("/api/instance");
+        const body = await response.json();
+        if (body.version === version) window.location.reload();
+      } catch {
+        // The old copy has gone and the new one is not up yet. Expected, and
+        // the only moment in the handover when nothing answers.
+      }
+    }, HANDOVER_POLL_MS);
+    return () => window.clearInterval(timer);
+  }, [version]);
+
+  if (hasTakenTooLong) {
+    return (
+      <span className="version-chip version-chip--ready" title="Start Jira+ from the launcher">
+        {version} installed — start Jira+ again
+      </span>
+    );
+  }
+
+  return (
+    <span className="version-chip version-chip--available" title={`Starting ${version}`}>
+      Restarting into {version}…
+    </span>
+  );
+}
+
 /** The version indicator. */
 export function VersionChip(): JSX.Element | null {
   const [state, setState] = useState<UpdateState | null>(null);
   const [isInstalling, setIsInstalling] = useState(false);
   const [installedVersion, setInstalledVersion] = useState<string | null>(null);
+  const [restartingInto, setRestartingInto] = useState<string | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
 
   const check = useCallback(async () => {
@@ -56,13 +108,23 @@ export function VersionChip(): JSX.Element | null {
     try {
       const response = await fetch("/api/update/install", { method: "POST" });
       const body = await response.json();
-      if (response.ok) setInstalledVersion(body.installedVersion);
-      else setProblem(body.reason);
+      if (!response.ok) {
+        setProblem(body.reason);
+        return;
+      }
+      // The server hands over to the new version itself. Until it comes back,
+      // this page is talking to a copy that is on its way out.
+      if (body.isRestarting === true) setRestartingInto(body.installedVersion);
+      else setInstalledVersion(body.installedVersion);
     } catch {
       setProblem("The update could not be downloaded.");
     } finally {
       setIsInstalling(false);
     }
+  }
+
+  if (restartingInto !== null) {
+    return <RestartWatch version={restartingInto} />;
   }
 
   if (state === null) return null;

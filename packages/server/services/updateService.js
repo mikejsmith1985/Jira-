@@ -242,7 +242,8 @@ async function installUpdate(installedVersion) {
       };
     }
     fs.mkdirSync(targetDirectory, { recursive: true });
-    fs.copyFileSync(stagedPayload, path.join(targetDirectory, PAYLOAD_FILENAME));
+    const installedPayloadPath = path.join(targetDirectory, PAYLOAD_FILENAME);
+    fs.copyFileSync(stagedPayload, installedPayloadPath);
 
     // The pointer moves only now, once the new version is verifiably on disk.
     fs.writeFileSync(path.join(installRoot, POINTER_FILENAME), `${latestVersion}\r\n`, 'utf8');
@@ -250,6 +251,9 @@ async function installUpdate(installedVersion) {
     return {
       isInstalled: true,
       installedVersion: latestVersion,
+      // Returned so the caller can hand over to it. Without this the update was
+      // complete and still asked somebody to go and launch it themselves.
+      installedPayloadPath,
       reason: null,
     };
   } catch (error) {
