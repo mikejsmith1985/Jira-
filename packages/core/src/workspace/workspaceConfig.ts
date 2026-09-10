@@ -286,5 +286,20 @@ export function reviewStoredWorkspace(stored: unknown): WorkspaceReview {
     };
   }
 
-  return { status: "current", configuration: stored };
+  // Backfill fields added since this document was written.
+  //
+  // A field added without a schema-version bump is invisible to the check above,
+  // and a screen that maps over an absent list renders nothing at all — the
+  // whole Setup page went blank, with a blank page as the only symptom.
+  //
+  // The distinction that makes this delicate: an EMPTY template means "free-form
+  // description, deliberately", while an ABSENT one means "written by a version
+  // that had no such idea". Only the absent case is filled in.
+  return { status: "current", configuration: backfillMissingFields(stored) };
+}
+
+/** Adds any field a document predates, without overwriting one it has. */
+function backfillMissingFields(stored: WorkspaceConfiguration): WorkspaceConfiguration {
+  if (Array.isArray(stored.descriptionSections)) return stored;
+  return { ...stored, descriptionSections: SEED_DESCRIPTION_SECTIONS };
 }

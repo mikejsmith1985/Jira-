@@ -88,20 +88,43 @@
   Feature, not a sub-lane. Disciplines render as read-only rows inside the Feature lane, in their own
   columns or an honest coarse view that says which it is, with their sprints ignored rather than
   reconciled, and progress reported as **two figures — dev-only and whole-family — never blended**.
-<!-- SPECKIT END -->
-
-- **004-issue-author** — *(**PLANNED**, not built. Branch `feature/issue-author`.)* Write a Jira
-  issue from material scattered across four places, with an assistant round trip, and create it.
-  Plan: `specs/004-issue-author/plan.md`. Spec: `specs/004-issue-author/spec.md`.
+- **004-issue-author** — *(**IMPLEMENTED and released**, v0.4.0 through v0.8.0. All seven phases plus
+  the polish pass; 669 tests green.)* Spec: `specs/004-issue-author/spec.md`. Plan:
+  `specs/004-issue-author/plan.md`. Tasks: `specs/004-issue-author/tasks.md`.
+  **Two tasks remain and neither is code**: T011 (recorded createmeta fixtures) and T062 (walking
+  `quickstart.md` against the live Jira). Both need the operator's own instance.
   **One field decides everything**: an existing issue key means update that issue, blank means create
-  a new one, and there is no other path to either — which is what makes "enriched a stub, got a
-  duplicate" structurally impossible rather than merely unlikely. The predecessor spent ~4,400 lines
-  here; most of that was seven source adapters producing truncated text and a nine-section template
-  frozen into a module. **The template is configuration**: an ordered list of headings in the
-  workspace document, seeded with the current nine, editable without a release.
-  Fields come only from Jira's own createmeta for the chosen project and type, so the assistant can
-  only propose field ids the instance has and values a select will accept. Everything else is
-  assembly: the pack machinery, change set, blocker gate, was-to-will-be diff, readiness checks,
-  write journal and the tokenless relay all already exist.
-  Two failures have no symptom and are checked explicitly in the quickstart: a duplicate issue, and
-  a description silently rewritten by normalising one the operator never touched.
+  a new one, and the create branch is unreachable while a key is set — so "enriched a stub, got a
+  duplicate" is structurally impossible rather than merely unlikely. Asserted over generated drafts,
+  not one example. `loadedFieldValues` is captured once at load and every save compares against it,
+  so a description nobody touched is left byte-identical; the predecessor turned headings in
+  untouched rich descriptions into "1. 1." lists on save and nothing reported it.
+  **No field id is written down.** Which fields exist, which are required and which values a select
+  accepts all come from Jira's own createmeta, and an empty field list is kept distinct from a failed
+  read — one means the type has no fields, the other means we do not know.
+  **The section template is configuration**, in the workspace document, editable in Setup and
+  deliberately OUTSIDE the fingerprint: a reworded heading changes no number, and folding it in would
+  make somebody leave a heading wrong rather than risk invalidating a figure.
+  **The assistant round trip** divides on SOURCE boundaries — the shipped chunker divides an issue set
+  on issue boundaries and an authoring prompt has no issues. A source too large for one part is cut
+  AND SAID TO BE CUT. Every refusal is named: an unknown field id, a value a select would reject, an
+  unreadable fragment. The description normaliser is idempotent, so markers cannot accumulate.
+  **Readiness advice is a different TYPE from a blocking condition** and carries no issue key, so the
+  compiler refuses to let one be used as the other. Checks read a draft through a projection rather
+  than being reimplemented for drafts — a second implementation is how the predecessor acquired five
+  live divergences between two rule engines.
+  **Four deviations recorded** in the plan's Complexity Tracking, three found by `/speckit-analyze`
+  rather than during planning: the source-boundary chunker, the draft-to-issue projection, the
+  description normaliser, and the draft stored server-side rather than in browser storage.
+
+- **The relay** — *(**IMPLEMENTED**, v0.3.0.)* **Jira+ needs no personal access token.** A bookmarklet
+  clicked on a Jira tab executes each request inside that tab with `credentials: "include"`, so the
+  credential is the browser's own session cookie. Jira+ never sees it and never stores it.
+  Routing is server-side: the proxy forwards through the relay when no token is configured, which
+  keeps ONE door to Jira and the write journal unbypassable. The bookmarklet proves the page by
+  asking `/rest/api/2/myself` rather than matching a hostname, sends `X-Atlassian-Token: no-check` on
+  every write, and keeps polling after Jira+ restarts. Pattern lifted from NodeToolbox, which had the
+  channel for ServiceNow and never wrote a Jira bookmarklet for it.
+  Jira+ binds **127.0.0.1 only** (v0.2.1) — the wildcard bind both triggered the Windows Firewall
+  dialog and left a credentialled Jira gateway reachable from the corporate network.
+<!-- SPECKIT END -->
