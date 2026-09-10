@@ -63,13 +63,13 @@ describe('the script that outlives this process', () => {
 describe('handing over', () => {
   /** Records what the handover did, without starting anything. */
   function buildSpies() {
-    return { writeScript: vi.fn(), launch: vi.fn(), stop: vi.fn() };
+    return { writeScript: vi.fn(), launch: vi.fn(async () => {}), stop: vi.fn() };
   }
 
-  it('writes the script, launches it detached, then stops this copy', () => {
+  it('writes the script, launches it detached, then stops this copy', async () => {
     const spies = buildSpies();
 
-    const outcome = scheduleRestart({ payloadPath: PAYLOAD_PATH, port: PORT, ...spies });
+    const outcome = await scheduleRestart({ payloadPath: PAYLOAD_PATH, port: PORT, ...spies });
 
     expect(outcome.isRestarting).toBe(true);
     expect(spies.writeScript).toHaveBeenCalledOnce();
@@ -77,36 +77,50 @@ describe('handing over', () => {
     expect(spies.stop).toHaveBeenCalledOnce();
   });
 
-  it('runs the helper through wscript, so no console window appears', () => {
+  it('runs the helper through wscript, so no console window appears', async () => {
     const spies = buildSpies();
 
-    scheduleRestart({ payloadPath: PAYLOAD_PATH, port: PORT, ...spies });
+    await scheduleRestart({ payloadPath: PAYLOAD_PATH, port: PORT, ...spies });
 
     expect(spies.launch.mock.calls[0][0]).toMatch(/wscript/i);
   });
 
-  it('refuses when there is nothing to restart into, and does NOT stop this copy', () => {
+  it('names wscript by its full path rather than trusting PATH', async () => {
+    // The packaged program is started by the Windows scripting host from a
+    // double-clicked .vbs, and what it inherits is not this shell's. A lookup
+    // that fails there fails at the one moment nobody is watching.
+    const spies = buildSpies();
+
+    await scheduleRestart({ payloadPath: PAYLOAD_PATH, port: PORT, ...spies });
+
+    expect(spies.launch.mock.calls[0][0]).toMatch(/^[A-Za-z]:\\.+\\wscript\.exe$/i);
+  });
+
+  it('refuses when there is nothing to restart into, and does NOT stop this copy', async () => {
     // Stopping without a successor is the one outcome worse than not restarting:
     // it leaves somebody with nothing running and no message.
     const spies = buildSpies();
 
-    const outcome = scheduleRestart({ payloadPath: null, port: PORT, ...spies });
+    const outcome = await scheduleRestart({ payloadPath: null, port: PORT, ...spies });
 
     expect(outcome.isRestarting).toBe(false);
     expect(spies.stop).not.toHaveBeenCalled();
     expect(spies.launch).not.toHaveBeenCalled();
   });
 
-  it('does not stop this copy when the helper could not be started', () => {
+  it('WAITS for the helper to actually start before stopping anything', async () => {
+    // The defect this replaces. spawn() reports a missing program on a later
+    // tick, never by throwing, so a try/catch around it cannot see the failure -
+    // the handover reported success and then killed the server anyway, leaving
+    // nothing running and no way to know why. Somebody then restarts by hand,
+    // which is the whole thing this was supposed to end.
     const spies = buildSpies();
-    spies.launch.mockImplementation(() => {
-      throw new Error('wscript is not available');
-    });
+    spies.launch.mockRejectedValue(new Error('wscript.exe could not be started'));
 
-    const outcome = scheduleRestart({ payloadPath: PAYLOAD_PATH, port: PORT, ...spies });
+    const outcome = await scheduleRestart({ payloadPath: PAYLOAD_PATH, port: PORT, ...spies });
 
     expect(outcome.isRestarting).toBe(false);
-    expect(outcome.reason).toContain('wscript is not available');
+    expect(outcome.reason).toContain('wscript.exe could not be started');
     expect(spies.stop).not.toHaveBeenCalled();
   });
 });

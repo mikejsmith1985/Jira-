@@ -8,6 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **The self-restart could report success while doing nothing at all.** `spawn` reports a program it
+  cannot start on a **later tick**, as an event &mdash; never by throwing &mdash; so the `try`/`catch`
+  around it could not see the failure. The handover said it had started, this copy exited on schedule,
+  and nothing came back: the machine was left with no Jira+ running, no message, and a manual restart
+  as the only way forward. Which is precisely the chore the feature exists to remove, three releases
+  running. The launch is now **awaited**: nothing stops until the successor has genuinely started.
+- **A handover that declines to happen now says why.** The reason was computed and then dropped on the
+  floor, so the chip asked for a manual restart and explained nothing &mdash; indistinguishable from a
+  feature that was never built. It travels to the screen now.
+- **The scripting host is named by its full path** rather than looked up on `PATH`. Jira+ is started
+  by that same host from a double-clicked `.vbs`, and what it inherits is not a developer shell's
+  environment &mdash; a lookup that resolves in testing can fail there, at the one moment nobody is
+  watching.
+
+### Fixed
 - **A batch could not be created at all, and Jira had been saying why.** With the refusal finally
   readable, Jira's own words were: *"issuetype: Cannot construct instance of ResourceRef ... from
   String value ('Feature')"* and *"project: project is required"*. Jira's create screen lists

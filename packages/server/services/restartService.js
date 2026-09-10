@@ -33,6 +33,20 @@ const RESTART_GRACE_MS = 400;
 /** The helper's filename. Written to the temp folder, not beside the program. */
 const HELPER_FILENAME = 'jiraplus-restart.vbs';
 
+/**
+ * The Windows scripting host, by its full path.
+ *
+ * Not `wscript.exe` on its own. This program is started by that same host from
+ * a double-clicked .vbs, and the environment it inherits is not the one a
+ * developer's shell has — a PATH lookup that resolves here can fail there, at
+ * the one moment nobody is watching.
+ */
+const SCRIPT_HOST_PATH = path.join(
+  process.env.SystemRoot ?? 'C:\\Windows',
+  'System32',
+  'wscript.exe',
+);
+
 /** Escapes a string for a VBScript literal. Only the quote needs it. */
 function quoteForVbs(text) {
   return String(text).replace(/"/g, '""');
@@ -95,18 +109,30 @@ function writeHelperScript(scriptText) {
 }
 
 /**
- * Starts the helper and forgets about it.
+ * Starts the helper and waits until it has genuinely started.
  *
- * Detached and unreferenced on purpose: it has to keep running after this
- * process is gone, which is the whole point of it.
+ * The waiting is not politeness. `spawn` reports a missing or unrunnable
+ * program on a LATER TICK, as an `error` event — never by throwing — so a
+ * try/catch around it sees nothing. The handover reported success, killed this
+ * process anyway, and left the machine with nothing running and no explanation.
+ * Somebody then restarts it by hand, which is precisely what this exists to
+ * end.
+ *
+ * Detached and unreferenced once it is up, because it has to outlive us.
  */
 function launchHelper(command, helperPath) {
-  const child = spawn(command, ['//B', '//Nologo', helperPath], {
-    detached: true,
-    stdio: 'ignore',
-    windowsHide: true,
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, ['//B', '//Nologo', helperPath], {
+      detached: true,
+      stdio: 'ignore',
+      windowsHide: true,
+    });
+    child.once('spawn', () => {
+      child.unref();
+      resolve();
+    });
+    child.once('error', (error) => reject(error));
   });
-  child.unref();
 }
 
 /** Stops this copy, once the reply has had time to reach the browser. */
@@ -121,7 +147,7 @@ function stopThisCopy() {
  * outcome worse than not restarting at all: it leaves somebody with nothing
  * running and no message explaining why.
  */
-function scheduleRestart({
+async function scheduleRestart({
   payloadPath,
   port,
   writeScript = writeHelperScript,
@@ -134,9 +160,14 @@ function scheduleRestart({
 
   try {
     const helperPath = writeScript(buildRestartScript({ payloadPath, port }));
-    launch('wscript.exe', helperPath);
+    // AWAITED. Nothing stops until the successor has actually started - the one
+    // outcome worse than not restarting is stopping with nothing to come back.
+    await launch(SCRIPT_HOST_PATH, helperPath);
   } catch (error) {
-    return { isRestarting: false, reason: error.message };
+    return {
+      isRestarting: false,
+      reason: `The restart could not be started: ${error.message}. Jira+ is still running on the version you had; the new one is installed and will be used next time you start it.`,
+    };
   }
 
   stop();
@@ -145,6 +176,7 @@ function scheduleRestart({
 
 export {
   HANDOVER_POLL_MS,
+  SCRIPT_HOST_PATH,
   HANDOVER_TIMEOUT_SECONDS,
   HELPER_FILENAME,
   RESTART_GRACE_MS,
