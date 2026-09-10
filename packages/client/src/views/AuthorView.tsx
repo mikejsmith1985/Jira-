@@ -30,6 +30,7 @@ import {
   recordCreatedKey,
   removeBatchItem,
   setChildIssueTypeId,
+  shapeCreateFields,
   readDraftFieldValues,
   readLoadResult,
   runApplyPlan,
@@ -260,7 +261,7 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
     const adapter = createDataCenterAdapter(createBrowserJiraTransport());
     const response = await adapter.createIssue({
       fields: {
-        ...readValues(),
+        ...shapeCreateFields(shape, readValues()),
         // Last, for the same reason as the batch: identity is the create
         // target's to decide, and a field value cannot outrank it.
         project: { key: draft.projectKey },
@@ -389,7 +390,10 @@ export function AuthorView({ configuration, jiraBaseUrl }: AuthorViewProps): JSX
 
       const response = await adapter.createIssue({
         fields: {
-          ...linked,
+          // Shaped against what the instance said its fields ARE. A select is
+          // chosen by its label and Jira will not take a label - it wants an
+          // object, and a different key per field family.
+          ...shapeCreateFields(shape, linked),
           // LAST, so no field value can outrank them. Jira's create screen lists
           // project and issue type among its fields, and spreading a draft over
           // them replaced the project with nothing and the type with the word
