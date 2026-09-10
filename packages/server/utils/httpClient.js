@@ -82,6 +82,7 @@ async function forwardToJira(req, res, config, downstreamPath) {
 
   const target = new URL(downstreamPath, `${config.baseUrl}/`);
   const transport = target.protocol === 'https:' ? https : http;
+  const payload = readParsedBody(req);
 
   const upstream = transport.request(
     {
@@ -89,7 +90,7 @@ async function forwardToJira(req, res, config, downstreamPath) {
       port: target.port || (target.protocol === 'https:' ? 443 : 80),
       path: `${target.pathname}${target.search}`,
       method: req.method,
-      headers: buildUpstreamHeaders(req, config),
+      headers: buildUpstreamHeaders(req, config, payload),
       rejectUnauthorized: config.isSslVerified,
       timeout: REQUEST_TIMEOUT_MS,
     },
@@ -106,16 +107,41 @@ async function forwardToJira(req, res, config, downstreamPath) {
     respondWithTransportFailure(res, error.message);
   });
 
-  req.pipe(upstream);
+  // The parsed body, when there is one: the stream it came from is spent.
+  if (payload === null) req.pipe(upstream);
+  else upstream.end(payload);
+}
+
+/**
+ * The bytes to send upstream, or null when the raw stream can still be piped.
+ *
+ * This exists because of a failure with no symptom on this side. `express.json()`
+ * runs before the proxy and CONSUMES the request stream, so `req.pipe(upstream)`
+ * forwarded an EMPTY body on every write. Jira then refused a create with no
+ * fields in it, quite correctly, with a 400 — and Jira+ reported the status and
+ * nothing else, because Jira's answer to a request that malformed carries no
+ * `errorMessages` to report.
+ *
+ * The parsed body is the only copy that still exists by the time we get here.
+ */
+function readParsedBody(req) {
+  if (req.method === 'GET' || req.method === 'HEAD') return null;
+  // Only JSON was parsed, so only JSON has been consumed. Anything else still
+  // has its stream and is piped as before.
+  if (!req.is('application/json')) return null;
+  return JSON.stringify(req.body ?? {});
 }
 
 /** Builds the upstream headers, attaching the credential the browser never sees. */
-function buildUpstreamHeaders(req, config) {
+function buildUpstreamHeaders(req, config, payload) {
   const headers = {
     accept: 'application/json',
     authorization: `Bearer ${config.personalAccessToken}`,
   };
   if (req.headers['content-type']) headers['content-type'] = req.headers['content-type'];
+  // Stated rather than left to chunked encoding: some Jira deployments sit
+  // behind a proxy that will not accept a chunked write.
+  if (payload !== null) headers['content-length'] = Buffer.byteLength(payload);
   return headers;
 }
 

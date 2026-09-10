@@ -46,6 +46,9 @@ beforeAll(async () => {
       method: req.method,
       url: req.url,
       authorization: req.headers.authorization,
+      // Recorded because nothing asserted it, and that is how a proxy that
+      // forwarded every write with an EMPTY body passed its whole suite.
+      body: req.body,
     });
     if (req.url.includes('boom')) {
       res.status(400).json({ errorMessages: ["Field 'cf[99999]' does not exist"] });
@@ -146,5 +149,33 @@ describe('reads are not journalled', () => {
     await request(createApp(config)).get('/jira-proxy/rest/api/2/search?jql=project=ENCUC');
 
     expect(readJournal()).toHaveLength(0);
+  });
+});
+
+describe('what a write actually carries', () => {
+  // The failure this exists to catch has no symptom on this side: Jira+ reports
+  // "Jira answered with status 400" and Jira, quite correctly, refuses a create
+  // with no fields in it. Every assertion here was missing, which is exactly why
+  // every write left with nothing in it.
+  it('sends the body Jira needs, rather than an empty request', async () => {
+    const fields = { fields: { project: { key: 'DENP' }, summary: 'A real summary' } };
+
+    await request(createApp(config)).post('/jira-proxy/rest/api/2/issue').send(fields);
+
+    expect(receivedRequests[0].body).toEqual(fields);
+  });
+
+  it('sends the body on a PUT too, so an update is not a no-op', async () => {
+    const fields = { fields: { summary: 'Changed' } };
+
+    await request(createApp(config)).put('/jira-proxy/rest/api/2/issue/DENP-1').send(fields);
+
+    expect(receivedRequests[0].body).toEqual(fields);
+  });
+
+  it('sends nothing extra on a GET, which has no body to send', async () => {
+    await request(createApp(config)).get('/jira-proxy/rest/api/2/myself');
+
+    expect(receivedRequests[0].body).toEqual({});
   });
 });

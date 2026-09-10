@@ -13,6 +13,9 @@ import type { JiraResponse, JiraTransport } from "@jira-plus/core";
 /** The path prefix the local server forwards to Jira. */
 const PROXY_PREFIX = "/jira-proxy";
 
+/** How much of an unreadable refusal to show before it stops being a message. */
+const RAW_REASON_LIMIT = 300;
+
 /**
  * Pulls Jira's own error text out of whatever shape came back.
  *
@@ -43,6 +46,12 @@ function readJiraMessages(body: unknown): readonly string[] {
     );
   }
 
+  // Some refusals carry a single sentence instead, under a name of their own.
+  for (const key of ["message", "errorMessage", "error"] as const) {
+    const value = (body as Record<string, unknown>)[key];
+    if (typeof value === "string" && value.trim().length > 0) collected.push(value);
+  }
+
   return collected;
 }
 
@@ -66,19 +75,40 @@ function readRetryAfterSeconds(response: Response): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+/**
+ * What a refusal said, when it said it in no shape we recognise.
+ *
+ * A bare status is the message this product exists to remove. If Jira answered
+ * with plain text, or a page, that text is worth more than the number on its
+ * own - trimmed, because a page of HTML on screen is not a message either.
+ */
+function readRawReason(rawText: string): readonly string[] {
+  const trimmed = rawText.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  if (trimmed.length === 0) return [];
+  return [trimmed.slice(0, RAW_REASON_LIMIT)];
+}
+
 /** Turns one fetch into the engine's response shape. */
 async function toJiraResponse<TBody>(response: Response): Promise<JiraResponse<TBody>> {
+  // Read as text FIRST, so a refusal that is not JSON still has its words.
+  // Reading it as JSON consumed the body and left nothing to fall back on.
+  const rawText = await response.text().catch(() => "");
   let body: unknown = null;
   try {
-    body = await response.json();
+    body = JSON.parse(rawText);
   } catch {
-    // A body that is not JSON is not an error in itself; the status still speaks.
+    // A body that is not JSON is not an error in itself; the text still speaks.
   }
 
+  const messages = readJiraMessages(body);
+  // The raw text is a LAST resort, used only when the body could not be read as
+  // JSON at all. Echoing back a JSON object we did understand, and which simply
+  // held no reason, would add noise rather than an explanation.
+  const isUnreadable = body === null && !response.ok;
   return {
     statusCode: response.status,
     body: response.ok ? (body as TBody) : null,
-    jiraMessages: readJiraMessages(body),
+    jiraMessages: messages.length === 0 && isUnreadable ? readRawReason(rawText) : messages,
     retryAfterSeconds: readRetryAfterSeconds(response),
     jiraPlusFailureKind: readJiraPlusFailureKind(body),
   };
