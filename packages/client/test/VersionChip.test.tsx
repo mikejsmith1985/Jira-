@@ -164,4 +164,25 @@ describe("after installing", () => {
 
     expect(await screen.findByText(/0\.9\.2 ready — restart/i)).toBeTruthy();
   });
+
+  it("says WHY it could not, rather than asking again and explaining nothing", async () => {
+    // "Why do I still have to restart the app manually? you said that was going
+    // to be fixed like 3 versions ago." It had been declining to hand over and
+    // saying nothing about it, so there was nothing to act on and no way to
+    // tell a broken handover from one that was never attempted.
+    stubServer(UPDATE_WAITING, {
+      isOk: true,
+      body: {
+        installedVersion: "0.9.2",
+        isRestarting: false,
+        restartReason: "The restart could not be started: wscript.exe is missing.",
+      },
+    });
+
+    render(<VersionChip />);
+    await userEvent.click(await screen.findByRole("button", { name: /update to 0\.9\.2/i }));
+
+    const chip = await screen.findByTitle(/wscript\.exe is missing/i);
+    expect(chip).toBeTruthy();
+  });
 });

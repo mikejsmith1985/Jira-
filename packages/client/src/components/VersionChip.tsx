@@ -84,6 +84,10 @@ export function VersionChip(): JSX.Element | null {
   const [isInstalling, setIsInstalling] = useState(false);
   const [installedVersion, setInstalledVersion] = useState<string | null>(null);
   const [restartingInto, setRestartingInto] = useState<string | null>(null);
+  // Why the handover did not happen. Without it the chip asked for a manual
+  // restart and explained nothing, which is indistinguishable from a feature
+  // that was never built.
+  const [restartRefusal, setRestartRefusal] = useState<string | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
 
   const check = useCallback(async () => {
@@ -114,8 +118,12 @@ export function VersionChip(): JSX.Element | null {
       }
       // The server hands over to the new version itself. Until it comes back,
       // this page is talking to a copy that is on its way out.
-      if (body.isRestarting === true) setRestartingInto(body.installedVersion);
-      else setInstalledVersion(body.installedVersion);
+      if (body.isRestarting === true) {
+        setRestartingInto(body.installedVersion);
+        return;
+      }
+      setInstalledVersion(body.installedVersion);
+      setRestartRefusal(typeof body.restartReason === "string" ? body.restartReason : null);
     } catch {
       setProblem("The update could not be downloaded.");
     } finally {
@@ -131,7 +139,10 @@ export function VersionChip(): JSX.Element | null {
 
   if (installedVersion !== null) {
     return (
-      <span className="version-chip version-chip--ready" title="Restart to use it">
+      <span
+        className="version-chip version-chip--ready"
+        title={restartRefusal ?? "Restart to use it"}
+      >
         {installedVersion} ready — restart Jira+
       </span>
     );

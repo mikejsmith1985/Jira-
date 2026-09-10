@@ -30,8 +30,15 @@ function createUpdatesRouter(installedVersion, port) {
     if (outcome.isInstalled) {
       // Answered BEFORE the handover starts, so the browser learns the new
       // version's number and can wait for it to come back on that port.
-      const restart = scheduleRestart({ payloadPath: outcome.installedPayloadPath, port });
-      res.json({ ...outcome, isRestarting: restart.isRestarting });
+      const restart = await scheduleRestart({ payloadPath: outcome.installedPayloadPath, port });
+      // The REASON travels too. A handover that silently declined to happen is
+      // how "it still asks me to restart it myself" went unexplained for three
+      // releases.
+      res.json({
+        ...outcome,
+        isRestarting: restart.isRestarting,
+        restartReason: restart.reason,
+      });
       return;
     }
     res.status(HTTP_CONFLICT).json({ reason: outcome.reason });
