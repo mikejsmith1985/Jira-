@@ -16,6 +16,8 @@
 
 import type {
   IssueTypeChoice,
+  ProjectChoice,
+  StatusChoice,
   BoardConfigurationResponse,
   BoardSummary,
   CapabilityProbe,
@@ -142,6 +144,68 @@ export function createDataCenterAdapter(transport: JiraTransport): JiraAdapter {
     return {
       ...response,
       body: Array.isArray(response.body) ? response.body.map(normaliseFieldDescriptor) : null,
+    };
+  }
+
+  /**
+   * The projects the operator can see.
+   *
+   * The basic search is only as good as the lists it offers: asking somebody to
+   * type a project key exactly is the same barrier as JQL with fewer words.
+   * Needs only Browse permission, like everything else here.
+   */
+  async function fetchProjects(): Promise<JiraResponse<readonly ProjectChoice[]>> {
+    const response = await transport.get<readonly Record<string, unknown>[]>("/rest/api/2/project");
+    return {
+      ...response,
+      body: Array.isArray(response.body)
+        ? response.body.map((rawProject) => ({
+            projectKey: String(rawProject.key ?? ""),
+            // Its key rather than a blank row, when Jira gave no name.
+            name:
+              typeof rawProject.name === "string" && rawProject.name.length > 0
+                ? rawProject.name
+                : String(rawProject.key ?? ""),
+          }))
+        : null,
+    };
+  }
+
+  /**
+   * Every status, with the category each belongs to.
+   *
+   * The category is what lets "still open" work without knowing a single one of
+   * this team's status names.
+   */
+  async function fetchStatuses(): Promise<JiraResponse<readonly StatusChoice[]>> {
+    const response = await transport.get<readonly Record<string, unknown>[]>("/rest/api/2/status");
+    return {
+      ...response,
+      body: Array.isArray(response.body)
+        ? response.body.map((rawStatus) => ({
+            name: String(rawStatus.name ?? ""),
+            statusCategoryKey: String(
+              (rawStatus.statusCategory as { key?: unknown } | undefined)?.key ?? "",
+            ),
+          }))
+        : null,
+    };
+  }
+
+  /** Every issue type in the instance, for a search that crosses projects. */
+  async function fetchAllIssueTypes(): Promise<JiraResponse<readonly IssueTypeChoice[]>> {
+    const response = await transport.get<readonly Record<string, unknown>[]>(
+      "/rest/api/2/issuetype",
+    );
+    return {
+      ...response,
+      body: Array.isArray(response.body)
+        ? response.body.map((rawType) => ({
+            issueTypeId: String(rawType.id ?? ""),
+            name: typeof rawType.name === "string" ? rawType.name : String(rawType.id ?? ""),
+            isSubtask: rawType.subtask === true,
+          }))
+        : null,
     };
   }
 
@@ -360,6 +424,9 @@ export function createDataCenterAdapter(transport: JiraTransport): JiraAdapter {
     searchIssuesByJql,
     fetchIssueDetail,
     fetchFieldCatalogue,
+    fetchProjects,
+    fetchStatuses,
+    fetchAllIssueTypes,
     fetchIssueTypesForProject,
     fetchCreateScreenFields,
     createIssue,
