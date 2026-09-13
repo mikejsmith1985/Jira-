@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **A basic search, and it is now the way in.** JQL is a real barrier: most people who need an answer
+  about their own team's issues cannot write one, and a screen that opens on a JQL box tells them so
+  before they have typed anything &mdash; which is exactly how a tool ends up used by one person.
+  Pick projects, issue types and statuses from **Jira's own lists**, say whether the work is still
+  open, whose it is, how recently it changed, and what words it contains. Asking somebody to type a
+  project key or a status name exactly right is the same barrier as JQL with fewer words, so nothing
+  has to be typed exactly.
+  **The query it builds is on screen, and the button runs that query and no other.** This is a way to
+  *write* a search, never a second way to ask Jira: everything downstream still reads one frozen
+  Issue Set, from one query whose exact text is stamped on every result. So a number a beginner
+  produced can be checked, re-run and argued with exactly like anybody else's &mdash; and a search
+  that found the wrong thing can be read and corrected rather than merely distrusted.
+  **Edit as JQL** hands the built query to the JQL box, which is the path from picking to writing.
+  "Still open" uses Jira's own status category, so it works without knowing a single one of this
+  team's status names; "Me" uses `currentUser()`, so no account name is written down anywhere. An
+  empty form searches for **nothing** rather than for everything &mdash; a builder that means "every
+  issue in the instance" is a way to retrieve tens of thousands of issues by touching nothing. And
+  when Jira's lists cannot be read at all, it says so: an empty list and an unreachable Jira are
+  different things and must never render alike.
+
 ### Fixed
 - **Every select was sent to Jira as a bare word, and Jira refused all of them.** A select is chosen
   by picking a label off a list, and the label is what a draft holds. Jira will not take a label

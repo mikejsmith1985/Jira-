@@ -122,6 +122,18 @@ export interface FailureDiagnosis {
   readonly rawReply: string;
 }
 
+/** One project the operator can see. */
+export interface ProjectChoice {
+  readonly projectKey: string;
+  readonly name: string;
+}
+
+/** One status, with the category that classifies it on every instance. */
+export interface StatusChoice {
+  readonly name: string;
+  readonly statusCategoryKey: string;
+}
+
 /** The transport, so the engine never constructs a URL or holds a credential. */
 export interface JiraTransport {
   get<TBody>(pathAndQuery: string): Promise<JiraResponse<TBody>>;
@@ -137,6 +149,9 @@ export interface JiraAdapter {
     options: { doesIncludeChangelog: boolean },
   ): Promise<JiraResponse<Record<string, unknown>>>;
   fetchFieldCatalogue(): Promise<JiraResponse<readonly JiraFieldDescriptor[]>>;
+  fetchProjects(): Promise<JiraResponse<readonly ProjectChoice[]>>;
+  fetchStatuses(): Promise<JiraResponse<readonly StatusChoice[]>>;
+  fetchAllIssueTypes(): Promise<JiraResponse<readonly IssueTypeChoice[]>>;
   /** The issue types a project offers, from the instance rather than a list. */
   fetchIssueTypesForProject(
     projectKey: string,

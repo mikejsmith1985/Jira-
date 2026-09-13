@@ -9,12 +9,15 @@
 
 import type { JSX } from "react";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import { ASK_ANYTHING_PACK } from "@jira-plus/core";
+import { ASK_ANYTHING_PACK, buildEmptyCriteria, createDataCenterAdapter } from "@jira-plus/core";
 import type { DetailedIssue, WorkspaceConfiguration } from "@jira-plus/core";
 
 import { PackPanel } from "../components/PackPanel.js";
+import { SimpleSearchPanel } from "../components/SimpleSearchPanel.js";
+import type { SearchChoices } from "../components/SimpleSearchPanel.js";
+import { createBrowserJiraTransport } from "../state/jiraTransport.js";
 import { ProvenanceBanner } from "../components/ProvenanceBanner.js";
 import type { IssueSetState } from "../state/useIssueSet.js";
 
@@ -64,6 +67,12 @@ export function QueryConsoleView({
   issueSetState,
   configuration,
 }: QueryConsoleViewProps): JSX.Element {
+  // Basic first. The people this product failed to reach are the ones who
+  // cannot write JQL, and a screen that opens on a JQL box tells them so before
+  // they have typed anything.
+  const [mode, setMode] = useState<"basic" | "jql">("basic");
+  const [criteria, setCriteria] = useState(buildEmptyCriteria());
+  const [choices, setChoices] = useState<SearchChoices | null>(null);
   const [draftJql, setDraftJql] = useState("");
   const [doesRequestAllFields, setDoesRequestAllFields] = useState(false);
   // On by default HERE and nowhere else. "Is this in the right status" cannot be
@@ -72,22 +81,84 @@ export function QueryConsoleView({
   const [doesRequestHistory, setDoesRequestHistory] = useState(true);
   const { issueSet, isRetrieving, progress, run } = issueSetState;
 
+  /** Runs whatever query was built or typed, through the one retrieval path. */
+  const runQuery = useCallback(
+    (jql: string) => {
+      if (jql.trim().length === 0) return;
+      void run(jql.trim(), { doesRequestAllFields, doesRequireChangelog: doesRequestHistory });
+    },
+    [run, doesRequestAllFields, doesRequestHistory],
+  );
+
+  // Jira's own lists, so nobody has to type a project key exactly right. A
+  // failure leaves them null, which the panel says out loud rather than
+  // rendering as "this instance has no projects".
+  useEffect(() => {
+    const adapter = createDataCenterAdapter(createBrowserJiraTransport());
+    void (async () => {
+      const [projects, issueTypes, statuses] = await Promise.all([
+        adapter.fetchProjects(),
+        adapter.fetchAllIssueTypes(),
+        adapter.fetchStatuses(),
+      ]);
+      if (projects.body === null) return;
+      setChoices({
+        projects: projects.body,
+        issueTypes: issueTypes.body ?? [],
+        statuses: statuses.body ?? [],
+      });
+    })();
+  }, []);
+
   return (
     <section className="console">
       <h2 className="view__title">Ask anything about any set of issues</h2>
       <p className="view__lede">
-        Paste a JQL query. Everything it matches is retrieved once, and every other screen reads
-        from that one result.
+        Pick what you are looking for, or write the query yourself. Either way it is retrieved once,
+        and every other screen reads from that one result.
       </p>
+
+      <div className="segmented" role="group" aria-label="How to search">
+        <button
+          type="button"
+          className="segmented__button"
+          aria-pressed={mode === "basic"}
+          onClick={() => setMode("basic")}
+        >
+          Basic search
+        </button>
+        <button
+          type="button"
+          className="segmented__button"
+          aria-pressed={mode === "jql"}
+          onClick={() => setMode("jql")}
+        >
+          JQL
+        </button>
+      </div>
+
+      {mode === "basic" ? (
+        <SimpleSearchPanel
+          criteria={criteria}
+          choices={choices}
+          isRetrieving={isRetrieving}
+          onChange={setCriteria}
+          onSearch={runQuery}
+          onEditAsJql={(jql) => {
+            // The path from picking to writing: take the query it built and
+            // carry on from there, the way Jira lets you.
+            setDraftJql(jql);
+            setMode("jql");
+          }}
+        />
+      ) : null}
 
       <form
         className="console__form"
+        hidden={mode !== "jql"}
         onSubmit={(event) => {
           event.preventDefault();
-          if (draftJql.trim().length > 0) void run(draftJql.trim(), {
-              doesRequestAllFields,
-              doesRequireChangelog: doesRequestHistory,
-            });
+          runQuery(draftJql);
         }}
       >
         <label className="console__label" htmlFor="jql">

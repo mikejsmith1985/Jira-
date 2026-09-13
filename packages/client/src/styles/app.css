@@ -1754,3 +1754,57 @@
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+/* The basic search. Rows of choices rather than a syntax to learn. */
+.search {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.search__row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.search__choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.search__choice {
+  padding: 4px 10px;
+  border: 1px solid rgba(88, 166, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(24, 31, 45, 0.9);
+  color: var(--text, #e6edf3);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.search__choice[aria-pressed="true"] {
+  border-color: rgba(88, 166, 255, 0.7);
+  background: rgba(88, 166, 255, 0.18);
+  font-weight: 600;
+}
+
+/* Always visible: a search nobody can read is a search nobody can correct. */
+.search__query {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px;
+  border: 1px dashed rgba(88, 166, 255, 0.3);
+  border-radius: 8px;
+  background: rgba(35, 42, 60, 0.72);
+}
+
+.search__query code {
+  font-size: 12px;
+  word-break: break-word;
+}

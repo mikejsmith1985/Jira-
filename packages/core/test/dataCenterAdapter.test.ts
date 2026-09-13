@@ -237,3 +237,98 @@ describe("probeCapabilities", () => {
     expect(probe.unresolved.length).toBeGreaterThan(0);
   });
 });
+
+/** Answers each path with the body the case is about. */
+function buildTransport(bodies: Record<string, unknown>): JiraTransport {
+  const answer = async (pathAndQuery: string) => {
+    const match = Object.keys(bodies).find((candidate) => pathAndQuery.startsWith(candidate));
+    return {
+      statusCode: match === undefined ? 404 : 200,
+      body: match === undefined ? null : bodies[match],
+      jiraMessages: [],
+      retryAfterSeconds: null,
+    } as JiraResponse<never>;
+  };
+  return { get: vi.fn(answer), post: vi.fn(answer), put: vi.fn(answer) } as JiraTransport;
+}
+
+describe("what there is to search", () => {
+  // A basic search is only as good as the lists it offers. Asking somebody to
+  // type a project key or a status name exactly is the same barrier as JQL,
+  // just with fewer words - so the choices come from the instance itself.
+  it("lists the projects the operator can see, by key and by name", () => {
+    const transport = buildTransport({
+      "/rest/api/2/project": [
+        { key: "ENCUC", name: "Enrollment Customer" },
+        { key: "DENP", name: "Enrollment Program" },
+      ],
+    });
+
+    return createDataCenterAdapter(transport)
+      .fetchProjects()
+      .then((response) => {
+        expect(response.body).toEqual([
+          { projectKey: "ENCUC", name: "Enrollment Customer" },
+          { projectKey: "DENP", name: "Enrollment Program" },
+        ]);
+      });
+  });
+
+  it("lists the statuses with the category each belongs to", () => {
+    // The category is what lets "still open" work without knowing one status
+    // name on this instance.
+    const transport = buildTransport({
+      "/rest/api/2/status": [
+        { name: "Working", statusCategory: { key: "indeterminate" } },
+        { name: "Closed", statusCategory: { key: "done" } },
+      ],
+    });
+
+    return createDataCenterAdapter(transport)
+      .fetchStatuses()
+      .then((response) => {
+        expect(response.body).toEqual([
+          { name: "Working", statusCategoryKey: "indeterminate" },
+          { name: "Closed", statusCategoryKey: "done" },
+        ]);
+      });
+  });
+
+  it("lists every issue type in the instance, for a search across projects", () => {
+    const transport = buildTransport({
+      "/rest/api/2/issuetype": [
+        { id: "1", name: "Defect", subtask: false },
+        { id: "5", name: "Sub-task", subtask: true },
+      ],
+    });
+
+    return createDataCenterAdapter(transport)
+      .fetchAllIssueTypes()
+      .then((response) => {
+        expect(response.body?.map((type) => type.name)).toEqual(["Defect", "Sub-task"]);
+      });
+  });
+
+  it("keeps a failed lookup distinguishable from an empty one", () => {
+    // An empty list of projects and an unreachable Jira must never render
+    // alike: one means you can see nothing, the other means we do not know.
+    const transport = buildTransport({});
+
+    return createDataCenterAdapter(transport)
+      .fetchProjects()
+      .then((response) => {
+        expect(response.body).toBeNull();
+      });
+  });
+
+  it("names each project only once, however Jira spelled it", () => {
+    const transport = buildTransport({ "/rest/api/2/project": [{ key: "ENCUC" }] });
+
+    return createDataCenterAdapter(transport)
+      .fetchProjects()
+      .then((response) => {
+        // A project with no name renders as its key rather than as a blank row.
+        expect(response.body).toEqual([{ projectKey: "ENCUC", name: "ENCUC" }]);
+      });
+  });
+});

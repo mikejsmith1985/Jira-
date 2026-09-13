@@ -62,6 +62,8 @@ export type {
   JiraFieldDescriptor,
   FailureDiagnosis,
   JiraResponse,
+  ProjectChoice,
+  StatusChoice,
   JiraSearchPage,
   JiraTransport,
   JqlSearchRequest,
@@ -321,6 +323,8 @@ export {
   setChildIssueTypeId,
   updateBatchItem,
 } from "./authoring/authoringBatch.js";
+export { buildEmptyCriteria, buildJqlFromCriteria } from "./search/simpleSearch.js";
+export type { Assignment, Completion, SimpleSearchCriteria } from "./search/simpleSearch.js";
 export { shapeCreateFields, shapeFieldValueForJira } from "./jira/write/shapeFieldValue.js";
 export type { AllowedOption, FieldValueShapeInput } from "./jira/write/shapeFieldValue.js";
 export type { AuthoringBatch, BatchItem, BatchShape } from "./authoring/authoringBatch.js";
