@@ -17,6 +17,7 @@
     "build": "npm run build --workspace @jira-plus/core && npm run build --workspace @jira-plus/client",
     "test": "vitest run --project core --project client",
     "test:contract": "npm run build --workspace @jira-plus/core && vitest run --project server",
+    "test:release": "vitest run --project release",
     "test:watch": "vitest",
     "lint": "eslint .",
     "typecheck": "tsc --build packages/core packages/client",

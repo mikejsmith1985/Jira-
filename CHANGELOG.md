@@ -8,6 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Install from the team folder, in one double-click.** The zip used to reach a colleague as a
+  download &mdash; and in a locked-down environment a download is exactly the thing that gets
+  stripped from an email, refused by Teams, or stamped with Mark-of-the-Web so that SmartScreen
+  warns about every file inside it. Now the zip is extracted **once** into a folder the team already
+  shares, a Teams channel's Files tab, which OneDrive syncs onto everybody's machine, and each person
+  double-clicks `Install Jira Plus.vbs` there. It copies Jira+ into their own `%LOCALAPPDATA%`,
+  adds *Jira Plus* to the Start Menu, and starts it. Nothing is downloaded, so nothing is blocked.
+  **Re-running it is the update**: a newer version in the team folder is installed beside the old
+  one and the pointer moved, exactly as the in-app updater does &mdash; and the pointer only ever
+  moves forward, so somebody who already took an update from GitHub is never quietly downgraded.
+  The copy goes to `%LOCALAPPDATA%` rather than Documents on purpose: corporate Windows redirects
+  Documents into OneDrive, and a running program inside a synced folder is fought over by the sync
+  client. The installer is executed for real by `npm run test:release`, under `cscript`, against a
+  staged folder &mdash; a launcher that is only read and never run is the one that shows a dialog
+  after every start.
+- **`SHA256SUMS.txt` ships in the zip.** An unsigned executable sometimes has to be allowed by hash,
+  and the hash is only useful if the person asking knows it is the question. One line, in the format
+  `sha256sum -c` and `certutil -hashfile` agree on, so an IT exception can be requested by quoting it.
 - **A basic search, and it is now the way in.** JQL is a real barrier: most people who need an answer
   about their own team's issues cannot write one, and a screen that opens on a JQL box tells them so
   before they have typed anything &mdash; which is exactly how a tool ends up used by one person.

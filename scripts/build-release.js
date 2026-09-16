@@ -2,11 +2,13 @@
 //
 // The shape matters, and it is not arbitrary:
 //
-//   Launch Jira Plus.vbs                  ← double-click this
+//   Install Jira Plus.vbs                 ← double-click this from a team folder
+//   Launch Jira Plus.vbs                  ← double-click this from your own copy
 //   Launch Jira Plus (show errors).bat    ← when the first one does not work
 //   Stop Jira Plus.vbs                    ← the way out; it runs hidden
 //   current.txt                           ← which version to run
 //   versions\0.1.0\jiraplus.exe           ← the whole application, one file
+//   SHA256SUMS.txt                        ← the hash IT asks for
 //   README.txt                            ← for somebody who received the zip
 //
 // The versions folder with a pointer file exists for one reason: Windows will
@@ -14,12 +16,19 @@
 // and flips the pointer, so an update that fails halfway leaves somebody with a
 // working application rather than a broken folder.
 //
+// The installer exists because the zip is extracted ONCE, into a Teams channel
+// folder that OneDrive syncs to everybody, and each person needs their own copy
+// rather than the shared one: that is the difference between forwarding a link
+// and forwarding a page of instructions.
+//
 // Nothing here needs Node.js, npm, a terminal, or network access at run time.
 
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { buildChecksumText } from "./checksums.js";
 
 /** Repository root, resolved from this file rather than the working directory. */
 const REPOSITORY_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -85,6 +94,29 @@ function buildReadmeText(version) {
     "  Extracting a new zip over this folder still works, and is the way back if a",
     "  machine cannot reach GitHub.",
     "",
+    "TO SHARE IT WITH YOUR TEAM",
+    "",
+    "  Extract this zip once into a folder your team already has - a Teams",
+    "  channel's Files tab is ideal, because OneDrive puts it on everybody's",
+    "  machine. Each person then double-clicks  Install Jira Plus.vbs  in that",
+    "  folder. It copies Jira+ into their own %LOCALAPPDATA%\\JiraPlus, adds",
+    "  'Jira Plus' to their Start Menu, and starts it. Nobody downloads anything,",
+    "  so nothing is blocked as a download and no SmartScreen warning appears.",
+    "",
+    "  When a newer version lands in the team folder, double-click the same file",
+    "  again. It installs the new version beside the old one and never moves a",
+    "  copy backwards - somebody already ahead stays ahead.",
+    "",
+    "  Do not run  Launch Jira Plus.vbs  from the shared folder itself: the",
+    "  version pointer would be shared with everybody, and OneDrive would fight",
+    "  the running program over the files.",
+    "",
+    "IF IT IS BLOCKED",
+    "",
+    "  SHA256SUMS.txt holds the SHA-256 of jiraplus.exe. If your machine refuses",
+    "  to run unsigned programs, that hash is what an IT exception request quotes.",
+    "  You can confirm it yourself with:  certutil -hashfile jiraplus.exe SHA256",
+    "",
     "TO REMOVE IT",
     "",
     "  Delete this folder. Delete %APPDATA%\\JiraPlus if you want your settings gone",
@@ -116,12 +148,22 @@ function main() {
   fs.mkdirSync(STAGING_ROOT, { recursive: true });
 
   // The application, under its version. The launcher finds it by the pointer.
-  copyInto(executablePath, path.join(STAGING_ROOT, "versions", version, "jiraplus.exe"));
+  const payloadRelativePath = path.join("versions", version, "jiraplus.exe");
+  copyInto(executablePath, path.join(STAGING_ROOT, payloadRelativePath));
 
   // The pointer. One line, deliberately: a human can read and repair it.
   fs.writeFileSync(path.join(STAGING_ROOT, "current.txt"), `${version}\r\n`, "utf8");
 
+  // The hash, so an exception for an unsigned executable can be requested by
+  // quoting one line rather than by explaining how to compute it.
+  fs.writeFileSync(
+    path.join(STAGING_ROOT, "SHA256SUMS.txt"),
+    buildChecksumText(STAGING_ROOT, [payloadRelativePath]),
+    "utf8",
+  );
+
   for (const launcherName of [
+    "Install Jira Plus.vbs",
     "Launch Jira Plus.vbs",
     "Launch Jira Plus (show errors).bat",
     "Stop Jira Plus.vbs",
