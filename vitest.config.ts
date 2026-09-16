@@ -28,6 +28,17 @@ export default defineConfig({
         },
       },
       {
+        // The release layer: the checksum module and the installer script that
+        // ship inside the zip. The installer test executes the real .vbs under
+        // cscript, so it is Windows-only and runs via `npm run test:release`.
+        test: {
+          name: "release",
+          root: "./scripts",
+          environment: "node",
+          include: ["test/**/*.test.js"],
+        },
+      },
+      {
         test: {
           name: "client",
           root: "./packages/client",

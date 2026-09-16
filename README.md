@@ -77,6 +77,29 @@ old one and the launcher switches to it, because Windows will not overwrite a
 running executable — so an update that fails halfway leaves you with a working
 application rather than a broken folder. Your settings are untouched.
 
+### Sharing it with your team
+
+Extract the zip **once** into a folder the team already has — a Teams channel's
+Files tab is ideal, because OneDrive syncs it onto everybody's machine. Each
+person double-clicks **`Install Jira Plus.vbs`** in that folder. It copies Jira+
+into their own `%LOCALAPPDATA%\JiraPlus`, adds *Jira Plus* to their Start Menu,
+and starts it.
+
+Nothing is downloaded, so nothing is blocked as a download: no stripped email
+attachment, no Mark-of-the-Web, no SmartScreen warning. When a newer version
+lands in the team folder, the same double-click installs it beside the old one.
+The pointer only ever moves forward, so somebody who already took an update from
+GitHub is never quietly downgraded.
+
+Two deliberate choices. The copy goes to `%LOCALAPPDATA%` rather than Documents
+because corporate Windows commonly redirects Documents into OneDrive, and a
+running program inside a synced folder is fought over by the sync client. And
+nobody runs `Launch Jira Plus.vbs` from the shared folder itself, because the
+version pointer would then be shared with everybody.
+
+If a machine refuses to run unsigned programs, `SHA256SUMS.txt` in the zip holds
+the hash of `jiraplus.exe`, which is what an IT exception request quotes.
+
 ### Removing it
 
 Delete the folder. Delete `%APPDATA%\JiraPlus` too if you want your settings
@@ -97,12 +120,18 @@ npm run build:release      # builds the client, the exe, and the zip
 The result is `build/jira-plus-vX.Y.Z.zip`, laid out as:
 
 ```
-Launch Jira Plus.vbs                  ← double-click this
+Install Jira Plus.vbs                 ← double-click this from a team folder
+Launch Jira Plus.vbs                  ← double-click this from your own copy
 Launch Jira Plus (show errors).bat    ← when the first one does not work
+Stop Jira Plus.vbs                    ← the way out
 current.txt                           ← which version to run
 versions\X.Y.Z\jiraplus.exe           ← the whole application, one file
+SHA256SUMS.txt                        ← the hash an IT exception quotes
 README.txt                            ← for whoever receives the zip
 ```
+
+The installer is exercised for real by `npm run test:release`, which runs it
+under `cscript` against a staged folder — Windows only, by nature.
 
 Releases are cut locally and never by a CI runner, per Article VIII.
 
